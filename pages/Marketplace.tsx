@@ -3,7 +3,7 @@ import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
-import { Search, SlidersHorizontal, MapPin, ChevronDown, ShieldCheck, Users } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, ChevronDown, ShieldCheck, Users, ArrowUpDown } from 'lucide-react';
 
 const Marketplace: React.FC = () => {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -17,6 +17,7 @@ const Marketplace: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
   
   useEffect(() => {
     const fetchListings = async () => {
@@ -37,7 +38,7 @@ const Marketplace: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    let result = listings;
+    let result = [...listings]; // Create a copy to sort safely
 
     // 1. Filter by Marketplace Layer
     if (marketplaceLayer === 'verified') {
@@ -64,8 +65,20 @@ const Marketplace: React.FC = () => {
       result = result.filter(l => l.category === selectedCategory);
     }
 
+    // 5. Sorting
+    result.sort((a, b) => {
+      if (sortBy === 'price-low') {
+        return a.price_rm - b.price_rm;
+      } else if (sortBy === 'price-high') {
+        return b.price_rm - a.price_rm;
+      } else {
+        // 'latest'
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
     setFilteredListings(result);
-  }, [searchQuery, selectedState, selectedCategory, listings, marketplaceLayer]);
+  }, [searchQuery, selectedState, selectedCategory, listings, marketplaceLayer, sortBy]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -105,8 +118,8 @@ const Marketplace: React.FC = () => {
             </div>
          </div>
 
-         {/* Search Bar Row */}
-         <div className="flex flex-col md:flex-row gap-4">
+         {/* Search & Filter Row */}
+         <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-grow">
                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-slate-400" />
@@ -120,22 +133,43 @@ const Marketplace: React.FC = () => {
                />
             </div>
             
-            {/* Location Dropdown */}
-            <div className="relative min-w-[200px]">
-               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-4 w-4 text-slate-500" />
-               </div>
-               <select 
-                  className="w-full pl-9 pr-8 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
-               >
-                  <option value="">All Locations</option>
-                  {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-               </select>
-               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
-               </div>
+            <div className="flex gap-4">
+                {/* Location Dropdown */}
+                <div className="relative min-w-[160px]">
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPin className="h-4 w-4 text-slate-500" />
+                   </div>
+                   <select 
+                      className="w-full pl-9 pr-8 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
+                      value={selectedState}
+                      onChange={(e) => setSelectedState(e.target.value)}
+                   >
+                      <option value="">All Locations</option>
+                      {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                   </select>
+                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                   </div>
+                </div>
+
+                {/* Sorting Dropdown */}
+                <div className="relative min-w-[160px]">
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <ArrowUpDown className="h-4 w-4 text-slate-500" />
+                   </div>
+                   <select 
+                      className="w-full pl-9 pr-8 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                   >
+                      <option value="latest">Latest Listed</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                   </select>
+                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                   </div>
+                </div>
             </div>
          </div>
 

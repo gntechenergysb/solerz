@@ -42,6 +42,13 @@ const CreateListing: React.FC = () => {
     setSpecs(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (val.length <= 80) {
+          setTitle(val);
+      }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -81,6 +88,10 @@ const CreateListing: React.FC = () => {
         setLoading(false);
     }
   };
+
+  // Helper calculation for Price/Watt
+  const showPricePerWatt = category === 'Panels' && price && specs.wattage;
+  const pricePerWatt = showPricePerWatt ? (parseFloat(price) / specs.wattage).toFixed(2) : null;
 
   // Render Dynamic Form Fields
   const renderSpecFields = () => {
@@ -182,11 +193,33 @@ const CreateListing: React.FC = () => {
              </div>
           </div>
 
-          <Input label="Listing Title" placeholder="e.g. JA Solar 550W Panel (Used)" value={title} onChange={setTitle} required />
+          <div>
+             <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-slate-700">Listing Title</label>
+                <span className={`text-xs ${title.length >= 70 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                   {title.length}/80
+                </span>
+             </div>
+             <input 
+               type="text" 
+               className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-primary focus:border-primary outline-none transition-all"
+               placeholder="e.g. JA Solar 550W Panel (Used)"
+               required
+               value={title}
+               onChange={handleTitleChange}
+             />
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Brand" placeholder="e.g. Huawei, Jinko" value={brand} onChange={setBrand} required />
-            <Input label="Price (RM)" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
+            <div>
+                <Input label="Price (RM)" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
+                {showPricePerWatt && (
+                    <p className="text-xs text-emerald-600 font-bold mt-1 text-right">
+                       ≈ RM {pricePerWatt}/Watt
+                    </p>
+                )}
+            </div>
           </div>
         </div>
 

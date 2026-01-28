@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/authContext';
 import { Sun, LogIn, PlusCircle, LayoutDashboard, LogOut, ChevronDown, User } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -35,9 +36,12 @@ const Navbar: React.FC = () => {
             <Link to="/pricing" className="text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
               Pricing
             </Link>
-            <a href="#" className="text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
+            <button 
+              onClick={() => toast("Community forums coming soon!", { icon: '🚧' })}
+              className="text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors"
+            >
               Community
-            </a>
+            </button>
           </div>
 
           {/* Right: Actions */}

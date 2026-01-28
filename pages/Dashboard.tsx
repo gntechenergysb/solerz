@@ -4,7 +4,7 @@ import { db } from '../services/db';
 import { Listing, UserTier } from '../types';
 import { Link, Navigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
-import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, TrendingDown, DollarSign, Target } from 'lucide-react';
+import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, TrendingDown, DollarSign, Target, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
@@ -69,6 +69,18 @@ const Dashboard: React.FC = () => {
       }
   };
 
+  // Calculate Profile Strength
+  const getProfileStrength = () => {
+    if (!user) return 0;
+    let score = 10; // Avatar/Default
+    if (user.company_name) score += 20;
+    if (user.whatsapp_no) score += 20;
+    if (user.email) score += 20; // Proxy for address/contact details
+    if (user.is_verified) score += 30;
+    return Math.min(100, score);
+  };
+  const profileStrength = getProfileStrength();
+
   if (authLoading) return <div>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" />;
 
@@ -76,13 +88,13 @@ const Dashboard: React.FC = () => {
 
   // --- ANALYTICS LOGIC ---
   const chartData = [
-    { name: 'Mon', views: 12 },
-    { name: 'Tue', views: 19 },
-    { name: 'Wed', views: 15 },
-    { name: 'Thu', views: 25 },
-    { name: 'Fri', views: 32 },
-    { name: 'Sat', views: 45 },
-    { name: 'Sun', views: 28 },
+    { name: 'Mon', views: Math.floor(totalViews * 0.1) },
+    { name: 'Tue', views: Math.floor(totalViews * 0.15) },
+    { name: 'Wed', views: Math.floor(totalViews * 0.12) },
+    { name: 'Thu', views: Math.floor(totalViews * 0.2) },
+    { name: 'Fri', views: Math.floor(totalViews * 0.25) },
+    { name: 'Sat', views: Math.floor(totalViews * 0.3) },
+    { name: 'Sun', views: Math.floor(totalViews * 0.18) },
   ];
 
   // Market Price Intelligence Logic
@@ -122,28 +134,66 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
-      {!user?.is_verified && (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-           <h2 className="text-lg font-bold mb-4">Complete Your Verification</h2>
-           <p className="text-sm text-slate-500 mb-4">To ensure quality, Solerz requires all sellers to provide a valid SSM Registration Number.</p>
-           <div className="flex gap-4 max-w-md">
-              <input 
-                type="text" 
-                placeholder="Enter SSM Number (e.g. 202301001234)"
-                className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"
-                value={ssmInput}
-                onChange={(e) => setSsmInput(e.target.value)}
-              />
-              <button 
-                onClick={handleVerify}
-                disabled={isVerifying || !ssmInput}
-                className="bg-slate-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {isVerifying ? 'Verifying...' : 'Verify Now'}
-              </button>
-           </div>
-        </div>
-      )}
+      {/* Verification & Profile Strength Area */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {!user?.is_verified ? (
+            <div className="md:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+               <h2 className="text-lg font-bold mb-4">Complete Your Verification</h2>
+               <p className="text-sm text-slate-500 mb-4">To ensure quality, Solerz requires all sellers to provide a valid SSM Registration Number.</p>
+               <div className="flex gap-4 max-w-md">
+                  <input 
+                    type="text" 
+                    placeholder="Enter SSM Number (e.g. 202301001234)"
+                    className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"
+                    value={ssmInput}
+                    onChange={(e) => setSsmInput(e.target.value)}
+                  />
+                  <button 
+                    onClick={handleVerify}
+                    disabled={isVerifying || !ssmInput}
+                    className="bg-slate-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {isVerifying ? 'Verifying...' : 'Verify Now'}
+                  </button>
+               </div>
+            </div>
+          ) : (
+             <div className="md:col-span-2 bg-emerald-50 border border-emerald-100 p-6 rounded-xl flex items-center justify-between">
+                <div>
+                   <h3 className="text-emerald-900 font-bold text-lg flex items-center gap-2">
+                     <CheckCircle className="h-5 w-5 text-emerald-600" /> Account Verified
+                   </h3>
+                   <p className="text-emerald-700 text-sm mt-1">You have full access to post listings and access market analytics.</p>
+                </div>
+                <div className="hidden sm:block">
+                    <span className="bg-white text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
+                       TIER: {user.tier}
+                    </span>
+                </div>
+             </div>
+          )}
+
+          {/* Profile Strength Widget */}
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+             <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-bold text-slate-700">Profile Strength</span>
+                <span className={`text-sm font-bold ${profileStrength === 100 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                   {profileStrength}%
+                </span>
+             </div>
+             <div className="w-full bg-slate-100 rounded-full h-2.5 mb-2 overflow-hidden">
+                <div 
+                   className={`h-2.5 rounded-full transition-all duration-1000 ${profileStrength === 100 ? 'bg-emerald-500' : 'bg-amber-400'}`} 
+                   style={{ width: `${profileStrength}%` }}
+                ></div>
+             </div>
+             <p className="text-xs text-slate-500">
+                {profileStrength < 100 
+                  ? "Add more details to build trust." 
+                  : "Excellent! Your profile is trustworthy."}
+             </p>
+          </div>
+      </div>
 
       {/* --- ANALYTICS SECTION --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

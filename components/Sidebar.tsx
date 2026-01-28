@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/authContext';
 import { LayoutDashboard, ShoppingBag, List, Settings, LogOut, Sun, LogIn, PlusCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Sidebar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -64,11 +65,17 @@ const Sidebar: React.FC = () => {
             <>
               <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
               {/* Fake links for demo completeness */}
-              <div className="flex items-center space-x-3 px-4 py-3 text-slate-500 hover:text-slate-900 cursor-pointer">
+              <div 
+                onClick={() => toast("My Listings management coming soon!", { icon: '🚧' })}
+                className="flex items-center space-x-3 px-4 py-3 text-slate-500 hover:text-slate-900 cursor-pointer hover:bg-slate-50 rounded-lg mb-1 transition-colors"
+              >
                 <List className="h-5 w-5 text-slate-400" />
                 <span>My Listings</span>
               </div>
-              <div className="flex items-center space-x-3 px-4 py-3 text-slate-500 hover:text-slate-900 cursor-pointer">
+              <div 
+                onClick={() => toast("Settings panel coming soon!", { icon: '🚧' })}
+                className="flex items-center space-x-3 px-4 py-3 text-slate-500 hover:text-slate-900 cursor-pointer hover:bg-slate-50 rounded-lg mb-1 transition-colors"
+              >
                 <Settings className="h-5 w-5 text-slate-400" />
                 <span>Settings</span>
               </div>

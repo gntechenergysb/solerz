@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Check, X, ShieldCheck, Zap, BarChart2, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../services/authContext';
+import { db } from '../services/db';
 import { useNavigate } from 'react-router-dom';
+import { UserTier } from '../types';
 
 type BillingCycle = 'monthly' | 'yearly';
 
@@ -78,7 +80,7 @@ const PLANS: Plan[] = [
 ];
 
 const Pricing: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -97,11 +99,27 @@ const Pricing: React.FC = () => {
   const handlePayment = () => {
     setIsProcessing(true);
     // Simulate Billplz API call
-    setTimeout(() => {
+    setTimeout(async () => {
+        if (user && selectedPlan) {
+            try {
+                // Update User Tier Logic
+                const newTier = selectedPlan.id.toUpperCase() as UserTier;
+                const updatedProfile = { ...user, tier: newTier };
+                
+                await db.updateProfile(updatedProfile);
+                await refreshUser(); // Sync context
+                
+                toast.success(`Successfully subscribed to ${selectedPlan.name}!`);
+            } catch (error) {
+                console.error("Payment Error:", error);
+                toast.error("An error occurred while updating your subscription.");
+            }
+        }
+        
         setIsProcessing(false);
         setSelectedPlan(null);
-        toast.success(`Successfully subscribed to ${selectedPlan?.name}!`);
-        // In real app, update user tier here
+        // Navigate to dashboard to see new limits
+        navigate('/dashboard');
     }, 2000);
   };
 

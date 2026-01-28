@@ -65,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const updated = await db.login(user.email);
           if (updated) {
               setUser(updated);
+              // CRITICAL: Ensure local storage session is updated to persist changes across page reloads
               localStorage.setItem('solerz_session', JSON.stringify(updated));
           }
       }
