@@ -5,6 +5,7 @@ import { db } from './db';
 interface AuthContextType {
   user: Profile | null;
   login: (email: string) => Promise<boolean>;
+  register: (data: Partial<Profile>) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   isLoading: boolean;
@@ -39,6 +40,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
+  const register = async (data: Partial<Profile>) => {
+    setIsLoading(true);
+    try {
+        const profile = await db.register(data);
+        setUser(profile);
+        localStorage.setItem('solerz_session', JSON.stringify(profile));
+        setIsLoading(false);
+        return true;
+    } catch (e) {
+        console.error(e);
+        setIsLoading(false);
+        return false;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('solerz_session');
@@ -57,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, refreshUser, isLoading, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, register, logout, refreshUser, isLoading, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

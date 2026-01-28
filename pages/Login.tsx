@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../services/authContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Sun, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -24,7 +24,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center p-3 bg-emerald-100 rounded-xl mb-4">
@@ -58,10 +58,16 @@ const Login: React.FC = () => {
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-100">
-           <p className="text-xs text-center text-slate-400">
+           <p className="text-xs text-center text-slate-400 mb-4">
              Demo Credentials:<br/>
              1. solar.king@example.com (Verified Merchant)<br/>
              2. newbie@example.com (Unverified Starter)
+           </p>
+           <p className="text-sm text-center text-slate-500">
+             New to Solerz?{' '}
+             <Link to="/signup" className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+               Create an Account
+             </Link>
            </p>
         </div>
       </div>

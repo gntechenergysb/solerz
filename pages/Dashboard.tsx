@@ -3,8 +3,8 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { Listing } from '../types';
 import { Link, Navigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { PlusCircle, Eye, RefreshCw, AlertCircle } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, TrendingDown, DollarSign, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
@@ -41,10 +41,26 @@ const Dashboard: React.FC = () => {
      }, 1500);
   };
 
+  const handleRenew = (id: string) => {
+    toast.success("Listing renewed for 30 days!");
+    setMyListings(prev => prev.map(l => {
+        if (l.id === id) {
+            const now = new Date();
+            const newActive = new Date(now.setDate(now.getDate() + 30)).toISOString();
+            const newArchive = new Date(now.setDate(now.getDate() + 30)).toISOString(); 
+            return { ...l, active_until: newActive, archive_until: newArchive };
+        }
+        return l;
+    }));
+  };
+
   if (authLoading) return <div>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" />;
 
-  // Prepare chart data (Last 7 days mock)
+  const totalViews = myListings.reduce((acc, curr) => acc + curr.view_count, 0);
+
+  // --- ANALYTICS LOGIC ---
+  // 1. Weekly Traffic (Simulated)
   const chartData = [
     { name: 'Mon', views: 12 },
     { name: 'Tue', views: 19 },
@@ -55,10 +71,26 @@ const Dashboard: React.FC = () => {
     { name: 'Sun', views: 28 },
   ];
 
-  const totalViews = myListings.reduce((acc, curr) => acc + curr.view_count, 0);
+  // 2. Market Price Intelligence (Logic: Calculate avg price of panels)
+  // Mock Market Data: Average Panels = RM 0.95/watt, Inverters = RM 0.80/watt (normalized)
+  const myPanelListings = myListings.filter(l => l.category === 'Panels');
+  const hasPanels = myPanelListings.length > 0;
+  
+  // Calculate fake "per unit" price for demo. 
+  // In real app, we would divide price / wattage. Here we just take raw price average for demo simplicity or assume standard 550W panel.
+  const myAvgPrice = hasPanels 
+     ? myPanelListings.reduce((acc, curr) => acc + curr.price_rm, 0) / myPanelListings.length 
+     : 0;
+  
+  const marketAvgPrice = 480; // Hardcoded market average for a standard panel
+  const priceDiff = myAvgPrice - marketAvgPrice;
+  const isCheaper = priceDiff < 0;
+  const percentageDiff = Math.abs((priceDiff / marketAvgPrice) * 100).toFixed(1);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+      
+      {/* Welcome Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
            <h1 className="text-2xl font-bold text-slate-800">Seller Dashboard</h1>
@@ -80,7 +112,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {!user?.is_verified && (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
            <h2 className="text-lg font-bold mb-4">Complete Your Verification</h2>
            <p className="text-sm text-slate-500 mb-4">To ensure quality, Solerz requires all sellers to provide a valid SSM Registration Number.</p>
            <div className="flex gap-4 max-w-md">
@@ -102,35 +134,156 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Stats Grid */}
+      {/* --- ANALYTICS SECTION --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-           <p className="text-sm text-slate-500 mb-1">Total Views</p>
-           <p className="text-3xl font-bold text-slate-900">{totalViews}</p>
+        
+        {/* Card 1: Traffic Chart */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+           <div className="flex justify-between items-start mb-4">
+               <div>
+                   <p className="text-sm text-slate-500 font-medium">7-Day Traffic</p>
+                   <h3 className="text-2xl font-bold text-slate-900">{totalViews} <span className="text-sm text-slate-400 font-normal">Views</span></h3>
+               </div>
+               <div className="p-2 bg-slate-100 rounded-lg">
+                   <TrendingUp className="h-5 w-5 text-slate-600" />
+               </div>
+           </div>
+           <div className="h-32">
+             <ResponsiveContainer width="100%" height="100%">
+               <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip cursor={false} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px'}} />
+                  <Area type="monotone" dataKey="views" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
+               </AreaChart>
+             </ResponsiveContainer>
+           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-           <p className="text-sm text-slate-500 mb-1">Active Listings</p>
-           <p className="text-3xl font-bold text-emerald-600">{myListings.filter(l => !l.is_sold && !l.is_hidden).length}</p>
+
+        {/* Card 2: Price Competitiveness (The "Useful" Analytic) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
+           <div className="flex justify-between items-start mb-2">
+               <div>
+                   <p className="text-sm text-slate-500 font-medium">Price Competitiveness</p>
+                   <p className="text-xs text-slate-400">Based on your Panel listings</p>
+               </div>
+               <div className={`p-2 rounded-lg ${isCheaper ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                   <DollarSign className={`h-5 w-5 ${isCheaper ? 'text-emerald-600' : 'text-amber-600'}`} />
+               </div>
+           </div>
+
+           {hasPanels ? (
+             <div className="mt-4">
+                 <div className="flex items-baseline gap-2 mb-2">
+                    <span className={`text-2xl font-bold ${isCheaper ? 'text-emerald-600' : 'text-amber-500'}`}>
+                        {isCheaper ? '-' : '+'}{percentageDiff}%
+                    </span>
+                    <span className="text-sm text-slate-600 font-medium">
+                        vs Market Avg
+                    </span>
+                 </div>
+                 
+                 <p className="text-sm text-slate-500 leading-relaxed">
+                     {isCheaper 
+                        ? "Great job! Your average pricing is lower than 70% of competitors in Selangor."
+                        : "Your pricing is slightly above market average. Consider highlighting warranty or condition to justify premium."}
+                 </p>
+                 
+                 {/* Visual Bar */}
+                 <div className="mt-4 relative h-2 bg-slate-100 rounded-full">
+                     {/* Market Marker */}
+                     <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-slate-300 z-10"></div>
+                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 font-bold">MKT</div>
+                     
+                     {/* User Marker */}
+                     <div 
+                        className={`absolute top-0 bottom-0 w-4 h-4 rounded-full border-2 border-white shadow-sm -mt-1 transition-all
+                        ${isCheaper ? 'bg-emerald-500 left-[35%]' : 'bg-amber-500 left-[65%]'}`}
+                     ></div>
+                 </div>
+                 <div className="flex justify-between mt-1 text-[10px] text-slate-400 font-bold uppercase">
+                    <span>Cheaper</span>
+                    <span>Expensive</span>
+                 </div>
+
+             </div>
+           ) : (
+             <div className="mt-8 text-center text-slate-400 text-sm">
+                 Post a Panel listing to unlock price comparison data.
+             </div>
+           )}
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-           <p className="text-sm text-slate-500 mb-1">Items Sold</p>
-           <p className="text-3xl font-bold text-blue-600">{myListings.filter(l => l.is_sold).length}</p>
+
+        {/* Card 3: Listing Funnel (Conversion) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+             <div className="flex justify-between items-start mb-4">
+               <div>
+                   <p className="text-sm text-slate-500 font-medium">Conversion Funnel</p>
+                   <h3 className="text-2xl font-bold text-slate-900">3.5% <span className="text-sm text-slate-400 font-normal">CTR</span></h3>
+               </div>
+               <div className="p-2 bg-blue-50 rounded-lg">
+                   <Target className="h-5 w-5 text-blue-600" />
+               </div>
+           </div>
+
+           <div className="space-y-3 mt-2">
+               {/* Step 1: Impressions */}
+               <div className="relative">
+                   <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                       <span>Impressions (Search)</span>
+                       <span>1,240</span>
+                   </div>
+                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                       <div className="bg-blue-300 h-full w-[100%]"></div>
+                   </div>
+               </div>
+               
+               {/* Step 2: Views */}
+               <div className="relative">
+                   <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                       <span>Detail Views</span>
+                       <span>{totalViews}</span>
+                   </div>
+                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                       <div className="bg-blue-500 h-full w-[25%]"></div>
+                   </div>
+               </div>
+
+               {/* Step 3: Contacts */}
+               <div className="relative">
+                   <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                       <span>Contacts Reveal</span>
+                       <span>{Math.floor(totalViews * 0.08)}</span>
+                   </div>
+                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                       <div className="bg-emerald-500 h-full w-[8%]"></div>
+                   </div>
+               </div>
+           </div>
         </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Listings Table */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-             <h3 className="font-bold text-slate-800">My Listings</h3>
+             <h3 className="font-bold text-slate-800">My Listings Inventory</h3>
+             <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                {myListings.length} / {user?.tier === 'STARTER' ? 1 : (user?.tier === 'PRO' ? 10 : 30)} Slots Used
+             </span>
            </div>
-           <div className="overflow-x-auto">
+           <div className="overflow-x-auto flex-grow">
              <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50 text-slate-500 font-medium">
                   <tr>
-                    <th className="px-6 py-3">Title</th>
-                    <th className="px-6 py-3">Category</th>
+                    <th className="px-6 py-3 w-1/4">Title</th>
                     <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3 w-1/3">Lifecycle</th>
                     <th className="px-6 py-3 text-right">Views</th>
                   </tr>
                 </thead>
@@ -140,59 +293,123 @@ const Dashboard: React.FC = () => {
                    ) : myListings.length === 0 ? (
                      <tr><td colSpan={4} className="p-6 text-center text-slate-500">No listings yet.</td></tr>
                    ) : (
-                     myListings.map(l => (
-                       <tr key={l.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 font-medium text-slate-900 truncate max-w-xs">{l.title}</td>
-                          <td className="px-6 py-4 text-slate-500">{l.category}</td>
-                          <td className="px-6 py-4">
-                            {l.is_sold ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Sold
-                              </span>
-                            ) : new Date() < new Date(l.active_until) ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Active
-                              </span>
-                            ) : (
-                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                 Archived
-                               </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-right flex justify-end items-center gap-1 text-slate-600">
-                             <Eye className="h-3 w-3" />
-                             {l.view_count}
-                          </td>
-                       </tr>
-                     ))
+                     myListings.map(l => {
+                       // Calculation Logic
+                       const created = new Date(l.created_at).getTime();
+                       const archive = new Date(l.archive_until).getTime();
+                       const activeUntil = new Date(l.active_until).getTime();
+                       const now = new Date().getTime();
+                       
+                       const totalDuration = archive - created;
+                       const elapsed = now - created;
+                       const percent = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+                       const isArchivedPhase = now > activeUntil;
+                       
+                       return (
+                         <tr key={l.id} className="hover:bg-slate-50 transition-colors group">
+                            <td className="px-6 py-4 font-medium text-slate-900">
+                                <div className="truncate max-w-[150px]" title={l.title}>{l.title}</div>
+                                <div className="text-xs text-slate-400 mt-0.5">{l.category}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {l.is_sold ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  Sold
+                                </span>
+                              ) : !isArchivedPhase ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Active
+                                </span>
+                              ) : (
+                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                   Expired
+                                 </span>
+                              )}
+                            </td>
+                            
+                            {/* Lifecycle Column */}
+                            <td className="px-6 py-4">
+                                <div className="w-full max-w-[180px]">
+                                    <div className="flex justify-between items-center text-[10px] mb-1.5 uppercase tracking-wide font-bold">
+                                        <span className={isArchivedPhase ? 'text-amber-600' : 'text-emerald-600'}>
+                                            {isArchivedPhase ? 'Expired' : 'Active'}
+                                        </span>
+                                        <span className="text-slate-400">
+                                            {Math.round(percent)}%
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2 overflow-hidden">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-700 ease-out ${isArchivedPhase ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                            style={{ width: `${percent}%` }}
+                                        ></div>
+                                    </div>
+                                    
+                                    {/* Renew Button Interaction */}
+                                    {isArchivedPhase && !l.is_sold && (
+                                        <button 
+                                            onClick={() => handleRenew(l.id)}
+                                            className="text-xs flex items-center gap-1.5 text-slate-700 hover:text-emerald-600 font-medium bg-white border border-slate-200 px-3 py-1 rounded-md shadow-sm hover:border-emerald-500 transition-colors"
+                                        >
+                                            <RotateCcw className="h-3 w-3" />
+                                            Renew
+                                        </button>
+                                    )}
+                                </div>
+                            </td>
+
+                            <td className="px-6 py-4 text-right">
+                               <div className="flex justify-end items-center gap-1 text-slate-600">
+                                  <Eye className="h-3 w-3" />
+                                  {l.view_count}
+                               </div>
+                            </td>
+                         </tr>
+                       );
+                     })
                    )}
                 </tbody>
              </table>
            </div>
         </div>
 
-        {/* Analytics Chart */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-           <h3 className="font-bold text-slate-800 mb-6">Weekly Traffic</h3>
-           <div className="h-64">
-             <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                  <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                  <Bar dataKey="views" fill="#10B981" radius={[4, 4, 0, 0]} />
-               </BarChart>
-             </ResponsiveContainer>
+        {/* Top Selling Categories (Mini Chart) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 h-fit">
+           <h3 className="font-bold text-slate-800 mb-6">Market Demand (My State)</h3>
+           <div className="space-y-4">
+               {/* Mock Demand Bars */}
+               <div>
+                  <div className="flex justify-between text-xs mb-1">
+                      <span className="font-bold text-slate-700">Inverters</span>
+                      <span className="text-emerald-600 font-bold">High Demand</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div className="bg-emerald-500 h-2 rounded-full w-[85%]"></div>
+                  </div>
+               </div>
+               <div>
+                  <div className="flex justify-between text-xs mb-1">
+                      <span className="font-bold text-slate-700">Panels (Mono)</span>
+                      <span className="text-emerald-600 font-bold">Med Demand</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div className="bg-emerald-400 h-2 rounded-full w-[60%]"></div>
+                  </div>
+               </div>
+               <div>
+                  <div className="flex justify-between text-xs mb-1">
+                      <span className="font-bold text-slate-700">Batteries</span>
+                      <span className="text-slate-400 font-bold">Low Supply</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div className="bg-amber-400 h-2 rounded-full w-[30%]"></div>
+                  </div>
+               </div>
            </div>
-           <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-              <div className="flex items-center">
-                 <div className="w-3 h-3 bg-primary rounded-full mr-2"></div>
-                 <span>Page Views</span>
-              </div>
-              <button className="flex items-center hover:text-primary transition-colors">
-                 <RefreshCw className="h-3 w-3 mr-1" /> Refresh
-              </button>
+           
+           <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500 leading-relaxed">
+               <span className="font-bold text-slate-700 block mb-1">Tip:</span>
+               Demand for Used Inverters in Selangor has risen by 15% this week. Consider stocking up.
            </div>
         </div>
       </div>

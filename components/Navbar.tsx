@@ -29,12 +29,12 @@ const Navbar: React.FC = () => {
 
           {/* Center: Optional Navigation Links (Hidden on mobile) */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-medium text-slate-900 border-b-2 border-emerald-500 py-5">
+            <Link to="/" className="text-sm font-medium text-slate-900 hover:text-emerald-600 transition-colors">
               Marketplace
             </Link>
-            <a href="#" className="text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
-              Find Suppliers
-            </a>
+            <Link to="/pricing" className="text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
+              Pricing
+            </Link>
             <a href="#" className="text-sm font-medium text-slate-500 hover:text-emerald-600 transition-colors">
               Community
             </a>

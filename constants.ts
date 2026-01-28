@@ -28,6 +28,7 @@ export const MOCK_USERS = [
     is_verified: true,
     whatsapp_no: '60123456789',
     tier: 'MERCHANT',
+    seller_type: 'COMPANY',
     created_at: new Date().toISOString()
   },
   {
@@ -38,6 +39,7 @@ export const MOCK_USERS = [
     is_verified: false,
     whatsapp_no: '60198765432',
     tier: 'STARTER',
+    seller_type: 'INDIVIDUAL',
     created_at: new Date().toISOString()
   }
 ] as const;
@@ -69,6 +71,7 @@ export const MOCK_LISTINGS = [
     archive_until: daysFromNow(50),
     is_sold: false,
     is_hidden: false,
+    is_verified_listing: true,
     view_count: 142,
     created_at: daysFromNow(-10)
   },
@@ -91,6 +94,7 @@ export const MOCK_LISTINGS = [
     archive_until: daysFromNow(25),
     is_sold: false,
     is_hidden: false,
+    is_verified_listing: true,
     view_count: 89,
     created_at: daysFromNow(-35)
   },
@@ -113,6 +117,7 @@ export const MOCK_LISTINGS = [
     archive_until: daysFromNow(58),
     is_sold: true,
     is_hidden: false,
+    is_verified_listing: true,
     view_count: 356,
     created_at: daysFromNow(-2)
   }

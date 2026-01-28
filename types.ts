@@ -1,5 +1,6 @@
-export type UserTier = 'STARTER' | 'PRO' | 'MERCHANT';
 
+export type UserTier = 'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE';
+ 
 export interface Profile {
   id: string;
   email: string;
@@ -8,6 +9,7 @@ export interface Profile {
   is_verified: boolean;
   whatsapp_no: string;
   tier: UserTier;
+  seller_type: 'INDIVIDUAL' | 'COMPANY';
   created_at: string;
 }
 
@@ -45,6 +47,7 @@ export interface Listing {
   seller_id: string;
   seller_name?: string; // Joined field
   is_verified_seller?: boolean; // Joined field
+  seller_type?: 'INDIVIDUAL' | 'COMPANY'; // Joined field
   title: string;
   category: Category;
   brand: string;
@@ -54,6 +57,7 @@ export interface Listing {
   images_url: string[];
   active_until: string;
   archive_until: string;
+  is_verified_listing: boolean; // New persistent field
   is_sold: boolean;
   is_hidden: boolean;
   view_count: number;

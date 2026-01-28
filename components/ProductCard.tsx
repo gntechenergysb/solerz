@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Listing } from '../types';
-import { CheckCircle, Zap, MapPin, ArrowRight, Lock } from 'lucide-react';
+import { CheckCircle, Zap, MapPin, ArrowRight, Lock, AlertTriangle } from 'lucide-react';
 
 interface ProductCardProps {
   listing: Listing;
@@ -11,6 +11,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
   const isSold = listing.is_sold;
   // Simple check for demo purposes. In real app, check date vs active_until
   const isActive = new Date() < new Date(listing.active_until);
+  const isVerified = listing.is_verified_listing;
 
   // Extract key specs for tags based on category
   const getSpecsTags = () => {
@@ -39,11 +40,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
           
-          {/* SSM Verified Badge (Absolute Top Left) */}
-          {listing.is_verified_seller && (
+          {/* Verification Badges (Absolute Top Left) */}
+          {isVerified ? (
              <div className="absolute top-0 left-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg shadow-sm flex items-center gap-1 z-10">
                 <CheckCircle className="h-3 w-3" />
                 SSM VERIFIED
+             </div>
+          ) : (
+             <div className="absolute top-0 left-0 bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-1 rounded-br-lg shadow-sm flex items-center gap-1 z-10">
+                <AlertTriangle className="h-3 w-3" />
+                UNVERIFIED SELLER
              </div>
           )}
 
@@ -100,6 +106,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
                 <span>View Details</span>
                 <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
              </button>
+
+             {/* Unverified Disclaimer */}
+             {!isVerified && (
+               <div className="mt-3 text-center">
+                 <p className="text-[10px] text-amber-600 font-medium bg-amber-50 py-1 px-2 rounded border border-amber-100/50">
+                    ⚠️ Individual seller. Deal with caution.
+                 </p>
+               </div>
+             )}
           </div>
         </div>
       </div>

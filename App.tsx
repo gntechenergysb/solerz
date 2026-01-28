@@ -6,6 +6,8 @@ import ProductDetails from './pages/ProductDetails';
 import Dashboard from './pages/Dashboard';
 import CreateListing from './pages/CreateListing';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Pricing from './pages/Pricing';
 import { AuthProvider } from './services/authContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -25,6 +27,8 @@ const App: React.FC = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/create" element={<CreateListing />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

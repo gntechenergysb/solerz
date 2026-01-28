@@ -3,12 +3,15 @@ import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
-import { Search, SlidersHorizontal, MapPin, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, ChevronDown, ShieldCheck, Users } from 'lucide-react';
 
 const Marketplace: React.FC = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Marketplace Layer State: 'verified' | 'community'
+  const [marketplaceLayer, setMarketplaceLayer] = useState<'verified' | 'community'>('verified');
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,7 +30,7 @@ const Marketplace: React.FC = () => {
       });
       
       setListings(validListings);
-      setFilteredListings(validListings);
+      // Filter logic will run in the next effect
       setIsLoading(false);
     };
     fetchListings();
@@ -36,6 +39,14 @@ const Marketplace: React.FC = () => {
   useEffect(() => {
     let result = listings;
 
+    // 1. Filter by Marketplace Layer
+    if (marketplaceLayer === 'verified') {
+      result = result.filter(l => l.is_verified_listing === true);
+    } else {
+      result = result.filter(l => l.is_verified_listing === false);
+    }
+
+    // 2. Filter by Search
     if (searchQuery) {
       result = result.filter(l => 
         l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -43,25 +54,55 @@ const Marketplace: React.FC = () => {
       );
     }
 
+    // 3. Filter by Location
     if (selectedState) {
       result = result.filter(l => l.location_state === selectedState);
     }
 
+    // 4. Filter by Category
     if (selectedCategory) {
       result = result.filter(l => l.category === selectedCategory);
     }
 
     setFilteredListings(result);
-  }, [searchQuery, selectedState, selectedCategory, listings]);
+  }, [searchQuery, selectedState, selectedCategory, listings, marketplaceLayer]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* Header Section (Mentoree Style) */}
+      {/* Header Section */}
       <div className="space-y-6">
-         <div>
-            <h1 className="text-3xl font-bold text-slate-900">Industrial Solar Equipment</h1>
-            <p className="text-slate-500 mt-1">Source verified secondary market assets from across Malaysia.</p>
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Industrial Solar Equipment</h1>
+              <p className="text-slate-500 mt-1">Source verified secondary market assets from across Malaysia.</p>
+            </div>
+
+            {/* Marketplace Layer Tabs */}
+            <div className="bg-slate-100 p-1 rounded-xl flex items-center font-medium text-sm">
+              <button
+                onClick={() => setMarketplaceLayer('verified')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  marketplaceLayer === 'verified'
+                    ? 'bg-white text-emerald-700 shadow-sm font-semibold'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Verified Assets
+              </button>
+              <button
+                onClick={() => setMarketplaceLayer('community')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  marketplaceLayer === 'community'
+                    ? 'bg-white text-amber-600 shadow-sm font-semibold'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                Community Marketplace
+              </button>
+            </div>
          </div>
 
          {/* Search Bar Row */}
@@ -79,7 +120,7 @@ const Marketplace: React.FC = () => {
                />
             </div>
             
-            {/* Location Dropdown as a Button */}
+            {/* Location Dropdown */}
             <div className="relative min-w-[200px]">
                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <MapPin className="h-4 w-4 text-slate-500" />
@@ -145,7 +186,11 @@ const Marketplace: React.FC = () => {
                 <SlidersHorizontal className="h-8 w-8 text-slate-400" />
              </div>
              <h3 className="text-lg font-bold text-slate-900">No matches found</h3>
-             <p className="text-slate-500 mt-1">Try adjusting your filters or search query to find what you need.</p>
+             <p className="text-slate-500 mt-1">
+                {marketplaceLayer === 'verified' 
+                   ? "No verified assets found matching your criteria." 
+                   : "No community listings found matching your criteria."}
+             </p>
              <button 
                onClick={() => { setSelectedState(''); setSelectedCategory(''); setSearchQuery(''); }}
                className="mt-6 text-emerald-600 font-medium hover:text-emerald-700"
