@@ -1,3 +1,4 @@
+
 export const MALAYSIAN_STATES = [
   'Johor',
   'Kedah',
@@ -68,7 +69,7 @@ export const MOCK_LISTINGS = [
     location_state: 'Selangor',
     images_url: ['https://picsum.photos/800/600?random=1', 'https://picsum.photos/800/600?random=2'],
     active_until: daysFromNow(20), // Active
-    archive_until: daysFromNow(50),
+    archive_until: daysFromNow(20), // Same as active
     is_sold: false,
     is_hidden: false,
     is_verified_listing: true,
@@ -90,8 +91,8 @@ export const MOCK_LISTINGS = [
     price_rm: 12000.00,
     location_state: 'Johor',
     images_url: ['https://picsum.photos/800/600?random=3'],
-    active_until: daysFromNow(-5), // Archived (Day 31-60 window)
-    archive_until: daysFromNow(25),
+    active_until: daysFromNow(-5), // Expired
+    archive_until: daysFromNow(-5), // Expired
     is_sold: false,
     is_hidden: false,
     is_verified_listing: true,
@@ -114,7 +115,7 @@ export const MOCK_LISTINGS = [
     location_state: 'Penang',
     images_url: ['https://picsum.photos/800/600?random=4'],
     active_until: daysFromNow(28),
-    archive_until: daysFromNow(58),
+    archive_until: daysFromNow(28),
     is_sold: true,
     is_hidden: false,
     is_verified_listing: true,

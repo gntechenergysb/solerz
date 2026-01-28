@@ -23,10 +23,10 @@ const Marketplace: React.FC = () => {
       setIsLoading(true);
       const data = await db.getListings();
       const now = new Date();
-      // Only show listings that aren't completely expired/hidden
+      // Only show listings that aren't expired (now < active_until) and not hidden
       const validListings = data.filter(l => {
-        const archiveUntil = new Date(l.archive_until);
-        return !l.is_hidden && now < archiveUntil;
+        const activeUntil = new Date(l.active_until);
+        return !l.is_hidden && now < activeUntil;
       });
       
       setListings(validListings);

@@ -67,6 +67,17 @@ export const db = {
     localStorage.setItem(LS_LISTINGS, JSON.stringify(listings));
     return true;
   },
+
+  updateListing: async (listing: Listing): Promise<void> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const listingsStr = localStorage.getItem(LS_LISTINGS);
+    let listings: Listing[] = listingsStr ? JSON.parse(listingsStr) : [];
+    
+    // Find index and update
+    listings = listings.map(l => l.id === listing.id ? listing : l);
+    
+    localStorage.setItem(LS_LISTINGS, JSON.stringify(listings));
+  },
   
   updateViewCount: async (id: string): Promise<void> => {
      const listingsStr = localStorage.getItem(LS_LISTINGS);

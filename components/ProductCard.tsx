@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Listing } from '../types';
-import { CheckCircle, Zap, MapPin, ArrowRight, Lock, AlertTriangle } from 'lucide-react';
+import { CheckCircle, MapPin, ArrowRight, AlertTriangle } from 'lucide-react';
 
 interface ProductCardProps {
   listing: Listing;
@@ -9,8 +9,6 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
   const isSold = listing.is_sold;
-  // Simple check for demo purposes. In real app, check date vs active_until
-  const isActive = new Date() < new Date(listing.active_until);
   const isVerified = listing.is_verified_listing;
 
   // Extract key specs for tags based on category
@@ -92,13 +90,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
                    <p className="text-2xl font-bold text-slate-900">
                       RM {listing.price_rm.toLocaleString()}
                    </p>
-                </div>
-                <div className="text-right">
-                   {!isActive && !isSold && (
-                      <div className="flex items-center text-amber-500 text-xs font-bold gap-1">
-                         <Lock className="h-3 w-3" /> Locked
-                      </div>
-                   )}
                 </div>
              </div>
              

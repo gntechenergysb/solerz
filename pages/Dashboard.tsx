@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
-import { Listing } from '../types';
+import { Listing, UserTier } from '../types';
 import { Link, Navigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
 import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, TrendingDown, DollarSign, Target } from 'lucide-react';
@@ -41,17 +41,32 @@ const Dashboard: React.FC = () => {
      }, 1500);
   };
 
-  const handleRenew = (id: string) => {
+  const handleRenew = async (id: string) => {
+    const listing = myListings.find(l => l.id === id);
+    if (!listing) return;
+
+    // Strict 30-day rule from NOW
+    const now = new Date();
+    const newExpiry = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)).toISOString();
+    
+    const updatedListing = { ...listing, active_until: newExpiry, archive_until: newExpiry };
+
+    // Update Local State Optimistically
+    setMyListings(prev => prev.map(l => l.id === id ? updatedListing : l));
+    
+    // Update DB
+    await db.updateListing(updatedListing);
     toast.success("Listing renewed for 30 days!");
-    setMyListings(prev => prev.map(l => {
-        if (l.id === id) {
-            const now = new Date();
-            const newActive = new Date(now.setDate(now.getDate() + 30)).toISOString();
-            const newArchive = new Date(now.setDate(now.getDate() + 30)).toISOString(); 
-            return { ...l, active_until: newActive, archive_until: newArchive };
-        }
-        return l;
-    }));
+  };
+  
+  const getListingLimit = (tier: UserTier) => {
+      switch(tier) {
+          case 'STARTER': return 1;
+          case 'PRO': return 10;
+          case 'MERCHANT': return 30;
+          case 'ENTERPRISE': return 100;
+          default: return 1;
+      }
   };
 
   if (authLoading) return <div>Loading...</div>;
@@ -60,7 +75,6 @@ const Dashboard: React.FC = () => {
   const totalViews = myListings.reduce((acc, curr) => acc + curr.view_count, 0);
 
   // --- ANALYTICS LOGIC ---
-  // 1. Weekly Traffic (Simulated)
   const chartData = [
     { name: 'Mon', views: 12 },
     { name: 'Tue', views: 19 },
@@ -71,18 +85,15 @@ const Dashboard: React.FC = () => {
     { name: 'Sun', views: 28 },
   ];
 
-  // 2. Market Price Intelligence (Logic: Calculate avg price of panels)
-  // Mock Market Data: Average Panels = RM 0.95/watt, Inverters = RM 0.80/watt (normalized)
+  // Market Price Intelligence Logic
   const myPanelListings = myListings.filter(l => l.category === 'Panels');
   const hasPanels = myPanelListings.length > 0;
   
-  // Calculate fake "per unit" price for demo. 
-  // In real app, we would divide price / wattage. Here we just take raw price average for demo simplicity or assume standard 550W panel.
   const myAvgPrice = hasPanels 
      ? myPanelListings.reduce((acc, curr) => acc + curr.price_rm, 0) / myPanelListings.length 
      : 0;
   
-  const marketAvgPrice = 480; // Hardcoded market average for a standard panel
+  const marketAvgPrice = 480; 
   const priceDiff = myAvgPrice - marketAvgPrice;
   const isCheaper = priceDiff < 0;
   const percentageDiff = Math.abs((priceDiff / marketAvgPrice) * 100).toFixed(1);
@@ -164,7 +175,7 @@ const Dashboard: React.FC = () => {
            </div>
         </div>
 
-        {/* Card 2: Price Competitiveness (The "Useful" Analytic) */}
+        {/* Card 2: Price Competitiveness */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
            <div className="flex justify-between items-start mb-2">
                <div>
@@ -218,7 +229,7 @@ const Dashboard: React.FC = () => {
            )}
         </div>
 
-        {/* Card 3: Listing Funnel (Conversion) */}
+        {/* Card 3: Listing Funnel */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
              <div className="flex justify-between items-start mb-4">
                <div>
@@ -274,7 +285,7 @@ const Dashboard: React.FC = () => {
            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
              <h3 className="font-bold text-slate-800">My Listings Inventory</h3>
              <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                {myListings.length} / {user?.tier === 'STARTER' ? 1 : (user?.tier === 'PRO' ? 10 : 30)} Slots Used
+                {myListings.length} / {getListingLimit(user?.tier || 'STARTER')} Slots Used
              </span>
            </div>
            <div className="overflow-x-auto flex-grow">
@@ -283,7 +294,7 @@ const Dashboard: React.FC = () => {
                   <tr>
                     <th className="px-6 py-3 w-1/4">Title</th>
                     <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3 w-1/3">Lifecycle</th>
+                    <th className="px-6 py-3 w-1/3">Active Duration</th>
                     <th className="px-6 py-3 text-right">Views</th>
                   </tr>
                 </thead>
@@ -294,16 +305,17 @@ const Dashboard: React.FC = () => {
                      <tr><td colSpan={4} className="p-6 text-center text-slate-500">No listings yet.</td></tr>
                    ) : (
                      myListings.map(l => {
-                       // Calculation Logic
+                       // Unified Lifecycle Logic
                        const created = new Date(l.created_at).getTime();
-                       const archive = new Date(l.archive_until).getTime();
-                       const activeUntil = new Date(l.active_until).getTime();
+                       // active_until and archive_until are now identical
+                       const activeUntil = new Date(l.active_until).getTime(); 
                        const now = new Date().getTime();
                        
-                       const totalDuration = archive - created;
+                       const totalDuration = activeUntil - created; // 30 days usually
                        const elapsed = now - created;
+                       
                        const percent = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
-                       const isArchivedPhase = now > activeUntil;
+                       const isExpired = now > activeUntil;
                        
                        return (
                          <tr key={l.id} className="hover:bg-slate-50 transition-colors group">
@@ -316,12 +328,12 @@ const Dashboard: React.FC = () => {
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                   Sold
                                 </span>
-                              ) : !isArchivedPhase ? (
+                              ) : !isExpired ? (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                   Active
                                 </span>
                               ) : (
-                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                    Expired
                                  </span>
                               )}
@@ -331,22 +343,22 @@ const Dashboard: React.FC = () => {
                             <td className="px-6 py-4">
                                 <div className="w-full max-w-[180px]">
                                     <div className="flex justify-between items-center text-[10px] mb-1.5 uppercase tracking-wide font-bold">
-                                        <span className={isArchivedPhase ? 'text-amber-600' : 'text-emerald-600'}>
-                                            {isArchivedPhase ? 'Expired' : 'Active'}
+                                        <span className={isExpired ? 'text-red-600' : 'text-emerald-600'}>
+                                            {isExpired ? 'Expired' : 'Active'}
                                         </span>
                                         <span className="text-slate-400">
-                                            {Math.round(percent)}%
+                                            {isExpired ? '100%' : `${Math.round(percent)}%`}
                                         </span>
                                     </div>
                                     <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2 overflow-hidden">
                                         <div 
-                                            className={`h-full rounded-full transition-all duration-700 ease-out ${isArchivedPhase ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                            className={`h-full rounded-full transition-all duration-700 ease-out ${isExpired ? 'bg-red-500' : 'bg-emerald-500'}`}
                                             style={{ width: `${percent}%` }}
                                         ></div>
                                     </div>
                                     
                                     {/* Renew Button Interaction */}
-                                    {isArchivedPhase && !l.is_sold && (
+                                    {isExpired && !l.is_sold && (
                                         <button 
                                             onClick={() => handleRenew(l.id)}
                                             className="text-xs flex items-center gap-1.5 text-slate-700 hover:text-emerald-600 font-medium bg-white border border-slate-200 px-3 py-1 rounded-md shadow-sm hover:border-emerald-500 transition-colors"

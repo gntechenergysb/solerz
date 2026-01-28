@@ -3,7 +3,6 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { CATEGORIES, MALAYSIAN_STATES } from '../constants';
-import { PanelSpecs, InverterSpecs, BatterySpecs, BaseSpecs } from '../types';
 import toast from 'react-hot-toast';
 
 const CreateListing: React.FC = () => {
@@ -54,6 +53,9 @@ const CreateListing: React.FC = () => {
         // If no images, use placeholder
         if(mockImageUrls.length === 0) mockImageUrls.push('https://via.placeholder.com/800x600?text=No+Image');
 
+        // STRICT 30-DAY RULE: Active until and Archive until are the same.
+        const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
         const listingData = {
             seller_id: user!.id,
             title,
@@ -63,8 +65,8 @@ const CreateListing: React.FC = () => {
             price_rm: parseFloat(price),
             location_state: state,
             images_url: mockImageUrls,
-            active_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            archive_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+            active_until: expiryDate,
+            archive_until: expiryDate,
             is_sold: false,
             is_hidden: false
         };

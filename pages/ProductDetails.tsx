@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../services/db';
 import { Listing } from '../types';
-import { MapPin, MessageSquare, ShieldCheck, ArrowLeft, Calendar, FileText, Check, Lock, AlertTriangle } from 'lucide-react';
+import { MapPin, MessageSquare, ShieldCheck, ArrowLeft, Calendar, FileText, Check, AlertTriangle, Clock, Lock } from 'lucide-react';
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,8 +29,8 @@ const ProductDetails: React.FC = () => {
   if (!listing) return <div className="h-96 flex items-center justify-center text-stone-500">Asset not found.</div>;
 
   const now = new Date();
-  // Active means it is within the first 30 days
-  const isActive = now < new Date(listing.active_until);
+  const activeUntil = new Date(listing.active_until);
+  const isExpired = now > activeUntil;
 
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
@@ -102,7 +102,7 @@ const ProductDetails: React.FC = () => {
                 <p className="text-4xl font-display font-bold text-earth-600">RM {listing.price_rm.toLocaleString()}</p>
              </div>
 
-             {isActive && !listing.is_sold ? (
+             {!isExpired && !listing.is_sold ? (
                <button 
                  onClick={() => alert("Redirecting to WhatsApp for " + listing.title)}
                  className="w-full bg-forest-900 text-white font-medium py-4 rounded-xl hover:bg-forest-800 transition-colors shadow-lg shadow-forest-900/10 flex items-center justify-center gap-2"
@@ -110,19 +110,20 @@ const ProductDetails: React.FC = () => {
                  <MessageSquare className="h-5 w-5" /> Contact Supplier
                </button>
              ) : (
-               <div className={`w-full rounded-xl p-5 border flex flex-col items-center text-center ${listing.is_sold ? 'bg-stone-50 border-stone-200' : 'bg-earth-50 border-earth-100'}`}>
-                  {listing.is_sold ? (
-                      <span className="text-stone-500 font-bold flex items-center gap-2"><Lock className="h-4 w-4"/> Asset Sold</span>
-                  ) : (
-                      <>
-                        <AlertTriangle className="h-6 w-6 text-earth-500 mb-2" />
-                        <h3 className="font-bold text-earth-700">Contact Hidden</h3>
-                        <p className="text-xs text-earth-600 mt-1 max-w-xs">
-                           This listing is over 30 days old. The seller must renew it to unlock contact details.
-                        </p>
-                      </>
-                  )}
-               </div>
+                <button 
+                 disabled
+                 className="w-full bg-slate-100 text-slate-400 font-medium py-4 rounded-xl border border-slate-200 cursor-not-allowed flex items-center justify-center gap-2"
+               >
+                 {listing.is_sold ? (
+                    <>
+                        <Check className="h-5 w-5" /> Asset Sold
+                    </>
+                 ) : (
+                    <>
+                        <Lock className="h-5 w-5" /> Listing Expired - Contact Hidden
+                    </>
+                 )}
+               </button>
              )}
           </div>
 
@@ -146,15 +147,7 @@ const ProductDetails: React.FC = () => {
              <p className="text-xs font-bold text-forest-800 uppercase tracking-wide mb-3">Verified Supplier</p>
              <div className="flex items-start justify-between">
                 <div>
-                   {/* Obfuscate Seller Name if not Active */}
-                   {isActive || listing.is_sold ? (
-                       <p className="font-display font-bold text-lg text-forest-900">{listing.seller_name}</p>
-                   ) : (
-                       <div className="flex items-center gap-2 select-none" title="Seller name hidden for archived listing">
-                           <p className="font-display font-bold text-lg text-stone-300 blur-[4px]">Hidden Seller</p>
-                           <Lock className="h-3 w-3 text-stone-400" />
-                       </div>
-                   )}
+                   <p className="font-display font-bold text-lg text-forest-900">{listing.seller_name}</p>
                    
                    <div className="flex items-center gap-1 mt-1 text-sm text-forest-700">
                       <ShieldCheck className="h-4 w-4" /> 
@@ -162,21 +155,15 @@ const ProductDetails: React.FC = () => {
                    </div>
                 </div>
                 
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm ${isActive || listing.is_sold ? 'bg-white text-forest-600' : 'bg-stone-200 text-stone-400'}`}>
-                   {isActive || listing.is_sold ? listing.seller_name.charAt(0) : <Lock className="h-4 w-4" />}
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white text-forest-600`}>
+                   {listing.seller_name.charAt(0)}
                 </div>
              </div>
              
-             {isActive || listing.is_sold ? (
-                 <div className="mt-4 pt-4 border-t border-forest-100/50 flex gap-4 text-xs text-forest-700">
-                    <div className="flex items-center gap-1"><Check className="h-3 w-3" /> Identity Verified</div>
-                    <div className="flex items-center gap-1"><Check className="h-3 w-3" /> Phone Verified</div>
-                 </div>
-             ) : (
-                 <div className="mt-4 pt-4 border-t border-forest-100/50 text-xs text-stone-500 italic">
-                    Merchant details are unavailable for archived listings.
-                 </div>
-             )}
+             <div className="mt-4 pt-4 border-t border-forest-100/50 flex gap-4 text-xs text-forest-700">
+                <div className="flex items-center gap-1"><Check className="h-3 w-3" /> Identity Verified</div>
+                <div className="flex items-center gap-1"><Check className="h-3 w-3" /> Phone Verified</div>
+             </div>
           </div>
 
         </div>
