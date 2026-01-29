@@ -5,7 +5,8 @@ import { Sun, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('solar.king@example.com');
+  const [email, setEmail] = useState(''); // Removed hardcoded default
+  const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -13,12 +14,12 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const success = await login(email);
+    const success = await login(email, password);
     if (success) {
       toast.success('Welcome back!');
       navigate('/dashboard');
     } else {
-      toast.error('User not found. Try "solar.king@example.com" or "newbie@example.com"');
+      toast.error('Login failed. Please check your credentials.');
     }
     setLoading(false);
   };
@@ -47,6 +48,18 @@ const Login: React.FC = () => {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -58,17 +71,17 @@ const Login: React.FC = () => {
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-100">
-           <p className="text-xs text-center text-slate-400 mb-4">
-             Demo Credentials:<br/>
-             1. solar.king@example.com (Verified Merchant)<br/>
-             2. newbie@example.com (Unverified Starter)
-           </p>
-           <p className="text-sm text-center text-slate-500">
-             New to Solerz?{' '}
-             <Link to="/signup" className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
-               Create an Account
-             </Link>
-           </p>
+          <p className="text-xs text-center text-slate-400 mb-4">
+            Demo Credentials:<br />
+            1. solar.king@example.com (Verified Merchant)<br />
+            2. newbie@example.com (Unverified Starter)
+          </p>
+          <p className="text-sm text-center text-slate-500">
+            New to Solerz?{' '}
+            <Link to="/signup" className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+              Create an Account
+            </Link>
+          </p>
         </div>
       </div>
     </div>

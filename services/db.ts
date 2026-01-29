@@ -1,131 +1,112 @@
-import { Listing, Profile, AuthState } from '../types';
-import { MOCK_LISTINGS, MOCK_USERS } from '../constants';
-
-// Keys for localStorage
-const LS_LISTINGS = 'solerz_listings';
-const LS_USERS = 'solerz_users';
-
-// Initialize Mock DB
-const initDB = () => {
-  if (!localStorage.getItem(LS_LISTINGS)) {
-    localStorage.setItem(LS_LISTINGS, JSON.stringify(MOCK_LISTINGS));
-  }
-  if (!localStorage.getItem(LS_USERS)) {
-    localStorage.setItem(LS_USERS, JSON.stringify(MOCK_USERS));
-  }
-};
-
-initDB();
+import { Listing, Profile } from '../types';
+import { supabase } from './supabaseClient';
 
 export const db = {
   getListings: async (): Promise<Listing[]> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const listingsStr = localStorage.getItem(LS_LISTINGS);
-    const usersStr = localStorage.getItem(LS_USERS);
-    const listings: Listing[] = listingsStr ? JSON.parse(listingsStr) : [];
-    const users: Profile[] = usersStr ? JSON.parse(usersStr) : [];
+    const { data: listings, error } = await supabase
+      .from('listings')
+      .select('*, seller:profiles(company_name, is_verified, seller_type)')
+      .order('created_at', { ascending: false }); // Show newest first
 
-    // Join with user data
-    return listings.map(l => {
-      const seller = users.find(u => u.id === l.seller_id);
-      return {
-        ...l,
-        seller_name: seller?.company_name || 'Unknown',
-        is_verified_seller: seller?.is_verified || false,
-        seller_type: seller?.seller_type // Join seller type
-      };
-    });
+    if (error) {
+      console.error('Error fetching listings:', error);
+      return [];
+    }
+
+    // Map Supabase response to our Listing type
+    return listings.map((l: any) => ({
+      ...l,
+      seller_name: l.seller?.company_name || 'Unknown',
+      is_verified_seller: l.seller?.is_verified || false,
+      seller_type: l.seller?.seller_type
+    }));
   },
 
   getListingById: async (id: string): Promise<Listing | null> => {
-     await new Promise(resolve => setTimeout(resolve, 300));
-     const listings = await db.getListings();
-     return listings.find(l => l.id === id) || null;
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*, seller:profiles(company_name, is_verified, seller_type)')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      console.error("Error getting listing by ID:", error);
+      return null;
+    }
+
+    return {
+      ...data,
+      seller_name: data.seller?.company_name || 'Unknown',
+      is_verified_seller: data.seller?.is_verified || false,
+      seller_type: data.seller?.seller_type
+    };
   },
 
-  createListing: async (listing: Omit<Listing, 'id' | 'created_at' | 'view_count' | 'seller_name' | 'is_verified_seller' | 'seller_type' | 'is_verified_listing'>): Promise<boolean> => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    const listingsStr = localStorage.getItem(LS_LISTINGS);
-    const usersStr = localStorage.getItem(LS_USERS);
-    
-    const listings: Listing[] = listingsStr ? JSON.parse(listingsStr) : [];
-    const users: Profile[] = usersStr ? JSON.parse(usersStr) : [];
-    
-    // Find seller to determine verification status
-    const seller = users.find(u => u.id === listing.seller_id);
-    
-    const newListing: Listing = {
-      ...listing,
-      id: `list-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      view_count: 0,
-      is_verified_listing: seller?.is_verified || false // Auto-set based on seller verification
-    };
+  createListing: async (listing: Omit<Listing, 'id' | 'created_at' | 'view_count' | 'seller_name' | 'is_verified_seller' | 'seller_type' | 'is_verified_listing' | 'archive_until' | 'active_until'>): Promise<boolean> => {
 
-    listings.unshift(newListing);
-    localStorage.setItem(LS_LISTINGS, JSON.stringify(listings));
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("No user logged in to create listing");
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('listings')
+      .insert({
+        ...listing,
+        seller_id: user.id
+      });
+
+    if (error) {
+      console.error('Error creating listing:', error);
+      return false;
+    }
     return true;
   },
 
   updateListing: async (listing: Listing): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const listingsStr = localStorage.getItem(LS_LISTINGS);
-    let listings: Listing[] = listingsStr ? JSON.parse(listingsStr) : [];
-    
-    // Find index and update
-    listings = listings.map(l => l.id === listing.id ? listing : l);
-    
-    localStorage.setItem(LS_LISTINGS, JSON.stringify(listings));
+    // Security: RLS will prevent unauthorized updates
+    const { error } = await supabase
+      .from('listings')
+      .update({
+        title: listing.title,
+        price_rm: listing.price_rm,
+        specs: listing.specs,
+        images_url: listing.images_url,
+        // Add other updatable fields as needed
+      })
+      .eq('id', listing.id);
+
+    if (error) console.error("Error updating listing:", error);
   },
-  
+
   updateViewCount: async (id: string): Promise<void> => {
-     const listingsStr = localStorage.getItem(LS_LISTINGS);
-     let listings: Listing[] = listingsStr ? JSON.parse(listingsStr) : [];
-     listings = listings.map(l => l.id === id ? { ...l, view_count: l.view_count + 1 } : l);
-     localStorage.setItem(LS_LISTINGS, JSON.stringify(listings));
+    const { error } = await supabase.rpc('increment_view_count', { listing_id: id });
+    if (error) console.error("Error incrementing view count:", error);
   },
 
   login: async (email: string): Promise<Profile | null> => {
-     await new Promise(resolve => setTimeout(resolve, 600));
-     const usersStr = localStorage.getItem(LS_USERS);
-     const users: Profile[] = usersStr ? JSON.parse(usersStr) : [];
-     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-     return user || null;
+    // NOTE: This is for getting PROFILE data, not auth. 
+    // Auth is handled directly by supabase.auth in authContext
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error) return null;
+    return data as Profile;
   },
 
-  register: async (userData: Partial<Profile>): Promise<Profile> => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    const usersStr = localStorage.getItem(LS_USERS);
-    const users: Profile[] = usersStr ? JSON.parse(usersStr) : [];
+  // This function is less relevant with Supabase Auth (handled by Context), keeping for possible profile updates
+  updateProfile: async (profile: Partial<Profile>): Promise<void> => {
+    // Only update fields that are present
+    const { error } = await supabase
+      .from('profiles')
+      .update(profile)
+      .eq('id', profile.id);
 
-    // Check duplicate
-    if (users.find(u => u.email.toLowerCase() === userData.email?.toLowerCase())) {
-        throw new Error("Email already registered");
-    }
-
-    const newProfile: Profile = {
-        id: `user-${Date.now()}`,
-        email: userData.email!,
-        company_name: userData.company_name!,
-        ssm_no: userData.ssm_no || '',
-        is_verified: !!userData.ssm_no, // Auto verify if SSM provided (for demo)
-        whatsapp_no: userData.whatsapp_no || '',
-        tier: userData.tier || 'STARTER',
-        seller_type: userData.seller_type || 'INDIVIDUAL',
-        created_at: new Date().toISOString()
-    };
-
-    users.push(newProfile);
-    localStorage.setItem(LS_USERS, JSON.stringify(users));
-    return newProfile;
-  },
-
-  updateProfile: async (profile: Profile): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const usersStr = localStorage.getItem(LS_USERS);
-    let users: Profile[] = usersStr ? JSON.parse(usersStr) : [];
-    users = users.map(u => u.id === profile.id ? profile : u);
-    localStorage.setItem(LS_USERS, JSON.stringify(users));
+    if (error) console.error("Error updating profile:", error);
   }
 };

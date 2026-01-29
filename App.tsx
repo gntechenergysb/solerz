@@ -8,6 +8,7 @@ import CreateListing from './pages/CreateListing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Pricing from './pages/Pricing';
+import AdminDashboard from './pages/AdminDashboard';
 import { AuthProvider } from './services/authContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -29,19 +30,20 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
-          
+
           {/* Simple Footer */}
           <footer className="bg-white border-t border-slate-200 py-8 mt-auto">
-             <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm">
-                <p>&copy; {new Date().getFullYear()} Solerz. Malaysia's Premier Solar Exchange.</p>
-             </div>
+            <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 text-sm">
+              <p>&copy; {new Date().getFullYear()} Solerz. Malaysia's Premier Solar Exchange.</p>
+            </div>
           </footer>
 
-          <Toaster 
-            position="bottom-right" 
+          <Toaster
+            position="bottom-right"
             toastOptions={{
               style: {
                 background: '#334155',
@@ -49,7 +51,7 @@ const App: React.FC = () => {
                 borderRadius: '8px',
               },
               success: {
-                 iconTheme: { primary: '#10B981', secondary: '#fff' }
+                iconTheme: { primary: '#10B981', secondary: '#fff' }
               }
             }}
           />

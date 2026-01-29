@@ -1,16 +1,24 @@
 
 export type UserTier = 'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE';
- 
+
 export interface Profile {
   id: string;
   email: string;
   company_name: string;
-  ssm_no: string;
   is_verified: boolean;
   whatsapp_no: string;
   tier: UserTier;
   seller_type: 'INDIVIDUAL' | 'COMPANY';
+  role: 'ADMIN' | 'SELLER';
   created_at: string;
+  // KYC Fields
+  ssm_no?: string; // Accessor for backward compatibility if needed, though we prefer new fields
+  ssm_new_no?: string;
+  ssm_old_no?: string;
+  business_address?: string;
+  incorporation_date?: string; // YYYY-MM-DD
+  nature_of_business?: string;
+  ssm_file_path?: string;
 }
 
 export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Accessories';

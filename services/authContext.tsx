@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Profile } from '../types';
 import { db } from './db';
+import { supabase } from './supabaseClient';
 
 interface AuthContextType {
   user: Profile | null;
-  login: (email: string) => Promise<boolean>;
-  register: (data: Partial<Profile>) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (data: Partial<Profile>, password: string) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   isLoading: boolean;
@@ -19,56 +20,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for session
-    const storedUser = localStorage.getItem('solerz_session');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check active sessions
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        refreshUser(session.user.email!);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        refreshUser(session.user.email!);
+      } else {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      console.error("Login error:", error.message);
+      setIsLoading(false);
+      // We will throw or return false. Ideally return error message.
+      // For now returning false to compatible with existing UI logic
+      // but we'll expose error via toast in UI
+      return false;
+    }
+    return true;
+  };
+
+  const register = async (data: Partial<Profile>, password: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: password,
+        options: {
+          data: {
+            company_name: data.company_name,
+            seller_type: data.seller_type
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      return true;
+    } catch (e) {
+      console.error(e);
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  const refreshUser = async (email?: string) => {
+    if (!email && user?.email) email = user.email;
+    if (!email) return;
+
     const profile = await db.login(email);
     if (profile) {
       setUser(profile);
-      localStorage.setItem('solerz_session', JSON.stringify(profile));
-      setIsLoading(false);
-      return true;
     }
     setIsLoading(false);
-    return false;
-  };
-
-  const register = async (data: Partial<Profile>) => {
-    setIsLoading(true);
-    try {
-        const profile = await db.register(data);
-        setUser(profile);
-        localStorage.setItem('solerz_session', JSON.stringify(profile));
-        setIsLoading(false);
-        return true;
-    } catch (e) {
-        console.error(e);
-        setIsLoading(false);
-        return false;
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('solerz_session');
-  };
-
-  const refreshUser = async () => {
-      if (user) {
-          const updated = await db.login(user.email);
-          if (updated) {
-              setUser(updated);
-              // CRITICAL: Ensure local storage session is updated to persist changes across page reloads
-              localStorage.setItem('solerz_session', JSON.stringify(updated));
-          }
-      }
   }
 
   const isAuthenticated = !!user;
