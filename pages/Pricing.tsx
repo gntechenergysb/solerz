@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Check, X, ShieldCheck, Zap, BarChart2, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../services/authContext';
-import { db } from '../services/db';
 import { useNavigate } from 'react-router-dom';
-import { UserTier } from '../types';
+import { supabase } from '../services/supabaseClient';
 
 type BillingCycle = 'monthly' | 'yearly';
 
@@ -80,7 +79,7 @@ const PLANS: Plan[] = [
 ];
 
 const Pricing: React.FC = () => {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -96,29 +95,44 @@ const Pricing: React.FC = () => {
     setSelectedPlan(plan);
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
+    if (!user || !selectedPlan) return;
     setIsProcessing(true);
-    // Simulate Billplz API call
-    setTimeout(async () => {
-        if (user && selectedPlan) {
-            try {
-                // Update User Tier Logic
-                const newTier = selectedPlan.id.toUpperCase() as UserTier;
-                const { success, error } = await db.purchasePlan(newTier);
-                if (!success) throw error || new Error('purchase_failed');
-                await refreshUser();
-                toast.success(`Payment simulated for ${selectedPlan.name} (${newTier}).`);
-            } catch (error) {
-                console.error("Payment Error:", error);
-                toast.error("An error occurred while updating your subscription.");
-            }
-        }
-        
-        setIsProcessing(false);
-        setSelectedPlan(null);
-        // Navigate to dashboard to see new limits
-        navigate('/dashboard');
-    }, 2000);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        toast.error('Please login again to continue.');
+        navigate('/login');
+        return;
+      }
+
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          billingCycle
+        })
+      });
+
+      const json = (await res.json().catch(() => null)) as any;
+      if (!res.ok) {
+        throw new Error(String(json?.error || 'checkout_failed'));
+      }
+
+      const url = String(json?.url || '').trim();
+      if (!url) throw new Error('missing_checkout_url');
+
+      window.location.href = url;
+    } catch (error) {
+      console.error('Stripe checkout error:', error);
+      toast.error('Unable to start checkout. Please try again.');
+      setIsProcessing(false);
+    }
   };
 
   // Tax Calculation
@@ -241,7 +255,7 @@ const Pricing: React.FC = () => {
         })}
       </div>
 
-      {/* Billplz Style Modal */}
+      {/* Checkout Modal */}
       {selectedPlan && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedPlan(null)}></div>
@@ -250,10 +264,10 @@ const Pricing: React.FC = () => {
                 {/* Modal Header */}
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs">
-                            BP
+                         <div className="w-8 h-8 bg-slate-900 rounded flex items-center justify-center text-white font-bold text-xs">
+                            S
                          </div>
-                         <span className="font-bold text-slate-700">Billplz Secure Checkout</span>
+                         <span className="font-bold text-slate-700">Secure Checkout</span>
                     </div>
                     <button onClick={() => setSelectedPlan(null)} className="text-slate-400 hover:text-slate-600">
                         <X className="h-5 w-5" />
@@ -301,7 +315,7 @@ const Pricing: React.FC = () => {
                             <span>Processing Payment...</span>
                         ) : (
                             <>
-                                <span>Pay via Billplz FPX</span>
+                                <span>Pay with Stripe</span>
                             </>
                         )}
                     </button>

@@ -1,6 +1,11 @@
 export type Env = {
-  SUPABASE_URL: string;
-  SUPABASE_ANON_KEY: string;
+  SUPABASE_URL?: string;
+  SUPABASE_ANON_KEY?: string;
+  VITE_SUPABASE_URL?: string;
+  VITE_SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
   ASSETS: Fetcher;
 };
 
@@ -13,15 +18,18 @@ export const supabaseRestGet = async <T>(
   env: Env,
   pathWithQuery: string
 ): Promise<{ data: T | null; error?: string; status: number }> => {
-  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const supabaseKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
     return { data: null, error: 'Missing SUPABASE_URL or SUPABASE_ANON_KEY', status: 500 };
   }
 
-  const url = `${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${pathWithQuery.replace(/^\//, '')}`;
+  const url = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/${pathWithQuery.replace(/^\//, '')}`;
   const res = await fetch(url, {
     headers: {
-      apikey: env.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
       Accept: 'application/json'
     }
   });
