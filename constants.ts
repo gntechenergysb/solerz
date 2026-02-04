@@ -18,7 +18,7 @@ export const MALAYSIAN_STATES = [
   'Putrajaya'
 ];
 
-export const CATEGORIES = ['Panels', 'Inverters', 'Batteries', 'Accessories'];
+export const CATEGORIES = ['Panels', 'Inverters', 'Batteries', 'Cable', 'Protective', 'Miscellaneous'];
 
 export const MOCK_USERS = [
   {

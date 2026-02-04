@@ -104,12 +104,10 @@ const Pricing: React.FC = () => {
             try {
                 // Update User Tier Logic
                 const newTier = selectedPlan.id.toUpperCase() as UserTier;
-                const updatedProfile = { ...user, tier: newTier };
-                
-                await db.updateProfile(updatedProfile);
-                await refreshUser(); // Sync context
-                
-                toast.success(`Successfully subscribed to ${selectedPlan.name}!`);
+                const { success, error } = await db.purchasePlan(newTier);
+                if (!success) throw error || new Error('purchase_failed');
+                await refreshUser();
+                toast.success(`Payment simulated for ${selectedPlan.name} (${newTier}).`);
             } catch (error) {
                 console.error("Payment Error:", error);
                 toast.error("An error occurred while updating your subscription.");
@@ -140,26 +138,26 @@ const Pricing: React.FC = () => {
       
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-16">
-        <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">Professional Marketplace Pricing</h1>
-        <p className="text-lg text-slate-500 mb-8">
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">Professional Marketplace Pricing</h1>
+        <p className="text-lg text-slate-500 dark:text-slate-300 mb-8">
             Clear, flat-fee pricing for solar assets. Scale your inventory as you grow.<br/>
-            All prices are <span className="font-bold text-slate-800">Nett</span> (Inclusive of 8% SST and Fees).
+            All prices are <span className="font-bold text-slate-800 dark:text-slate-100">Nett</span> (Inclusive of 8% SST and Fees).
         </p>
 
         {/* Toggle */}
-        <div className="inline-flex bg-slate-100 p-1 rounded-xl relative">
+        <div className="inline-flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl relative border border-transparent dark:border-slate-800">
           <div 
-            className={`absolute top-1 bottom-1 w-[50%] bg-white rounded-lg shadow-sm transition-all duration-300 ease-out ${billingCycle === 'monthly' ? 'left-1' : 'left-[49%]'}`} 
+            className={`absolute top-1 bottom-1 w-[50%] bg-white dark:bg-slate-800 rounded-lg shadow-sm transition-all duration-300 ease-out ${billingCycle === 'monthly' ? 'left-1' : 'left-[49%]'}`} 
           />
           <button 
             onClick={() => setBillingCycle('monthly')}
-            className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors w-32 ${billingCycle === 'monthly' ? 'text-slate-900' : 'text-slate-500'}`}
+            className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors w-32 ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-300'}`}
           >
             Monthly
           </button>
           <button 
              onClick={() => setBillingCycle('yearly')}
-             className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors w-32 ${billingCycle === 'yearly' ? 'text-slate-900' : 'text-slate-500'}`}
+             className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors w-32 ${billingCycle === 'yearly' ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-300'}`}
           >
             Yearly <span className="text-[10px] text-emerald-600 ml-1">(-17%)</span>
           </button>
@@ -179,10 +177,10 @@ const Pricing: React.FC = () => {
                 key={plan.id}
                 className={`relative flex flex-col p-6 rounded-3xl border transition-all hover:shadow-xl hover:-translate-y-1 duration-300
                 ${isEmerald 
-                    ? 'bg-white border-emerald-100 shadow-lg shadow-emerald-50' 
-                    : 'bg-slate-50 border-slate-200'
+                    ? 'bg-white border-emerald-100 shadow-lg shadow-emerald-50 dark:bg-slate-900 dark:border-slate-800 dark:shadow-none' 
+                    : 'bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800'
                 }
-                ${plan.isPopular ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}
+                ${plan.isPopular ? 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-950' : ''}
                 `}
             >
                 {plan.isPopular && (
@@ -192,15 +190,15 @@ const Pricing: React.FC = () => {
                 )}
 
                 <div className="mb-6">
-                    <h3 className={`text-lg font-bold ${isEmerald ? 'text-emerald-900' : 'text-slate-700'}`}>{plan.name}</h3>
+                    <h3 className={`text-lg font-bold ${isEmerald ? 'text-emerald-900 dark:text-emerald-200' : 'text-slate-700 dark:text-slate-200'}`}>{plan.name}</h3>
                     <div className="mt-2 flex items-baseline gap-1">
-                        <span className="text-sm font-semibold text-slate-500">RM</span>
-                        <span className="text-4xl font-bold text-slate-900">{price.toLocaleString()}</span>
+                        <span className="text-sm font-semibold text-slate-500 dark:text-slate-300">RM</span>
+                        <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">{price.toLocaleString()}</span>
                         {!isStarter && (
-                            <span className="text-slate-500 text-sm">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                            <span className="text-slate-500 dark:text-slate-300 text-sm">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                         )}
                     </div>
-                    {isStarter && <p className="text-xs text-slate-400 mt-1">One-time payment per post</p>}
+                    {isStarter && <p className="text-xs text-slate-400 dark:text-slate-400 mt-1">One-time payment per post</p>}
                 </div>
 
                 <div className="flex-grow space-y-4 mb-8">
@@ -208,20 +206,20 @@ const Pricing: React.FC = () => {
                         <div className={`p-1.5 rounded-lg ${isEmerald ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                             <Zap className="h-4 w-4" />
                         </div>
-                        <span className="font-bold text-slate-800 text-sm">{plan.listingLimit} Active Listings</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">{plan.listingLimit} Active Listings</span>
                     </div>
                     {plan.features.map((feature, i) => (
                         <div key={i} className="flex items-center gap-3">
                             <Check className={`h-4 w-4 ${isEmerald ? 'text-emerald-500' : 'text-slate-400'}`} />
-                            <span className="text-sm text-slate-600">{feature}</span>
+                            <span className="text-sm text-slate-600 dark:text-slate-300">{feature}</span>
                         </div>
                     ))}
                     
                     {/* Visual Aid for Analytics */}
                     {plan.id !== 'starter' && (
-                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100 mt-2">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-100 dark:border-slate-800 mt-2">
                              <BarChart2 className="h-4 w-4 text-emerald-600" />
-                             <span className="text-xs font-medium text-slate-600">
+                             <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
                                 {plan.id === 'pro' ? 'Basic Analytics' : 'Market Price Benchmarking'}
                              </span>
                         </div>

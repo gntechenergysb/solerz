@@ -7,4 +7,11 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('Missing Supabase URL or Anon Key. Please check your .env.local file.');
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseKey || '');
+export const supabase = createClient(supabaseUrl || '', supabaseKey || '', {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined
+  }
+});

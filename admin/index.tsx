@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
-import App from './App';
+import AdminApp from './AdminApp';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  throw new Error('Could not find root element to mount to');
 }
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
@@ -19,6 +19,6 @@ if (sentryDsn) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <AdminApp />
   </React.StrictMode>
 );

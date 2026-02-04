@@ -14,47 +14,53 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const success = await login(email, password);
-    if (success) {
-      toast.success('Welcome back!');
-      navigate('/dashboard');
-    } else {
-      toast.error('Login failed. Please check your credentials.');
+    try {
+      const success = await login(email, password);
+      if (success) {
+        toast.success('Welcome back!');
+        navigate('/dashboard');
+      } else {
+        toast.error('Login failed. Please check your credentials.');
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Login failed.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+      <div className="max-w-md w-full bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 bg-emerald-100 rounded-xl mb-4">
+          <div className="inline-flex items-center justify-center p-3 bg-emerald-100 dark:bg-emerald-500/10 rounded-xl mb-4">
             <Sun className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Seller Login</h1>
-          <p className="text-slate-500 mt-2">Access the Solerz marketplace dashboard</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Seller Login</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Access the Solerz marketplace dashboard</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
               placeholder="you@company.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
               placeholder="••••••••"
               required
             />
@@ -70,13 +76,8 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-100">
-          <p className="text-xs text-center text-slate-400 mb-4">
-            Demo Credentials:<br />
-            1. solar.king@example.com (Verified Merchant)<br />
-            2. newbie@example.com (Unverified Starter)
-          </p>
-          <p className="text-sm text-center text-slate-500">
+        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+          <p className="text-sm text-center text-slate-500 dark:text-slate-400">
             New to Solerz?{' '}
             <Link to="/signup" className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
               Create an Account

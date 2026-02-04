@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "vite --config vite.admin.config.ts",
     "build": "vite build",
-    "preview": "vite preview"
+    "build:admin": "vite build --config vite.admin.config.ts",
+    "preview": "vite preview",
+    "preview:admin": "vite preview --config vite.admin.config.ts --port 4174"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.2",
+    "@sentry/react": "^8.47.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -18,8 +22,10 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "postcss": "^8.5.6",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
