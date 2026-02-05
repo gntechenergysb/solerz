@@ -35,6 +35,54 @@ const CreateListing: React.FC = () => {
     return <Navigate to={user.tier === 'UNSUBSCRIBED' ? "/pricing" : "/dashboard"} />;
   }
 
+  const getListingLimit = (tier: any) => {
+    switch (tier) {
+      case 'UNSUBSCRIBED': return 0;
+      case 'STARTER': return 1;
+      case 'PRO': return 10;
+      case 'MERCHANT': return 30;
+      case 'ENTERPRISE': return 100;
+      default: return 0;
+    }
+  };
+
+  const [slotBlocked, setSlotBlocked] = useState(false);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    if (!user) return;
+
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const mine = await db.getListingsBySellerId(user.id);
+        if (cancelled) return;
+
+        const nowMs = Date.now();
+        const activeUsed = (mine || []).filter((l: any) => {
+          const activeUntilMs = new Date(l.active_until).getTime();
+          return !l.is_hidden && !l.is_sold && activeUntilMs > nowMs;
+        }).length;
+
+        const limit = getListingLimit((user as any).tier);
+        if (activeUsed >= limit) {
+          setSlotBlocked(true);
+          toast.error(`You have reached your plan limit (${activeUsed}/${limit}). Deactivate a listing to add a new one.`);
+          navigate('/dashboard', { replace: true });
+        } else {
+          setSlotBlocked(false);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEditMode, navigate, user]);
+
   useEffect(() => {
     if (!isEditMode || !editId) return;
     if (!user) return;
@@ -117,6 +165,10 @@ const CreateListing: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (slotBlocked) {
+      toast.error('You have reached your plan limit.');
+      return;
+    }
     setLoading(true);
 
     try {

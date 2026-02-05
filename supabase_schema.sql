@@ -72,6 +72,17 @@ BEGIN
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'SELLER';
 
+    -- Stripe subscription fields (optional)
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_subscription_status TEXT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_current_period_end BIGINT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_cancel_at_period_end BOOLEAN;
+
+    -- Pending tier changes (scheduled at next billing cycle)
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pending_tier TEXT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tier_effective_at BIGINT;
+
     -- 核心 KYC 字段
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ssm_new_no TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ssm_old_no TEXT;

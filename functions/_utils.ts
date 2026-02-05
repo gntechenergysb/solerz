@@ -6,6 +6,7 @@ export type Env = {
   SUPABASE_SERVICE_ROLE_KEY?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_CATALOG_PRODUCT_IDS_JSON?: string;
   ASSETS: Fetcher;
 };
 

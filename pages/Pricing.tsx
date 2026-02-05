@@ -79,7 +79,7 @@ const PLANS: Plan[] = [
 ];
 
 const Pricing: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -104,6 +104,36 @@ const Pricing: React.FC = () => {
       if (!accessToken) {
         toast.error('Please login again to continue.');
         navigate('/login');
+        return;
+      }
+
+      const isSubscribed = user.tier !== 'UNSUBSCRIBED';
+
+      if (isSubscribed) {
+        const res = await fetch('/api/stripe/subscription/change', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            planId: selectedPlan.id,
+            billingCycle
+          })
+        });
+
+        const json = (await res.json().catch(() => null)) as any;
+        if (!res.ok) {
+          throw new Error(String(json?.error || 'change_failed'));
+        }
+
+        toast.success(json?.mode === 'downgrade_scheduled'
+          ? 'Downgrade scheduled for next billing cycle.'
+          : 'Plan updated.');
+
+        setSelectedPlan(null);
+        await refreshUser();
+        navigate('/dashboard');
         return;
       }
 
@@ -137,9 +167,7 @@ const Pricing: React.FC = () => {
 
   // Tax Calculation
   const currentPrice = selectedPlan 
-    ? (selectedPlan.id === 'starter' 
-        ? selectedPlan.monthlyPrice 
-        : (billingCycle === 'monthly' ? selectedPlan.monthlyPrice : selectedPlan.yearlyPrice))
+    ? (billingCycle === 'monthly' ? selectedPlan.monthlyPrice : selectedPlan.yearlyPrice)
     : 0;
 
   // Reverse calculate SST (Price is Nett)
@@ -182,8 +210,7 @@ const Pricing: React.FC = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {PLANS.map((plan) => {
-          const isStarter = plan.id === 'starter';
-          const price = isStarter ? plan.monthlyPrice : (billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice);
+          const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
           const isEmerald = plan.colorTheme === 'emerald';
 
           return (
@@ -208,11 +235,8 @@ const Pricing: React.FC = () => {
                     <div className="mt-2 flex items-baseline gap-1">
                         <span className="text-sm font-semibold text-slate-500 dark:text-slate-300">RM</span>
                         <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">{price.toLocaleString()}</span>
-                        {!isStarter && (
-                            <span className="text-slate-500 dark:text-slate-300 text-sm">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
-                        )}
+                        <span className="text-slate-500 dark:text-slate-300 text-sm">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                     </div>
-                    {isStarter && <p className="text-xs text-slate-400 dark:text-slate-400 mt-1">One-time payment per post</p>}
                 </div>
 
                 <div className="flex-grow space-y-4 mb-8">
@@ -248,7 +272,7 @@ const Pricing: React.FC = () => {
                         : 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-300 shadow-md'
                     }`}
                 >
-                    {isStarter ? 'Pay Per Post' : 'Subscribe Now'}
+                    Subscribe Now
                 </button>
             </div>
           );
@@ -282,9 +306,7 @@ const Pricing: React.FC = () => {
                         <div>
                             <h3 className="font-bold text-slate-900 text-lg">{selectedPlan.name} Plan</h3>
                             <p className="text-slate-500 text-sm">
-                                {selectedPlan.id === 'starter' 
-                                    ? 'Single Asset Listing Credit' 
-                                    : `${billingCycle === 'monthly' ? 'Monthly' : 'Annual'} Subscription`}
+                                {`${billingCycle === 'monthly' ? 'Monthly' : 'Annual'} Subscription`}
                             </p>
                         </div>
                     </div>

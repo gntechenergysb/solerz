@@ -8,9 +8,16 @@ export interface Profile {
   is_verified: boolean;
   handphone_no?: string | null;
   tier: UserTier;
+  pending_tier?: UserTier | null;
+  tier_effective_at?: number | null;
   seller_type: 'INDIVIDUAL' | 'COMPANY';
   role: 'ADMIN' | 'SELLER' | 'BUYER';
   created_at: string;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  stripe_subscription_status?: string | null;
+  stripe_current_period_end?: number | null;
+  stripe_cancel_at_period_end?: boolean | null;
   // KYC Fields
   ssm_no?: string; // Accessor for backward compatibility if needed, though we prefer new fields
   ssm_new_no?: string;

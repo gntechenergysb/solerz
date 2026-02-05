@@ -365,6 +365,24 @@ export const db = {
     if (error) console.error("Error updating listing:", error);
   },
 
+  setListingHidden: async (id: string, isHidden: boolean): Promise<boolean> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('listings')
+      .update({ is_hidden: isHidden })
+      .eq('id', id)
+      .eq('seller_id', user.id);
+
+    if (error) {
+      console.error('Error updating listing visibility:', error);
+      return false;
+    }
+    return true;
+  },
+
   renewListing: async (id: string): Promise<{ active_until: string; archive_until: string } | null> => {
     const { data, error } = await supabase.rpc('renew_listing', { p_listing_id: id });
     if (error) {

@@ -6,6 +6,17 @@ type CheckoutRequest = {
   billingCycle: 'monthly' | 'yearly';
 };
 
+type StripeCatalogProductIds = Partial<
+  Record<'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
+>;
+
+const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
+  STARTER: { monthly: 'prod_Tv7VBjeUan8T3x', yearly: 'prod_Tv8mSSNSh8jHx0' },
+  PRO: { monthly: 'prod_Tv8mFLtMiHmUkw', yearly: 'prod_Tv8ntvfSKWhVk8' },
+  MERCHANT: { monthly: 'prod_Tv8nCHHVEy2CJ5', yearly: 'prod_Tv8oYiJfNgpX9N' },
+  ENTERPRISE: { monthly: 'prod_Tv8pxG4tKoelsQ', yearly: 'prod_Tv8pjvPDhz8sEq' }
+};
+
 const normalizeTier = (planId: string) => {
   const t = String(planId || '').trim().toUpperCase();
   if (t === 'STARTER' || t === 'PRO' || t === 'MERCHANT' || t === 'ENTERPRISE') return t;
@@ -26,7 +37,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   const origin = getOrigin(request);
   const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const supabaseAnonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
-  const stripeSecretKey = (env as any).STRIPE_SECRET_KEY as string | undefined;
+  const stripeSecretKey = env.STRIPE_SECRET_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return new Response(JSON.stringify({ error: 'Missing Supabase env vars' }), {
@@ -92,10 +103,27 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   };
 
   const planAmounts = amountMapMyr[tier];
-  const myrAmount = tier === 'STARTER' ? planAmounts.monthly : (billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly);
+  const myrAmount = billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly;
   const unitAmount = Math.round(myrAmount * 100);
 
-  const isSubscription = tier !== 'STARTER';
+  let catalogId: string | null = null;
+  if (env.STRIPE_CATALOG_PRODUCT_IDS_JSON) {
+    try {
+      const parsed = JSON.parse(env.STRIPE_CATALOG_PRODUCT_IDS_JSON) as StripeCatalogProductIds;
+      const maybe = parsed?.[tier as keyof StripeCatalogProductIds]?.[billingCycle];
+      const v = String(maybe || '').trim();
+      if (v) catalogId = v;
+    } catch {
+      catalogId = null;
+    }
+  }
+  if (!catalogId) {
+    const maybe = DEFAULT_STRIPE_CATALOG_IDS?.[tier as keyof StripeCatalogProductIds]?.[billingCycle];
+    const v = String(maybe || '').trim();
+    if (v) catalogId = v;
+  }
+
+  const isSubscription = true;
   const sessionParams = new URLSearchParams();
 
   sessionParams.set('mode', isSubscription ? 'subscription' : 'payment');
@@ -110,20 +138,29 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (email) sessionParams.set('customer_email', email);
 
   sessionParams.set('line_items[0][quantity]', '1');
-  sessionParams.set('line_items[0][price_data][currency]', 'myr');
-  sessionParams.set('line_items[0][price_data][unit_amount]', String(unitAmount));
-  sessionParams.set('line_items[0][price_data][product_data][name]', `Solerz ${tier} (${billingCycle})`);
+
+  const usingPriceId = !!(catalogId && catalogId.startsWith('price_'));
+
+  if (usingPriceId && catalogId) {
+    sessionParams.set('line_items[0][price]', catalogId);
+  } else {
+    sessionParams.set('line_items[0][price_data][currency]', 'myr');
+    sessionParams.set('line_items[0][price_data][unit_amount]', String(unitAmount));
+    if (catalogId && catalogId.startsWith('prod_')) {
+      sessionParams.set('line_items[0][price_data][product]', catalogId);
+    } else {
+      sessionParams.set('line_items[0][price_data][product_data][name]', `Solerz ${tier} (${billingCycle})`);
+    }
+  }
 
   if (isSubscription) {
     const interval = billingCycle === 'yearly' ? 'year' : 'month';
-    sessionParams.set('line_items[0][price_data][recurring][interval]', interval);
+    if (!usingPriceId) {
+      sessionParams.set('line_items[0][price_data][recurring][interval]', interval);
+    }
     sessionParams.set('subscription_data[metadata][user_id]', userId);
     sessionParams.set('subscription_data[metadata][tier]', tier);
     sessionParams.set('subscription_data[metadata][billing_cycle]', billingCycle);
-  } else {
-    sessionParams.set('payment_intent_data[metadata][user_id]', userId);
-    sessionParams.set('payment_intent_data[metadata][tier]', tier);
-    sessionParams.set('payment_intent_data[metadata][billing_cycle]', billingCycle);
   }
 
   const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {

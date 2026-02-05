@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { Listing, UserTier } from '../types';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, DollarSign, Target, CheckCircle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -208,6 +208,9 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
 
 const Dashboard: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const paymentHandledRef = useRef(false);
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [marketDemand, setMarketDemand] = useState<{ inverters: number; panels: number; batteries: number }>({
@@ -260,6 +263,37 @@ const Dashboard: React.FC = () => {
     fetchMyData();
   }, [user]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('payment') !== 'success') return;
+    if (paymentHandledRef.current) return;
+    paymentHandledRef.current = true;
+
+    let cancelled = false;
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    const run = async () => {
+      const toastId = toast.loading('Payment received. Updating subscription...');
+      try {
+        // Webhook can take a few seconds. Refresh a few times.
+        for (let i = 0; i < 6; i += 1) {
+          if (cancelled) return;
+          await refreshUser();
+          await wait(1500);
+        }
+      } finally {
+        toast.dismiss(toastId);
+        // Clean URL so refresh loop doesn't repeat on reload.
+        navigate('/dashboard', { replace: true });
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.search, refreshUser, navigate]);
+
 
 
   const handleRenew = async (id: string) => {
@@ -286,6 +320,73 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        toast.error('Please login again to continue.');
+        navigate('/login');
+        return;
+      }
+
+      const res = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ returnPath: '/dashboard' })
+      });
+
+      const json = (await res.json().catch(() => null)) as any;
+      const url = String(json?.url || '').trim();
+      if (!res.ok || !url) {
+        toast.error('Failed to open billing portal.');
+        return;
+      }
+
+      window.location.href = url;
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to open billing portal.');
+    }
+  };
+
+  const handleCancelSubscriptionAtPeriodEnd = async () => {
+    try {
+      if (!window.confirm('Cancel your subscription at the end of the current billing period?')) return;
+
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        toast.error('Please login again to continue.');
+        navigate('/login');
+        return;
+      }
+
+      const res = await fetch('/api/stripe/subscription/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ atPeriodEnd: true })
+      });
+
+      const json = (await res.json().catch(() => null)) as any;
+      if (!res.ok) {
+        throw new Error(String(json?.error || 'cancel_failed'));
+      }
+
+      toast.success('Cancellation scheduled at period end.');
+      await refreshUser();
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to schedule cancellation.');
+    }
+  };
+
   const getListingLimit = (tier: UserTier) => {
     switch (tier) {
       case 'UNSUBSCRIBED': return 0;
@@ -296,6 +397,14 @@ const Dashboard: React.FC = () => {
       default: return 0;
     }
   };
+
+  const nowMs = Date.now();
+  const listingLimit = getListingLimit(user?.tier || 'STARTER');
+  const activeUsedCount = myListings.filter(l => {
+    const activeUntilMs = new Date((l as any).active_until).getTime();
+    return !(l as any).is_hidden && !(l as any).is_sold && activeUntilMs > nowMs;
+  }).length;
+  const overLimitCount = Math.max(0, activeUsedCount - listingLimit);
 
   // Calculate Profile Strength
   const profileStrengthItems = user ? ([
@@ -379,7 +488,6 @@ const Dashboard: React.FC = () => {
   const totalViewsAllTime = myListings.reduce((acc, curr) => acc + Number((curr as any).view_count || 0), 0);
 
   // Pricing Logic (Panels)
-  const nowMs = Date.now();
   const myActivePanelListings = myListings.filter(l =>
     l.category === 'Panels' &&
     !(l as any).is_hidden &&
@@ -430,9 +538,28 @@ const Dashboard: React.FC = () => {
       </Link>
     ) : (
       user?.is_verified && (
-        <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-800">
-          Subscribe
-        </Link>
+        <div className="w-full md:w-auto bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 px-4 py-2 rounded-xl flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 min-w-0">
+            <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+            <span className="text-emerald-900 dark:text-emerald-200 font-bold truncate">Account Verified</span>
+          </div>
+          {user?.tier !== 'UNSUBSCRIBED' ? (
+            <div className="flex flex-col items-end gap-0.5 shrink-0">
+              <span className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40">
+                TIER: {user.tier}
+              </span>
+              {user?.pending_tier && user?.tier_effective_at ? (
+                <span className="text-[10px] font-bold text-emerald-700/80 dark:text-emerald-200/80">
+                  Next: {user.pending_tier} ({new Date(user.tier_effective_at * 1000).toLocaleDateString()})
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-slate-800 shrink-0">
+              Subscribe
+            </Link>
+          )}
+        </div>
       )
     )}
   </div>
@@ -567,11 +694,23 @@ const Dashboard: React.FC = () => {
 
         <div className="lg:col-span-8 space-y-6">
 
+          {user?.is_verified && user?.tier !== 'UNSUBSCRIBED' && overLimitCount > 0 && (
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="font-bold text-amber-900 dark:text-amber-200">You are over your plan limit</div>
+                <div className="text-sm text-amber-800 dark:text-amber-200/80">
+                  Your plan allows {listingLimit} active listings. Please deactivate {overLimitCount} listing(s) to stay within your limit.
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h3 className="font-bold text-slate-800 dark:text-slate-100">My Listings Inventory</h3>
               <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 py-1 rounded">
-                {myListings.length} / {getListingLimit(user?.tier || 'STARTER')} Slots Used
+                {activeUsedCount} / {listingLimit} Slots Used
               </span>
             </div>
             <div className="overflow-x-auto flex-grow">
@@ -601,6 +740,7 @@ const Dashboard: React.FC = () => {
 
                       const percent = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
                       const isExpired = now > activeUntil;
+                      const isHidden = !!(l as any).is_hidden;
 
                       return (
                         <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors group">
@@ -609,7 +749,11 @@ const Dashboard: React.FC = () => {
                             <div className="text-xs text-slate-400 mt-0.5">{l.category}</div>
                           </td>
                           <td className="px-6 py-4">
-                            {l.is_sold ? (
+                            {isHidden ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-700">
+                                Deactivated
+                              </span>
+                            ) : l.is_sold ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Sold
                               </span>
@@ -661,12 +805,32 @@ const Dashboard: React.FC = () => {
                           </td>
 
                           <td className="px-6 py-4 text-right">
-                            <Link
-                              to={`/edit/${l.id}`}
-                              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:hover:text-emerald-400"
-                            >
-                              Edit
-                            </Link>
+                            <div className="flex justify-end items-center gap-3">
+                              {!l.is_sold && (
+                                <button
+                                  onClick={async () => {
+                                    const next = !isHidden;
+                                    setMyListings(prev => prev.map(x => x.id === l.id ? ({ ...x, is_hidden: next } as any) : x));
+                                    const ok = await db.setListingHidden(l.id, next);
+                                    if (!ok) {
+                                      setMyListings(prev => prev.map(x => x.id === l.id ? (l as any) : x));
+                                      toast.error('Failed to update listing status.');
+                                      return;
+                                    }
+                                    toast.success(next ? 'Listing deactivated.' : 'Listing activated.');
+                                  }}
+                                  className="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                >
+                                  {isHidden ? 'Activate' : 'Deactivate'}
+                                </button>
+                              )}
+                              <Link
+                                to={`/edit/${l.id}`}
+                                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:hover:text-emerald-400"
+                              >
+                                Edit
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -689,12 +853,37 @@ const Dashboard: React.FC = () => {
               >
                 Create Listing
               </Link>
-              <Link
-                to="/pricing"
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
-              >
-                Manage Subscription
-              </Link>
+              {user?.tier && user.tier !== 'UNSUBSCRIBED' ? (
+                <>
+                  <Link
+                    to="/pricing"
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
+                  >
+                    Change Plan
+                  </Link>
+                  <button
+                    onClick={handleManageSubscription}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
+                  >
+                    Billing Portal
+                  </button>
+                  {!user?.pending_tier && (
+                    <button
+                      onClick={handleCancelSubscriptionAtPeriodEnd}
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors text-center"
+                    >
+                      Cancel (End of Period)
+                    </button>
+                  )}
+                </>
+              ) : (
+                <Link
+                  to="/pricing"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
+                >
+                  Subscribe
+                </Link>
+              )}
               <Link
                 to="/"
                 className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
@@ -815,32 +1004,6 @@ const Dashboard: React.FC = () => {
                   isSubmitting={isVerifying}
                 />
               )}
-            </div>
-          )}
-
-          {user?.is_verified && (
-            <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 p-6 rounded-xl flex items-center justify-between">
-              <div>
-                <h3 className="text-emerald-900 dark:text-emerald-200 font-bold text-lg flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" /> Account Verified
-                </h3>
-                {user.tier === 'UNSUBSCRIBED' ? (
-                  <p className="text-emerald-700 dark:text-emerald-200/80 text-sm mt-1">Your account is verified. Subscribe to a plan to start posting listings.</p>
-                ) : (
-                  <p className="text-emerald-700 dark:text-emerald-200/80 text-sm mt-1">You have full access to post listings and access market analytics.</p>
-                )}
-              </div>
-              <div className="hidden sm:block">
-                {user.tier !== 'UNSUBSCRIBED' ? (
-                  <span className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40">
-                    TIER: {user.tier}
-                  </span>
-                ) : (
-                  <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-slate-800">
-                    Subscribe
-                  </Link>
-                )}
-              </div>
             </div>
           )}
 
