@@ -5,20 +5,37 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/services/authContext';
 import { db } from '@/services/db';
 import { supabase } from '@/services/supabaseClient';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [hp, setHp] = useState('');
 
   const { login, refreshUser, logout } = useAuth();
   const navigate = useNavigate();
+
+  const turnstileSiteKey = (import.meta as any).env?.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const success = await login(email, password);
+     if (hp.trim()) {
+      toast.error('Login failed.');
+      setLoading(false);
+      return;
+    }
+
+    if (turnstileSiteKey && !captchaToken) {
+      toast.error('Please complete the captcha.');
+      setLoading(false);
+      return;
+    }
+
+    const success = await login(email, password, captchaToken);
     if (success) {
       await refreshUser();
 
@@ -60,6 +77,15 @@ const AdminLogin: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={hp}
+            onChange={(e) => setHp(e.target.value)}
+            className="hidden"
+            aria-hidden="true"
+          />
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
             <input
@@ -92,6 +118,10 @@ const AdminLogin: React.FC = () => {
             <span>{loading ? 'Signing in...' : 'Sign In'}</span>
             {!loading && <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />}
           </button>
+
+          {turnstileSiteKey && (
+            <TurnstileWidget siteKey={turnstileSiteKey} onToken={setCaptchaToken} className="flex justify-center" />
+          )}
         </form>
       </div>
     </div>

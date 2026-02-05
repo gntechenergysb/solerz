@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../services/authContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Sun, ArrowRight, User, Briefcase, ShoppingBag, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { TurnstileWidget } from '../components/TurnstileWidget';
 
 type RegistrationRole = 'Buyer' | 'Individual Seller' | 'Company Seller';
 
@@ -11,6 +12,21 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false); // New state
+  const [slowHint, setSlowHint] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [hp, setHp] = useState('');
+
+  const turnstileSiteKey = (import.meta as any).env?.VITE_TURNSTILE_SITE_KEY as string | undefined;
+
+  useEffect(() => {
+    if (!loading) {
+      setSlowHint(false);
+      return;
+    }
+
+    const t = window.setTimeout(() => setSlowHint(true), 10000);
+    return () => window.clearTimeout(t);
+  }, [loading]);
 
   // Step 1: Role Selection
   const [role, setRole] = useState<RegistrationRole>('Buyer');
@@ -30,6 +46,18 @@ const Signup: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
+    if (hp.trim()) {
+      toast.error('Sign up failed.');
+      setLoading(false);
+      return;
+    }
+
+    if (turnstileSiteKey && !captchaToken) {
+      toast.error('Please complete the captcha.');
+      setLoading(false);
+      return;
+    }
+
     // Map form data to Profile type
     const profileData = {
       email: formData.email,
@@ -40,11 +68,16 @@ const Signup: React.FC = () => {
     };
 
     try {
-      const result = await register(profileData, formData.password);
+      const result = await register(profileData, formData.password, captchaToken);
 
       if (result.success) {
-        toast.success(result.msg || 'Account created! Please verify your email.');
-        setVerificationSent(true);
+        if (result.needsEmailVerification) {
+          toast.success(result.msg || 'Account created! Please verify your email.');
+          setVerificationSent(true);
+        } else {
+          toast.success(result.msg || 'Account created!');
+          navigate('/dashboard');
+        }
       } else {
         toast.error(result.msg || 'Email already in use or sign up failed.');
       }
@@ -97,6 +130,16 @@ const Signup: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={hp}
+            onChange={(e) => setHp(e.target.value)}
+            className="hidden"
+            aria-hidden="true"
+          />
 
           {/* Role Selection */}
           <div className="space-y-3">
@@ -180,6 +223,20 @@ const Signup: React.FC = () => {
             <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
             {!loading && <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />}
           </button>
+
+          {turnstileSiteKey && (
+            <TurnstileWidget
+              siteKey={turnstileSiteKey}
+              onToken={setCaptchaToken}
+              className="flex justify-center"
+            />
+          )}
+
+          {slowHint && (
+            <div className="text-sm text-slate-500 dark:text-slate-400 text-center">
+              This is taking longer than usual. If you get a timeout, your account may still be created. Please check your email and try logging in.
+            </div>
+          )}
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">

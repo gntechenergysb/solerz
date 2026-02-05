@@ -566,7 +566,7 @@ export const db = {
       .from('profiles')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) return null;
     return data as Profile;

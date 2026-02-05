@@ -91,8 +91,8 @@ const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promis
 
 interface AuthContextType {
   user: Profile | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (data: Partial<Profile>, password: string) => Promise<{ success: boolean; msg?: string }>;
+  login: (email: string, password: string, captchaToken?: string | null) => Promise<boolean>;
+  register: (data: Partial<Profile>, password: string, captchaToken?: string | null) => Promise<{ success: boolean; msg?: string; needsEmailVerification?: boolean }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isLoading: boolean;
@@ -100,7 +100,22 @@ interface AuthContextType {
   authEmail: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const DEFAULT_AUTH_CONTEXT: AuthContextType = {
+  user: null,
+  login: async () => false,
+  register: async () => ({ success: false, msg: 'AuthProvider not mounted' }),
+  logout: async () => {
+    return;
+  },
+  refreshUser: async () => {
+    return;
+  },
+  isLoading: false,
+  isAuthenticated: false,
+  authEmail: null,
+};
+
+const AuthContext = createContext<AuthContextType>(DEFAULT_AUTH_CONTEXT);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Profile | null>(() => readCachedProfile());
@@ -232,14 +247,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, captchaToken?: string | null) => {
     setIsLoading(true);
     try {
       const { data, error } = await withTimeout(
         supabase.auth.signInWithPassword({
           email,
-          password
-        }),
+          password,
+          options: {
+            captchaToken: captchaToken || undefined,
+          }
+        } as any),
         12000,
         'auth_signin'
       );
@@ -266,7 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (data: Partial<Profile>, password: string) => {
+  const register = async (data: Partial<Profile>, password: string, captchaToken?: string | null) => {
     setIsLoading(true);
     try {
       // 1. Force clear any existing zombie sessions to prevent "browser cache" issues
@@ -277,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // 2. SignUp with metadata (Triggers handle_new_user to write to profiles)
-      const { error } = await withTimeout(supabase.auth.signUp({
+      const { data: signUpData, error } = await withTimeout(supabase.auth.signUp({
         email: data.email,
         password: password,
         options: {
@@ -286,11 +304,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             seller_type: data.seller_type,
             role: data.role
           },
+          captchaToken: captchaToken || undefined,
           emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined
         }
-      }), 25000, 'auth_signup');
+      }), 60000, 'auth_signup');
 
       if (error) throw error;
+
+      const needsEmailVerification = !signUpData?.session;
 
       // Ensure profile data is updated with all fields (like handphone_no)
       if (data && data.email) {
@@ -305,19 +326,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (isMountedRef.current) setIsLoading(false);
-      return { success: true };
+      return { success: true, needsEmailVerification };
     } catch (e: any) {
-      console.error(e);
       setIsLoading(false);
-      let msg = e.message || 'Registration failed';
+      let msg = e?.message || 'Registration failed';
 
-      if (msg === 'auth_signup_timeout') {
-        return { success: true, msg: 'Account may have been created. Please check your email (and spam folder) to verify, then log in.' };
+      const normalizedMsg = String(msg).toLowerCase();
+      const normalizedErr = String(e).toLowerCase();
+      const errName = String(e?.name || '').toLowerCase();
+      const status = Number(e?.status || e?.cause?.status || 0);
+
+      const isTimeout = msg === 'auth_signup_timeout';
+      const isGatewayTimeout = status === 504 || normalizedMsg.includes('gateway timeout') || normalizedMsg.includes('504');
+      const isRetryableFetch = errName.includes('authretryablefetcherror') || normalizedErr.includes('authretryablefetcherror');
+      const isFetchFailure = normalizedMsg.includes('failed to fetch') || normalizedErr.includes('failed to fetch');
+
+      if (isTimeout || isGatewayTimeout || isRetryableFetch || isFetchFailure) {
+        return {
+          success: true,
+          msg: 'Signup request encountered a temporary network/server issue. Your account may have been created. Please check your email (and spam folder) to verify, then log in. If login fails, retry signup after a minute.'
+        };
       }
+
+      console.error(e);
 
       // Mask system-specific rate limit errors
       if (msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('security purposes')) {
         msg = "Too many attempts. Please wait 1 hour before trying again.";
+      }
+
+      if (msg.toLowerCase().includes('captcha')) {
+        msg = 'Captcha verification failed. Please try again.';
       }
 
       return { success: false, msg };
@@ -357,8 +396,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
   return context;
 };
