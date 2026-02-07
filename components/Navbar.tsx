@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/authContext';
-import { Sun, Moon, LogIn, PlusCircle, LayoutDashboard, LogOut, ChevronDown, User } from 'lucide-react';
+import { Sun, Moon, LogIn, PlusCircle, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated, isLoading, authEmail } = useAuth();
@@ -110,7 +110,7 @@ const Navbar: React.FC = () => {
           {/* Center: Optional Navigation Links (Hidden on mobile) */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-emerald-600 transition-colors">
-              Marketplace
+              Equipment Listings
             </Link>
             <Link to="/pricing" className="text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-emerald-600 transition-colors">
               Pricing
@@ -133,16 +133,6 @@ const Navbar: React.FC = () => {
             
             {user ? (
               <>
-                {/* Create Listing Button (Visible if Verified + Subscribed) */}
-                {user.is_verified && user.tier !== 'UNSUBSCRIBED' && (
-                  <Link to="/create" className="hidden sm:flex">
-                     <button className="flex items-center space-x-2 bg-slate-900 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm dark:shadow-none dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
-                        <PlusCircle className="h-4 w-4" />
-                        <span>Post Asset</span>
-                     </button>
-                  </Link>
-                )}
-
                 {/* Profile Dropdown */}
                 <div className="relative">
                    <button 
@@ -194,12 +184,6 @@ const Navbar: React.FC = () => {
               <div className="flex items-center space-x-3">
                  <Link to="/login" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-emerald-600">
                     Log In
-                 </Link>
-                 <Link to="/login">
-                    <button className="flex items-center space-x-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-full text-sm font-semibold hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm">
-                       <User className="h-4 w-4" />
-                       <span>Partner Access</span>
-                    </button>
                  </Link>
               </div>
             )}

@@ -562,14 +562,26 @@ export const db = {
   getProfileById: async (id: string): Promise<Profile | null> => {
     // NOTE: This is for getting PROFILE data, not auth.
     // Auth is handled directly by supabase.auth in authContext
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
-    if (error) return null;
-    return data as Profile;
+      if (error) {
+        // Log network/DB errors for debugging
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
+      // data is null when user not found - this is expected for new users
+      return data as Profile;
+    } catch (e) {
+      // Handle network or unexpected errors
+      console.error('Network error fetching profile:', e);
+      return null;
+    }
   },
 
   // Return object for detailed error handling

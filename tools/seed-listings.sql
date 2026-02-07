@@ -269,12 +269,12 @@ begin
 
     array[
       case
-        when category = 'Panels' then format('https://loremflickr.com/800/600/solar,panel?lock=%s', img_seed)
-        when category = 'Inverters' then format('https://loremflickr.com/800/600/solar,inverter,electrical?lock=%s', img_seed)
-        when category = 'Batteries' then format('https://loremflickr.com/800/600/battery,energy,storage?lock=%s', img_seed)
-        when category = 'Cable' then format('https://loremflickr.com/800/600/electrical,cable,wire?lock=%s', img_seed)
-        when category = 'Protective' then format('https://loremflickr.com/800/600/circuit,breaker,electrical?lock=%s', img_seed)
-        else format('https://loremflickr.com/800/600/tool,equipment,hardware?lock=%s', img_seed)
+        when category = 'Panels' then format('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop&lock=%s', img_seed)
+        when category = 'Inverters' then format('https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?w=800&h=600&fit=crop&lock=%s', img_seed)
+        when category = 'Batteries' then format('https://images.unsplash.com/photo-1617783756017-38d7c1b32402?w=800&h=600&fit=crop&lock=%s', img_seed)
+        when category = 'Cable' then format('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&lock=%s', img_seed)
+        when category = 'Protective' then format('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=600&fit=crop&lock=%s', img_seed)
+        else format('https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=800&h=600&fit=crop&lock=%s', img_seed)
       end
     ]::text[] as images_url,
 

@@ -130,8 +130,9 @@ const CreateListing: React.FC = () => {
     if (!e.target.files) return;
 
     const filesArray: File[] = Array.from(e.target.files);
-    if (filesArray.length > 10) {
-      toast.error("Max 10 images allowed");
+    const totalCount = images.length + filesArray.length;
+    if (totalCount > 10) {
+      toast.error(`Max 10 images allowed. You already have ${images.length} images selected.`);
       return;
     }
 
@@ -143,7 +144,7 @@ const CreateListing: React.FC = () => {
         maxHeight: 1600,
         outputType: 'image/webp'
       });
-      setImages(compressed);
+      setImages(prev => [...prev, ...compressed]);
       toast.success('Images optimized', { id: 'compress_images' });
     } catch (err) {
       console.error(err);
@@ -175,6 +176,19 @@ const CreateListing: React.FC = () => {
         const uploadListingImages = async (files: File[]): Promise<string[]> => {
           const urls: string[] = [];
           if (!files.length) return urls;
+
+          // Validate file types and sizes
+          const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+          const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+          
+          for (const file of files) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+              throw new Error(`Invalid file type: ${file.name}. Only JPG, PNG, WebP, GIF allowed.`);
+            }
+            if (file.size > MAX_FILE_SIZE) {
+              throw new Error(`File too large: ${file.name}. Max size is 10MB.`);
+            }
+          }
 
           toast.loading('Uploading images...', { id: 'upload_listing_images' });
 
@@ -274,7 +288,7 @@ const CreateListing: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Model" placeholder="e.g. JAM72S30" onChange={(v) => handleSpecChange('model', v)} />
-              <Input label="Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+              <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div>
@@ -299,7 +313,7 @@ const CreateListing: React.FC = () => {
                     <option value="Shingled">Shingled</option>
                   </select>
                </div>
-               <Input label="Dimensions (mm)" placeholder="e.g. 2279x1134x35" onChange={(v) => handleSpecChange('dimensions', v)} required />
+               <Input label="Dimensions (mm)" placeholder="e.g. 2278x1134x30" onChange={(v) => handleSpecChange('dimensions', v)} required />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,7 +363,7 @@ const CreateListing: React.FC = () => {
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <Input label="Efficiency (%)" type="number" onChange={(v) => handleSpecChange('efficiency', Number(v))} />
-               <Input label="Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -407,7 +421,7 @@ const CreateListing: React.FC = () => {
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <Input label="Usable Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('usable_capacity_kwh', Number(v))} />
-               <Input label="Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <Input label="Max Charge (kW)" type="number" onChange={(v) => handleSpecChange('max_charge_kw', Number(v))} />
@@ -539,7 +553,7 @@ const CreateListing: React.FC = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <Input label="Poles" type="number" onChange={(v) => handleSpecChange('poles', Number(v))} />
+              <Input label="Poles" type="number" placeholder="Enter 0 if no poles" onChange={(v) => handleSpecChange('poles', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('rated_current_a', Number(v))} />

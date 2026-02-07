@@ -3,20 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Solerz Admin Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Solerz | Admin Portal</title>
+    <link id="app-favicon" rel="icon" type="image/png" href="/icon.png?v=20260202">
     <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#10B981',
-              accent: '#F59E0B',
-              background: '#F9FAFB',
-            }
+      (function () {
+        try {
+          var key = 'solerz_theme';
+          var saved = localStorage.getItem(key);
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = saved === 'light' || saved === 'dark' ? saved : (prefersDark ? 'dark' : 'light');
+
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
           }
+
+          var favicon = document.getElementById('app-favicon');
+          if (favicon) {
+            favicon.setAttribute('href', theme === 'dark' ? '/icon-dark.png?v=20260202' : '/icon.png?v=20260202');
+          }
+        } catch (e) {
+          // ignore
         }
-      }
+      })();
     </script>
 
     <script type="importmap">
@@ -32,8 +42,8 @@
   }
 }
 </script>
-    <script type="module" crossorigin src="./assets/index-BJSWtWip.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-tn0RQdqM.css">
+    <script type="module" crossorigin src="./assets/index-9c2DDOxi.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DLd3R5bN.css">
   </head>
   <body class="bg-background text-slate-800 antialiased">
     <div id="root"></div>

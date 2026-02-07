@@ -78,6 +78,7 @@ BEGIN
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_subscription_status TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_current_period_end BIGINT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_cancel_at_period_end BOOLEAN;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_billing_interval TEXT; -- 'month' or 'year'
 
     -- Pending tier changes (scheduled at next billing cycle)
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS pending_tier TEXT;

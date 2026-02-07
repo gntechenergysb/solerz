@@ -13,14 +13,14 @@ const Community: React.FC = () => {
           <div className="flex-1">
             <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">Community</h1>
             <p className="mt-2 text-slate-600 dark:text-slate-400">
-              Community forums are in progress. For now, you can continue browsing the marketplace.
+              Community forums are in progress. For now, you can continue browsing the listings.
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <Link
                 to="/"
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 transition-colors"
               >
-                Back to Marketplace
+                Back to Listings
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold">

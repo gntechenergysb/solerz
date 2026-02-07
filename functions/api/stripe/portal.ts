@@ -60,14 +60,17 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const userJson = (await userRes.json().catch(() => null)) as any;
+  const userId = String(userJson?.id || '').trim();
   const email = String(userJson?.email || '').trim();
-  if (!email) {
-    return new Response(JSON.stringify({ error: 'Missing user email' }), {
+  if (!email || !userId) {
+    return new Response(JSON.stringify({ error: 'Missing user details' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
+  // First try to find existing customer by email
+  let customerId: string | null = null;
   const query = `email:'${email.replace(/'/g, "\\'")}'`;
   const searchRes = await fetch(`https://api.stripe.com/v1/customers/search?query=${encodeURIComponent(query)}&limit=1`, {
     headers: {
@@ -75,19 +78,40 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     }
   });
 
-  const searchText = await searchRes.text().catch(() => '');
-  if (!searchRes.ok) {
-    return new Response(JSON.stringify({ error: searchText || 'Stripe error' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  if (searchRes.ok) {
+    const searchJson = JSON.parse(await searchRes.text().catch(() => '{}')) as any;
+    customerId = String(searchJson?.data?.[0]?.id || '').trim() || null;
   }
 
-  const searchJson = JSON.parse(searchText || '{}') as any;
-  const customerId = String(searchJson?.data?.[0]?.id || '').trim();
+  // If no customer found, create one on-demand
   if (!customerId) {
-    return new Response(JSON.stringify({ error: 'No Stripe customer found for this email' }), {
-      status: 404,
+    const createRes = await fetch('https://api.stripe.com/v1/customers', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        email,
+        metadata: JSON.stringify({ user_id: userId })
+      }).toString()
+    });
+
+    if (!createRes.ok) {
+      const errText = await createRes.text().catch(() => '');
+      return new Response(JSON.stringify({ error: errText || 'Failed to create customer' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const createJson = JSON.parse(await createRes.text().catch(() => '{}')) as any;
+    customerId = String(createJson?.id || '').trim();
+  }
+
+  if (!customerId) {
+    return new Response(JSON.stringify({ error: 'Could not find or create Stripe customer' }), {
+      status: 502,
       headers: { 'Content-Type': 'application/json' }
     });
   }

@@ -4,10 +4,15 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.warn('Missing Supabase URL or Anon Key. Please check your .env.local file.');
+  throw new Error(
+    'Missing Supabase environment variables. Please check:\n' +
+    '  - VITE_SUPABASE_URL\n' +
+    '  - VITE_SUPABASE_ANON_KEY\n' +
+    'Ensure .env.local file exists with these values.'
+  );
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseKey || '', {
+export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,

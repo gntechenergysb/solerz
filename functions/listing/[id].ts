@@ -31,7 +31,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   const title = listing?.title
     ? `${listing.title} | Solerz`
-    : 'Solerz | Solar Equipment Marketplace';
+    : 'Solerz | Solar Equipment Listings';
 
   const descParts: string[] = [];
   if (listing?.brand) descParts.push(listing.brand);
@@ -42,7 +42,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   const description = descParts.length
     ? `Solar listing on Solerz: ${descParts.join(' • ')}`
-    : 'Buy and sell solar equipment in Malaysia.';
+    : 'Browse solar equipment listings in Malaysia.';
 
   const canonical = `${origin}/listing/${encodeURIComponent(id)}`;
   const ogImage = listing?.images_url?.[0] || `${origin}/icon.png`;

@@ -74,7 +74,7 @@ const BuyerDashboard: React.FC = () => {
           to="/"
           className="inline-flex items-center justify-center bg-slate-900 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-slate-800 transition-colors dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
         >
-          Browse Marketplace
+          Browse Listings
         </Link>
       </div>
 
@@ -131,7 +131,7 @@ const BuyerDashboard: React.FC = () => {
               {loading ? (
                 <div className="text-sm text-slate-400 dark:text-slate-500">Loading...</div>
               ) : recentListings.length === 0 ? (
-                <div className="text-sm text-slate-500 dark:text-slate-400">No views yet. Start browsing the marketplace.</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400">No views yet. Start browsing the listings.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                   {recentListings.map(l => (

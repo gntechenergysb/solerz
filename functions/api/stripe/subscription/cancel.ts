@@ -171,9 +171,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       });
     }
 
-    const sub = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`);
+    const sub = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}?expand[]=items.data.price`);
     const scheduleId = String(sub?.schedule || '').trim() || null;
     const currentPeriodEnd = Number(sub?.current_period_end || 0);
+    
+    // Extract billing interval from subscription
+    const items = sub?.items?.data || [];
+    const firstItem = items[0];
+    const billingInterval = firstItem?.price?.recurring?.interval || 'month';
 
     await releaseScheduleIfAny(env, scheduleId);
 
@@ -193,6 +198,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         tier_effective_at: currentPeriodEnd || null,
         stripe_cancel_at_period_end: true,
         stripe_subscription_id: subscriptionId,
+        stripe_billing_interval: billingInterval,
         ...(customerId ? { stripe_customer_id: customerId } : {})
       });
 
@@ -210,10 +216,12 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`, { method: 'DELETE' });
 
     await supabaseServicePatchProfile(env, userId, {
+      tier: 'UNSUBSCRIBED',
       pending_tier: null,
       tier_effective_at: null,
       stripe_cancel_at_period_end: false,
       stripe_subscription_id: subscriptionId,
+      stripe_billing_interval: billingInterval,
       ...(customerId ? { stripe_customer_id: customerId } : {})
     });
 

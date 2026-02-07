@@ -16,7 +16,7 @@ const Signup: React.FC = () => {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [hp, setHp] = useState('');
 
-  const turnstileSiteKey = (import.meta as any).env?.VITE_TURNSTILE_SITE_KEY as string | undefined;
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
   useEffect(() => {
     if (!loading) {

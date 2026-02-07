@@ -9,6 +9,8 @@ import DashboardRouter from './pages/DashboardRouter';
 const CreateListing = React.lazy(() => import('./pages/CreateListing'));
 const Login = React.lazy(() => import('./pages/Login'));
 const Signup = React.lazy(() => import('./pages/Signup'));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 const Pricing = React.lazy(() => import('./pages/Pricing'));
 const Community = React.lazy(() => import('./pages/Community'));
 
@@ -31,6 +33,8 @@ const App: React.FC = () => {
                 <Route path="/create" element={<CreateListing />} />
                 <Route path="/edit/:id" element={<CreateListing />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

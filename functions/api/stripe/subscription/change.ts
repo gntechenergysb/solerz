@@ -10,10 +10,10 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
-  STARTER: { monthly: 'prod_Tv7VBjeUan8T3x', yearly: 'prod_Tv8mSSNSh8jHx0' },
-  PRO: { monthly: 'prod_Tv8mFLtMiHmUkw', yearly: 'prod_Tv8ntvfSKWhVk8' },
-  MERCHANT: { monthly: 'prod_Tv8nCHHVEy2CJ5', yearly: 'prod_Tv8oYiJfNgpX9N' },
-  ENTERPRISE: { monthly: 'prod_Tv8pxG4tKoelsQ', yearly: 'prod_Tv8pjvPDhz8sEq' }
+  STARTER: { monthly: 'price_1SxscwAEbTWGL4T0h3tf72Yb', yearly: 'price_1SxsceAEbTWGL4T0lPMjcbso' },
+  PRO: { monthly: 'price_1SxIVLAEbTWGL4T0zRcmfquj', yearly: 'price_1SxIVoAEbTWGL4T0eEuOEfde' },
+  MERCHANT: { monthly: 'price_1SxIW8AEbTWGL4T0AnrsvXOV', yearly: 'price_1SxIWqAEbTWGL4T0hXqilGER' },
+  ENTERPRISE: { monthly: 'price_1SxIXMAEbTWGL4T0sqlzkmb5', yearly: 'price_1SxIXcAEbTWGL4T0Fxf36hwn' }
 };
 
 const normalizeTier = (planId: string) => {
@@ -295,6 +295,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         tier_effective_at: null,
         stripe_cancel_at_period_end: false,
         stripe_subscription_id: subscriptionId,
+        stripe_billing_interval: billingCycle === 'yearly' ? 'year' : 'month',
         ...(customerId ? { stripe_customer_id: customerId } : {})
       });
 
@@ -349,6 +350,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       tier_effective_at: currentPeriodEnd,
       stripe_cancel_at_period_end: false,
       stripe_subscription_id: subscriptionId,
+      stripe_billing_interval: billingCycle === 'yearly' ? 'year' : 'month',
       ...(customerId ? { stripe_customer_id: customerId } : {})
     });
 

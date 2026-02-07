@@ -59,7 +59,7 @@ const Sidebar: React.FC = () => {
         <div className="flex-1 flex flex-col py-6 px-3 overflow-y-auto">
           <p className="px-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">Platform</p>
           
-          <NavItem to="/" icon={ShoppingBag} label="Marketplace" />
+          <NavItem to="/" icon={ShoppingBag} label="Equipment Listings" />
           
           {user && (
             <>
@@ -80,17 +80,6 @@ const Sidebar: React.FC = () => {
                 <span>Settings</span>
               </div>
             </>
-          )}
-
-          {user?.is_verified && (
-             <div className="mt-6 px-3">
-                <Link to="/create">
-                  <button className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-lg font-medium flex items-center justify-center space-x-2 transition-all shadow-lg shadow-slate-200 dark:shadow-none dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
-                     <PlusCircle className="h-4 w-4" />
-                     <span>Post Asset</span>
-                  </button>
-                </Link>
-             </div>
           )}
         </div>
 
@@ -119,7 +108,7 @@ const Sidebar: React.FC = () => {
             <Link to="/login">
               <button className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold py-2.5 rounded-lg hover:border-emerald-500 hover:text-emerald-600 transition-all flex items-center justify-center space-x-2 shadow-sm">
                 <LogIn className="h-4 w-4" />
-                <span>Partner Login</span>
+                <span>Log In</span>
               </button>
             </Link>
           )}

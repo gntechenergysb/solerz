@@ -5,7 +5,23 @@ import { supabase } from './supabaseClient';
 
  const AUTH_CACHE_USER_ID_KEY = 'solerz_auth_user_id_v1';
  const AUTH_CACHE_EMAIL_KEY = 'solerz_auth_email_v1';
- const PROFILE_CACHE_KEY = 'solerz_profile_cache_v1';
+ const PROFILE_CACHE_KEY = 'solerz_profile_cache_v2_minimal'; // v2: only minimal non-sensitive fields
+
+ // Only cache non-sensitive fields to localStorage (security)
+ const MINIMAL_CACHE_FIELDS: Array<keyof Profile> = [
+  'id', 'email', 'company_name', 'tier', 'is_verified', 'role', 'avatar_url'
+ ];
+
+ const extractMinimalProfile = (profile: Profile | null): Partial<Profile> | null => {
+  if (!profile) return null;
+  const minimal: Partial<Profile> = {};
+  for (const key of MINIMAL_CACHE_FIELDS) {
+    if (key in profile) {
+      (minimal as any)[key] = profile[key];
+    }
+  }
+  return minimal;
+ };
 
  const readCachedAuthUserId = (): string | null => {
    try {
@@ -63,16 +79,18 @@ import { supabase } from './supabaseClient';
  };
 
  const writeCachedProfile = (profile: Profile | null) => {
-   try {
-     if (typeof window === 'undefined') return;
-     if (!profile) {
-       window.localStorage.removeItem(PROFILE_CACHE_KEY);
-       return;
-     }
-     window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
-   } catch {
-     return;
-   }
+  try {
+    if (typeof window === 'undefined') return;
+    if (!profile) {
+      window.localStorage.removeItem(PROFILE_CACHE_KEY);
+      return;
+    }
+    // Only cache minimal non-sensitive fields for security
+    const minimal = extractMinimalProfile(profile);
+    window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(minimal));
+  } catch {
+    return;
+  }
  };
 
 const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promise<T> => {
@@ -154,6 +172,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const profile = await withTimeout(db.getProfileById(finalId), 5000, 'db_get_profile');
+        
+        // Warn if profile is missing but user exists in Auth
+        if (!profile && isMountedRef.current) {
+          console.warn(`Profile not found for user ${finalId}. User may need to complete profile setup.`);
+        }
+        
         if (isMountedRef.current) {
           setAuthUserId(finalId);
           writeCachedAuthUserId(finalId);

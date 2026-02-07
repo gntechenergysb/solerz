@@ -3,7 +3,7 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { Listing, UserTier } from '../types';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, DollarSign, Target, CheckCircle, X } from 'lucide-react';
+import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, DollarSign, Target, CheckCircle, X, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // --- KYC FORM COMPONENT ---
@@ -77,25 +77,19 @@ const AvatarUpload = ({ user, onUpdate }: { user: any, onUpdate: () => void }) =
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="relative group">
-        <div className="h-16 w-16 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-md">
-          {user?.avatar_url ? (
-            <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-          ) : (
-            <span className="text-2xl font-bold text-slate-400">{user?.company_name?.charAt(0) || user?.email?.charAt(0)}</span>
-          )}
-          {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><RefreshCw className="text-white animate-spin h-4 w-4" /></div>}
-        </div>
-        <label className="absolute bottom-0 right-0 bg-white dark:bg-slate-900 rounded-full p-1 shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800">
-          <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploading} />
-          <PlusCircle className="h-3 w-3 text-slate-600 dark:text-slate-200" />
-        </label>
+    <div className="relative group">
+      <div className="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-md">
+        {user?.avatar_url ? (
+          <img src={user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-lg font-bold text-slate-400">{user?.company_name?.charAt(0) || user?.email?.charAt(0)}</span>
+        )}
+        {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><RefreshCw className="text-white animate-spin h-3 w-3" /></div>}
       </div>
-      <div>
-        <h3 className="font-bold text-slate-800 dark:text-slate-100">{user?.company_name || 'User'}</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-300">{user?.email}</p>
-      </div>
+      <label className="absolute -bottom-0.5 -right-0.5 bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploading} />
+        <PlusCircle className="h-3 w-3 text-slate-600 dark:text-slate-200" />
+      </label>
     </div>
   );
 }
@@ -131,7 +125,33 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
     nature_of_business: ''
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [showSample, setShowSample] = useState(false);
+
+  const handleFileSelect = (file: File | null) => {
+    setFileError(null);
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+    
+    // Validate PDF file type
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setFileError('Please upload a valid PDF file');
+      setSelectedFile(null);
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    const MAX_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setFileError('File size must be less than 10MB');
+      setSelectedFile(null);
+      return;
+    }
+    
+    setSelectedFile(file);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -181,15 +201,17 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
         </div>
       </div>
 
-      <div className="bg-indigo-50/50 dark:bg-indigo-950/15 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/40 dashed-border">
+      <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 dashed-border">
         <div className="flex justify-between items-start mb-2">
-          <label className="block text-xs font-bold text-indigo-900">Upload SSM e-Profile (PDF Only)</label>
-          <button onClick={() => setShowSample(true)} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 underline flex items-center gap-1">
+          <label className="block text-xs font-bold text-indigo-900 dark:text-indigo-300">Upload SSM e-Profile (PDF Only)</label>
+          <button onClick={() => setShowSample(true)} className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline flex items-center gap-1">
             <Eye className="h-3 w-3" /> View Sample
           </button>
         </div>
 
-        <FileSelector accept=".pdf" onSelect={setSelectedFile} />
+        <FileSelector accept=".pdf" onSelect={handleFileSelect} />
+
+        {fileError && <div className="mt-2 text-xs text-red-600 flex items-center gap-1 font-bold"><AlertCircle className="h-3 w-3" /> {fileError}</div>}
 
         {selectedFile && <div className="mt-2 text-xs text-emerald-600 flex items-center gap-1 font-bold"><CheckCircle className="h-3 w-3" /> Ready to submit: {selectedFile.name}</div>}
       </div>
@@ -228,6 +250,50 @@ const Dashboard: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState<any>(null);
+  // Real-time subscription data from Stripe
+  const [subscriptionData, setSubscriptionData] = useState<{
+    current_period_end?: number;
+    billing_interval?: 'month' | 'year';
+    cancel_at_period_end?: boolean;
+    status?: string;
+  }>({});
+
+  // Fetch real-time subscription data from Stripe
+  const fetchSubscriptionSync = async () => {
+    if (!user) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      
+      const res = await fetch('/api/stripe/subscription/sync', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.subscription) {
+          setSubscriptionData({
+            current_period_end: data.subscription.current_period_end,
+            billing_interval: data.subscription.billing_interval,
+            cancel_at_period_end: data.subscription.cancel_at_period_end,
+            status: data.subscription.status
+          });
+        }
+        // If profile was updated, refresh user context
+        if (data.profile) {
+          await refreshUser();
+        }
+      }
+    } catch (e) {
+      console.error('Failed to sync subscription:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubscriptionSync();
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchMyData = async () => {
@@ -275,11 +341,19 @@ const Dashboard: React.FC = () => {
     const run = async () => {
       const toastId = toast.loading('Payment received. Updating subscription...');
       try {
-        // Webhook can take a few seconds. Refresh a few times.
-        for (let i = 0; i < 6; i += 1) {
+        // Sync with Stripe once to get latest status
+        await fetchSubscriptionSync();
+        
+        // Check if updated
+        for (let i = 0; i < 3; i += 1) {
           if (cancelled) return;
           await refreshUser();
-          await wait(1500);
+          // If tier updated, we're done
+          if (user?.tier && user.tier !== 'UNSUBSCRIBED') {
+            toast.success('Subscription updated!');
+            break;
+          }
+          await wait(2000);
         }
       } finally {
         toast.dismiss(toastId);
@@ -380,6 +454,7 @@ const Dashboard: React.FC = () => {
       }
 
       toast.success('Cancellation scheduled at period end.');
+      await fetchSubscriptionSync();
       await refreshUser();
     } catch (e) {
       console.error(e);
@@ -502,6 +577,33 @@ const Dashboard: React.FC = () => {
   const myMinPrice = hasPanels ? Math.min(...myActivePanelListings.map(l => Number((l as any).price_rm || 0))) : 0;
   const myMaxPrice = hasPanels ? Math.max(...myActivePanelListings.map(l => Number((l as any).price_rm || 0))) : 0;
 
+  // Top Category Pricing Logic (auto-detect user's most active category)
+  const categoryCount: Record<string, number> = {};
+  const activeListings = myListings.filter(l =>
+    !(l as any).is_hidden &&
+    !(l as any).is_sold &&
+    new Date((l as any).active_until).getTime() > nowMs
+  );
+  for (const l of activeListings) {
+    const cat = l.category || 'Other';
+    categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+  }
+  const topCategory = Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  
+  const topCategoryListings = topCategory
+    ? activeListings.filter(l => l.category === topCategory)
+    : [];
+  const topCategoryAvgPrice = topCategoryListings.length > 0
+    ? topCategoryListings.reduce((acc, curr) => acc + Number((curr as any).price_rm || 0), 0) / topCategoryListings.length
+    : 0;
+  const topCategoryMinPrice = topCategoryListings.length > 0
+    ? Math.min(...topCategoryListings.map(l => Number((l as any).price_rm || 0)))
+    : 0;
+  const topCategoryMaxPrice = topCategoryListings.length > 0
+    ? Math.max(...topCategoryListings.map(l => Number((l as any).price_rm || 0)))
+    : 0;
+
   const maxDemand = Math.max(marketDemand.inverters, marketDemand.panels, marketDemand.batteries, 0);
   const demandWidth = (count: number) => {
     if (count <= 0 || maxDemand <= 0) return '0%';
@@ -564,136 +666,336 @@ const Dashboard: React.FC = () => {
     )}
   </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">Conversion Funnel</p>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{ctr.toFixed(1)}% <span className="text-sm text-slate-400 font-normal">CTR</span></h3>
-                </div>
-                <div className="p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                  <Target className="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="space-y-3 mt-2">
-                <div className="relative">
-                  <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    <span>Searches (7 days)</span>
-                    <span>{funnel.impressions}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-300 h-full" style={{ width: '100%' }}></div>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    <span>Detail Views</span>
-                    <span>{funnel.views}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full" style={{ width: `${Math.max(2, Math.min(100, viewRate))}%` }}></div>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                    <span>Contacts Reveal</span>
-                    <span>{funnel.contacts}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 h-full" style={{ width: `${Math.max(2, Math.min(100, contactRate))}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-6">Market Demand (Whole Country)</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-bold text-slate-700 dark:text-slate-200">Inverters</span>
-                    <span className={`font-bold ${demandLabel(marketDemand.inverters) === 'High Demand' ? 'text-emerald-600' : demandLabel(marketDemand.inverters) === 'Med Demand' ? 'text-emerald-600' : 'text-slate-400'}`}>{demandLabel(marketDemand.inverters)}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
-                    <div className="bg-emerald-500 h-2 rounded-full" style={{ width: demandWidth(marketDemand.inverters) }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-bold text-slate-700 dark:text-slate-200">Panels (Mono)</span>
-                    <span className={`font-bold ${demandLabel(marketDemand.panels) === 'High Demand' ? 'text-emerald-600' : demandLabel(marketDemand.panels) === 'Med Demand' ? 'text-emerald-600' : 'text-slate-400'}`}>{demandLabel(marketDemand.panels)}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
-                    <div className="bg-emerald-400 h-2 rounded-full" style={{ width: demandWidth(marketDemand.panels) }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-bold text-slate-700 dark:text-slate-200">Batteries</span>
-                    <span className={`font-bold ${demandLabel(marketDemand.batteries) === 'High Demand' ? 'text-emerald-600' : demandLabel(marketDemand.batteries) === 'Med Demand' ? 'text-emerald-600' : 'text-slate-400'}`}>{demandLabel(marketDemand.batteries)}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
-                    <div className="bg-amber-400 h-2 rounded-full" style={{ width: demandWidth(marketDemand.batteries) }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">Total Traffic</p>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalViewsAllTime} <span className="text-sm text-slate-400 font-normal">Views</span></h3>
-                </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-slate-600 dark:text-slate-200" />
-                </div>
-              </div>
-              <div className="text-xs text-slate-500 dark:text-slate-300 mt-1">
-                Based on the current view counts of your active listings.
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">Panel Pricing</p>
-                  <p className="text-xs text-slate-400">Based on your active Panel listings</p>
-                </div>
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <DollarSign className="h-5 w-5 text-slate-600 dark:text-slate-200" />
-                </div>
-              </div>
-
-              {hasPanels ? (
-                <div className="mt-4">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      RM {myAvgPrice.toFixed(0)}
+      {/* Top Section: Company Profile + Verification Side-by-Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        {/* Company Profile - Compact Horizontal Layout */}
+        <div className={`bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm ${!user?.is_verified ? 'lg:col-span-7' : 'lg:col-span-12'}`}>
+          {/* Top Row: Company Info (Left) + Subscription (Right) */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            {/* Left: Avatar + Company Name + Verified + Email */}
+            <div className="flex items-center gap-3">
+              <AvatarUpload user={user} onUpdate={refreshUser} />
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{user?.company_name || 'User'}</h2>
+                  {user?.is_verified && (
+                    <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <CheckCircle className="h-3 w-3" />
+                      Verified
                     </span>
-                    <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">Avg Price</span>
-                  </div>
-
-                  <p className="text-sm text-slate-500 dark:text-slate-300 leading-relaxed">
-                    Range: RM {myMinPrice.toFixed(0)} - RM {myMaxPrice.toFixed(0)} ({myActivePanelListings.length} listings)
-                  </p>
+                  )}
                 </div>
-              ) : (
-                <div className="mt-8 text-center text-slate-400 text-sm">
-                  Post a Panel listing to see your pricing stats.
+                <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+              </div>
+            </div>
+            
+            {/* Right: Subscription Info + Actions */}
+            {user?.tier && user.tier !== 'UNSUBSCRIBED' ? (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 dark:text-slate-400">Subscription</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 capitalize">
+                    {user.tier.toLowerCase()}
+                  </span>
                 </div>
-              )}
+                <span className="text-slate-400">|</span>
+                <span>
+                  <span className="text-slate-400">Started:</span>{' '}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                  </span>
+                </span>
+                <span>
+                  <span className="text-slate-400">Next billing:</span>{' '}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {(subscriptionData.current_period_end || user?.stripe_current_period_end)
+                      ? new Date((subscriptionData.current_period_end || user?.stripe_current_period_end) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+                      : '-'}
+                  </span>
+                </span>
+                <span>
+                  <span className="text-slate-400">Period:</span>{' '}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {(subscriptionData.billing_interval || user?.stripe_billing_interval) === 'year' ? 'Yearly' : 'Monthly'}
+                  </span>
+                </span>
+                
+                {/* Change History inline */}
+                {user?.pending_tier && user?.tier_effective_at && (
+                  <>
+                    <span className="text-slate-400">|</span>
+                    <span className="text-blue-600 dark:text-blue-400">
+                      Changing to <span className="font-medium capitalize">{user.pending_tier.toLowerCase()}</span> on{' '}
+                      <span className="font-medium">{new Date(user.tier_effective_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}</span>
+                    </span>
+                  </>
+                )}
+                
+                {/* Cancel Notice inline */}
+                {(subscriptionData.cancel_at_period_end || user?.stripe_cancel_at_period_end) && (subscriptionData.current_period_end || user?.stripe_current_period_end) && (
+                  <>
+                    <span className="text-slate-400">|</span>
+                    <span className="text-amber-600 dark:text-amber-400">
+                      Cancelling on <span className="font-medium">{new Date((subscriptionData.current_period_end || user?.stripe_current_period_end) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}</span>
+                    </span>
+                  </>
+                )}
+                
+                <span className="text-slate-400">|</span>
+                <Link
+                  to="/pricing"
+                  className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  Change Plan
+                </Link>
+                {!user?.pending_tier && (
+                  <button
+                    onClick={handleCancelSubscriptionAtPeriodEnd}
+                    className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    Cancel Subscription
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Free Plan</span>
+                <Link
+                  to="/pricing"
+                  className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  Upgrade Now
+                </Link>
+              </div>
+            )}
+          </div>
+          
+          {/* 3x2 Grid - Company Details */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Email</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.email || '-'}</div>
+            </div>
+            <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">WhatsApp</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.whatsapp_no || user?.handphone_no || '-'}</div>
+            </div>
+            <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">SSM No.</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.ssm_new_no || user?.ssm_no || '-'}</div>
+            </div>
+            <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Seller Type</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.seller_type || '-'}</div>
+            </div>
+            <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Incorp. Date</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.incorporation_date || '-'}</div>
+            </div>
+            <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Nature of Business</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.nature_of_business || '-'}</div>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-8 space-y-6">
+        {/* Complete Your Verification - Only when not verified, side panel */}
+        {!user?.is_verified && (
+          <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">Complete Your Verification</h2>
+            {(user?.ssm_file_path || submitted) ? (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg p-4 flex items-start gap-4">
+                <div className="p-2 bg-white dark:bg-slate-900 rounded-full shadow-sm shrink-0">
+                  <RefreshCw className="h-5 w-5 text-amber-600 animate-spin-slow" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-amber-900 dark:text-amber-200">Verification in Progress</h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-200/80 mt-1">
+                    We are reviewing your application for <strong>{user?.company_name}</strong>.
+                    SSM: <span className="font-mono font-bold">{submittedData?.ssm_new_no || user?.ssm_new_no || user?.ssm_no || '-'}</span>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <KYCForm
+                onSubmit={async (data, file) => {
+                  if (!user) return;
+                  setIsVerifying(true);
+                  try {
+                    // Validate file type before upload (security)
+                    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                      throw new Error('Only PDF files are allowed for SSM documents');
+                    }
+                    // Validate file size (max 10MB)
+                    const MAX_SIZE = 10 * 1024 * 1024;
+                    if (file.size > MAX_SIZE) {
+                      throw new Error('File size must be less than 10MB');
+                    }
+                    setSubmittedData({ ...data, ssm_file_path: 'Uploading...' });
+                    setSubmitted(true);
+                    const fileExt = file.name.split('.').pop();
+                    const filePath = `${user.id}/kyc_${Date.now()}.${fileExt}`;
+                    const { error: uploadError } = await supabase.storage
+                      .from('ssm-documents')
+                      .upload(filePath, file);
+                    if (uploadError) throw uploadError;
+                    const { success, error } = await db.updateProfile({
+                      id: user.id,
+                      ...data,
+                      handphone_no: data.handphone_no,
+                      ssm_file_path: filePath,
+                      is_verified: false,
+                      ssm_no: data.ssm_new_no
+                    });
+                    if (success) {
+                      await refreshUser();
+                      toast.success("Application submitted successfully!");
+                    } else {
+                      throw error || new Error("Profile update failed");
+                    }
+                  } catch (error: any) {
+                    console.error("Submission Error:", error);
+                    setSubmitted(false);
+                    toast.error(`Submission Failed: ${error.message || 'Unknown error'}`);
+                  } finally {
+                    setIsVerifying(false);
+                  }
+                }}
+                isSubmitting={isVerifying}
+              />
+            )}
+          </div>
+        )}
 
+        {/* Floating Profile Strength Detail - When not 100% and verified */}
+        {!loading && profileStrength < 100 && user?.is_verified && (
+          <div className="lg:col-span-5 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-slate-900 p-5 rounded-xl border border-amber-200 dark:border-amber-900/40 shadow-sm">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-500" />
+                Complete Your Profile
+              </h2>
+              <span className="text-sm font-bold text-amber-600">{profileStrength}%</span>
+            </div>
+            <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 mb-4 overflow-hidden">
+              <div className="h-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-700" style={{ width: `${profileStrength}%` }} />
+            </div>
+            {nextStrengthItem && (
+              <p className="text-xs text-slate-500 dark:text-slate-300 mb-3">
+                Next step: <span className="font-bold text-slate-700 dark:text-slate-100">{nextStrengthItem.label}</span>
+                <span className="font-bold text-amber-600"> (+{nextStrengthItem.points} pts)</span>
+              </p>
+            )}
+            <div className="space-y-2">
+              {missingStrengthItems.slice(0, 3).map((item) => (
+                <div key={item.key} className="flex items-center justify-between text-xs py-1.5 px-2 bg-white/50 dark:bg-slate-900/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded-full border-2 border-amber-400 flex items-center justify-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                    </div>
+                    <span className="text-slate-700 dark:text-slate-200">{item.label}</span>
+                  </div>
+                  <span className="text-xs font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">+{item.points}</span>
+                </div>
+              ))}
+              {missingStrengthItems.length > 3 && (
+                <p className="text-xs text-slate-400 pt-1">+{missingStrengthItems.length - 3} more items</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Card 1: My Listing Performance */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">My Listing Performance</p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {funnel.views > 0 ? ((funnel.contacts / funnel.views) * 100).toFixed(1) : 0}% <span className="text-sm text-slate-400 font-normal">Conversion</span>
+              </h3>
+            </div>
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+              <Target className="h-5 w-5 text-blue-600" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-300">Active Listings</span>
+              <span className="font-bold text-slate-700 dark:text-slate-100">{activeUsedCount}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-300">Avg Views / Listing</span>
+              <span className="font-bold text-slate-700 dark:text-slate-100">{activeUsedCount > 0 ? (funnel.views / activeUsedCount).toFixed(1) : 0}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-300">Views (7d)</span>
+              <span className="font-bold text-slate-700 dark:text-slate-100">{funnel.views}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500 dark:text-slate-300">Contacts</span>
+              <span className="font-bold text-slate-700 dark:text-slate-100">{funnel.contacts}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Total Traffic */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">Total Traffic</p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalViewsAllTime} <span className="text-sm text-slate-400 font-normal">Views</span></h3>
+            </div>
+            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-slate-600 dark:text-slate-200" />
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-300 mt-4">
+            All-time accumulated views across all your listings.
+          </p>
+        </div>
+
+        {/* Card 3: My Pricing Overview */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">My Pricing Overview</p>
+                <p className="text-xs text-slate-400">
+                  {topCategory ? topCategory : 'No active listings'}
+                </p>
+              </div>
+              <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+                <DollarSign className="h-5 w-5 text-slate-600 dark:text-slate-200" />
+              </div>
+            </div>
+            {topCategory ? (
+              <div className="mt-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    RM {topCategoryAvgPrice.toFixed(0)}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-300">avg</span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+                  RM {topCategoryMinPrice.toFixed(0)} - RM {topCategoryMaxPrice.toFixed(0)} · {topCategoryListings.length} listings
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 mt-4">Create listings to see your pricing insights.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Listings + Alerts */}
+        <div className="lg:col-span-8 space-y-6">
           {user?.is_verified && user?.tier !== 'UNSUBSCRIBED' && overLimitCount > 0 && (
             <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
@@ -844,6 +1146,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
+          {/* Quick Actions - Simplified */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 gap-3">
@@ -854,225 +1157,34 @@ const Dashboard: React.FC = () => {
                 Create Listing
               </Link>
               {user?.tier && user.tier !== 'UNSUBSCRIBED' ? (
-                <>
-                  <Link
-                    to="/pricing"
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
-                  >
-                    Change Plan
-                  </Link>
-                  <button
-                    onClick={handleManageSubscription}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
-                  >
-                    Billing Portal
-                  </button>
-                  {!user?.pending_tier && (
-                    <button
-                      onClick={handleCancelSubscriptionAtPeriodEnd}
-                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors text-center"
-                    >
-                      Cancel (End of Period)
-                    </button>
-                  )}
-                </>
+                <a
+                  href={`mailto:support@solerz.com?subject=Priority Support Request - Account: ${user?.email}`}
+                  className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-200 text-sm font-bold px-4 py-3 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-center flex items-center justify-center gap-2"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Priority Email Support
+                </a>
               ) : (
                 <Link
                   to="/pricing"
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
+                  className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-200 text-sm font-bold px-4 py-3 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-center"
                 >
-                  Subscribe
+                  Upgrade to Pro
                 </Link>
               )}
               <Link
                 to="/"
                 className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
               >
-                Browse Marketplace
+                Browse Listings
               </Link>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">Company Profile</h2>
-            <div className="flex flex-col gap-4">
-              <AvatarUpload user={user} onUpdate={refreshUser} />
-              <div className="grid grid-cols-1 gap-3 min-w-0">
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">Email</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.email || '-'}</div>
-                </div>
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">WhatsApp</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.whatsapp_no || user?.handphone_no || '-'}</div>
-                </div>
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">SSM No.</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.ssm_new_no || user?.ssm_no || '-'}</div>
-                </div>
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">Seller Type</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.seller_type || '-'}</div>
-                </div>
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">Business Address</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{user?.business_address || '-'}</div>
-                </div>
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">Incorp. Date</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.incorporation_date || '-'}</div>
-                </div>
-                <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-300">Nature of Business</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.nature_of_business || '-'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {!user?.is_verified && (
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">Complete Your Verification</h2>
-              {(user?.ssm_file_path || submitted) ? (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg p-6 flex flex-col md:flex-row items-start gap-4">
-                  <div className="p-3 bg-white dark:bg-slate-900 rounded-full shadow-sm shrink-0">
-                    <RefreshCw className="h-6 w-6 text-amber-600 animate-spin-slow" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-amber-900 dark:text-amber-200 text-lg">Verification in Progress</h4>
-                    <p className="text-sm text-amber-700 dark:text-amber-200/80 mt-2 mb-4 leading-relaxed">
-                      We have received your application for <strong>{user?.company_name}</strong> details.
-                      <br />SSM No: <span className="font-mono font-bold">{submittedData?.ssm_new_no || user?.ssm_new_no || user?.ssm_no || '-'}</span>
-                      <br />Phone: <span className="font-mono font-bold">{submittedData?.handphone_no || user?.handphone_no || '-'}</span>
-                      <br />Our compliance team is currently reviewing your documents.
-                    </p>
-
-                    <div className="bg-white/50 dark:bg-amber-950/10 rounded-lg p-3 text-xs text-amber-900 dark:text-amber-200 grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="font-bold block">Business Address:</span>
-                        {submittedData?.business_address || user.business_address || '-'}
-                      </div>
-                      <div>
-                        <span className="font-bold block">Incorporation Date:</span>
-                        {submittedData?.incorporation_date || user.incorporation_date || '-'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <KYCForm
-                  onSubmit={async (data, file) => {
-                    if (!user) return;
-                    setIsVerifying(true);
-
-                    try {
-                      setSubmittedData({ ...data, ssm_file_path: 'Uploading...' });
-                      setSubmitted(true);
-
-                      const fileExt = file.name.split('.').pop();
-                      const filePath = `${user.id}/kyc_${Date.now()}.${fileExt}`;
-
-                      const { error: uploadError } = await supabase.storage
-                        .from('ssm-documents')
-                        .upload(filePath, file);
-
-                      if (uploadError) throw uploadError;
-
-                      const { success, error } = await db.updateProfile({
-                        id: user.id,
-                        ...data,
-                        handphone_no: data.handphone_no,
-                        ssm_file_path: filePath,
-                        is_verified: false,
-                        ssm_no: data.ssm_new_no
-                      });
-
-                      if (success) {
-                        await refreshUser();
-                        toast.success("Application submitted successfully!");
-                      } else {
-                        throw error || new Error("Profile update failed");
-                      }
-                    } catch (error: any) {
-                      console.error("Submission Error:", error);
-                      setSubmitted(false);
-                      toast.error(`Submission Failed: ${error.message || 'Unknown error'}`);
-                    } finally {
-                      setIsVerifying(false);
-                    }
-                  }}
-                  isSubmitting={isVerifying}
-                />
-              )}
-            </div>
-          )}
-
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Profile Strength</span>
-              <span className={`text-sm font-bold ${profileStrength === 100 ? 'text-emerald-600' : 'text-amber-500'}`}>
-                {profileStrength}%
-              </span>
-            </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 mb-2 overflow-hidden">
-              <div
-                className={`h-2.5 rounded-full transition-all duration-1000 ${profileStrength === 100 ? 'bg-emerald-500' : 'bg-amber-400'}`}
-                style={{ width: `${profileStrength}%` }}
-              ></div>
-            </div>
-
-            <div className="text-xs text-slate-500 dark:text-slate-300">
-              {profileStrength === 100 ? (
-                <p>Excellent! Your profile looks complete and trustworthy.</p>
-              ) : (
-                <p>
-                  {nextStrengthItem
-                    ? (
-                      <span>
-                        Next: <span className="font-bold text-slate-700 dark:text-slate-100">{nextStrengthItem.label}</span>{' '}
-                        <span className="font-bold text-amber-600">(+{nextStrengthItem.points} pts)</span>
-                        {showSubscribeCta && (
-                          <Link to="/pricing" className="ml-2 font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200 hover:underline">
-                            Subscribe
-                          </Link>
-                        )}
-                      </span>
-                    )
-                    : 'Add more details to build trust.'}
-                </p>
-              )}
-            </div>
-
-            <div className="mt-4 space-y-2">
-              {profileStrengthItems.map((item) => (
-                <div key={item.key} className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2 min-w-0">
-                    {item.done ? (
-                      <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                    )}
-                    <div className="min-w-0">
-                      <div className={`text-xs font-bold ${item.done ? 'text-slate-700 dark:text-slate-100' : 'text-slate-700 dark:text-slate-100'}`}>{item.label}</div>
-                      {!item.done && item.hint && (
-                        <div className="text-[11px] text-slate-400 dark:text-slate-400 leading-snug mt-0.5">{item.hint}</div>
-                      )}
-                    </div>
-                  </div>
-                  <div className={`text-[11px] font-bold ${item.done ? 'text-emerald-600' : 'text-slate-400'}`}>{item.done ? `+${item.points}` : `${item.points}`} pts</div>
-                </div>
-              ))}
-
-              {missingStrengthItems.length > 0 && (
-                <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-300">
-                  Remaining: <span className="font-bold">{missingStrengthItems.length}</span> items
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 

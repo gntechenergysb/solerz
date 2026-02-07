@@ -72,7 +72,7 @@ const ProductDetails: React.FC = () => {
       {/* Breadcrumb / Back */}
       <div className="mb-6">
         <Link to="/" className="inline-flex items-center text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Marketplace
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Listings
         </Link>
       </div>
 

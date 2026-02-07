@@ -22,14 +22,15 @@ const PLANS: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 29, // Per listing
-    yearlyPrice: 290, // Same for starter (mock logic)
+    monthlyPrice: 29,
+    yearlyPrice: 290,
     listingLimit: 1,
     features: [
-      '30-Day Active Listing',
+      '1 Active Listing (30 days)',
       'Basic View Counter',
       'Standard Visibility',
-      'Individual & Company Verified'
+      'SSM Verification',
+      'Company Profile Page'
     ],
     colorTheme: 'slate'
   },
@@ -40,10 +41,12 @@ const PLANS: Plan[] = [
     yearlyPrice: 1990,
     listingLimit: 10,
     features: [
-      '~ RM 19.90 / listing',
-      'Company Profile Badge',
-      'Unlock Audience Insights',
-      'Listing Performance Funnel'
+      '10 Active Listings (30 days each)',
+      'Basic View Counter',
+      'Standard Visibility',
+      'SSM Verification',
+      'Company Profile Page',
+      'Priority Email Support'
     ],
     isPopular: true,
     colorTheme: 'emerald'
@@ -55,10 +58,13 @@ const PLANS: Plan[] = [
     yearlyPrice: 3990,
     listingLimit: 30,
     features: [
-      '~ RM 13.30 / listing',
-      'Market Price Comparison',
-      'Competitor Benchmarking',
-      'Priority Search Ranking'
+      '30 Active Listings (30 days each)',
+      'Basic View Counter',
+      'Standard Visibility',
+      'SSM Verification',
+      'Company Profile Page',
+      'Priority Email Support',
+      'Basic Analytics'
     ],
     colorTheme: 'emerald'
   },
@@ -69,10 +75,13 @@ const PLANS: Plan[] = [
     yearlyPrice: 11990,
     listingLimit: 100,
     features: [
-      '~ RM 11.99 / listing',
-      'Dedicated Account Manager',
-      'Deep Market Analytics',
-      'Featured Homepage Spots'
+      '100 Active Listings (30 days each)',
+      'Basic View Counter',
+      'Standard Visibility',
+      'SSM Verification',
+      'Company Profile Page',
+      'Priority Email Support',
+      'Basic Analytics'
     ],
     colorTheme: 'emerald'
   }
@@ -165,25 +174,18 @@ const Pricing: React.FC = () => {
     }
   };
 
-  // Tax Calculation
   const currentPrice = selectedPlan 
     ? (billingCycle === 'monthly' ? selectedPlan.monthlyPrice : selectedPlan.yearlyPrice)
     : 0;
-
-  // Reverse calculate SST (Price is Nett)
-  // Price = Base * 1.08  => Base = Price / 1.08
-  const basePrice = currentPrice / 1.08;
-  const sstAmount = currentPrice - basePrice;
 
   return (
     <div className="animate-in fade-in duration-500 py-10 px-4">
       
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-16">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">Professional Marketplace Pricing</h1>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">Professional Listing Platform Pricing</h1>
         <p className="text-lg text-slate-500 dark:text-slate-300 mb-8">
-            Clear, flat-fee pricing for solar assets. Scale your inventory as you grow.<br/>
-            All prices are <span className="font-bold text-slate-800 dark:text-slate-100">Nett</span> (Inclusive of 8% SST and Fees).
+            Clear, flat-fee pricing for solar assets. Scale your inventory as you grow.
         </p>
 
         {/* Toggle */}
@@ -311,19 +313,10 @@ const Pricing: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Price Breakdown */}
-                    <div className="bg-slate-50 rounded-xl p-4 space-y-3 mb-6 border border-slate-100">
-                        <div className="flex justify-between text-sm text-slate-600">
-                            <span>Subtotal (Base Price)</span>
-                            <span>RM {basePrice.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-slate-600">
-                            <span>SST (8%)</span>
-                            <span>RM {sstAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="h-px bg-slate-200 my-2"></div>
+                    {/* Price */}
+                    <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
                         <div className="flex justify-between font-bold text-slate-900 text-lg">
-                            <span>Total (Nett)</span>
+                            <span>Total</span>
                             <span>RM {currentPrice.toFixed(2)}</span>
                         </div>
                     </div>

@@ -1,0 +1,13 @@
+name = "solerz"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare Pages Functions configuration
+[build]
+command = "npm run build"
+
+[[env.local]]
+# Local development settings
+
+# Pages Functions directory
+# The functions directory is automatically detected at ./functions
