@@ -203,6 +203,7 @@ export interface Listing {
   is_verified_listing: boolean; // New persistent field
   is_sold: boolean;
   is_hidden: boolean;
+  is_paused: boolean; // 因配套额度不足暂停
   view_count: number;
   created_at: string;
 }

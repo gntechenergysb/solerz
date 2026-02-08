@@ -255,7 +255,8 @@ const CreateListing: React.FC = () => {
           location_state: state,
           images_url: imageUrls,
           is_sold: false,
-          is_hidden: false
+          is_hidden: false,
+          is_paused: false
         };
 
         const ok = await db.createListing(listingData);

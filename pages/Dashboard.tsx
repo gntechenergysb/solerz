@@ -475,10 +475,22 @@ const Dashboard: React.FC = () => {
 
   const nowMs = Date.now();
   const listingLimit = getListingLimit(user?.tier || 'STARTER');
+  
+  // Count active listings (not paused)
   const activeUsedCount = myListings.filter(l => {
+    const activeUntilMs = new Date((l as any).active_until).getTime();
+    return !(l as any).is_hidden && !(l as any).is_sold && !(l as any).is_paused && activeUntilMs > nowMs;
+  }).length;
+  
+  // Count paused listings
+  const pausedCount = myListings.filter(l => (l as any).is_paused).length;
+  
+  // Total active + paused (for display purposes)
+  const totalActiveAndPaused = myListings.filter(l => {
     const activeUntilMs = new Date((l as any).active_until).getTime();
     return !(l as any).is_hidden && !(l as any).is_sold && activeUntilMs > nowMs;
   }).length;
+  
   const overLimitCount = Math.max(0, activeUsedCount - listingLimit);
 
   // Calculate Profile Strength
@@ -1019,9 +1031,16 @@ const Dashboard: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h3 className="font-bold text-slate-800 dark:text-slate-100">My Listings Inventory</h3>
-              <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 py-1 rounded">
-                {activeUsedCount} / {listingLimit} Slots Used
-              </span>
+              <div className="flex items-center gap-2">
+                {pausedCount > 0 && (
+                  <span className="text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 px-2 py-1 rounded">
+                    {pausedCount} Paused (Upgrade to resume)
+                  </span>
+                )}
+                <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 py-1 rounded">
+                  {activeUsedCount} / {listingLimit} Slots Used
+                </span>
+              </div>
             </div>
             <div className="overflow-x-auto flex-grow">
               <table className="w-full text-sm text-left">
@@ -1066,6 +1085,10 @@ const Dashboard: React.FC = () => {
                             ) : l.is_sold ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Sold
+                              </span>
+                            ) : (l as any).is_paused ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                ⏸️ Paused (Tier Limit)
                               </span>
                             ) : !isExpired ? (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

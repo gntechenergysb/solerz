@@ -239,6 +239,173 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   await bestEffortPatchStripeFields(env, userId, patch);
 };
 
+const getListingLimit = (tier: string): number => {
+  switch (tier) {
+    case 'UNSUBSCRIBED': return 0;
+    case 'STARTER': return 1;
+    case 'PRO': return 10;
+    case 'MERCHANT': return 30;
+    case 'ENTERPRISE': return 100;
+    default: return 0;
+  }
+};
+
+// Pause excess listings when tier is downgraded
+const pauseExcessListings = async (env: Env, userId: string, newTier: string) => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return;
+
+  const limit = getListingLimit(newTier);
+  
+  // Get active listings for this user, ordered by creation date (newest first)
+  const res = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_sold=eq.false&is_hidden=eq.false&is_paused=eq.false&active_until=gte.${encodeURIComponent(new Date().toISOString())}&order=created_at.desc&select=*`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!res.ok) {
+    console.log('Failed to fetch listings for pause check', res.status);
+    return;
+  }
+
+  const listings = (await res.json().catch(() => [])) as any[];
+  
+  // If listings exceed limit, pause the excess ones
+  if (listings.length > limit) {
+    const listingsToPause = listings.slice(limit); // Keep newest, pause oldest
+    
+    for (const listing of listingsToPause) {
+      const pauseRes = await fetch(
+        `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?id=eq.${encodeURIComponent(listing.id)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal'
+          },
+          body: JSON.stringify({ is_paused: true, updated_at: new Date().toISOString() })
+        }
+      );
+      
+      if (!pauseRes.ok) {
+        console.log('Failed to pause listing', listing.id, pauseRes.status);
+      } else {
+        console.log('Paused listing due to tier downgrade', listing.id, listing.title);
+      }
+    }
+    
+    console.log(`Paused ${listingsToPause.length} listings due to tier downgrade to ${newTier}`);
+  }
+};
+
+// Resume paused listings when tier is upgraded
+const resumePausedListings = async (env: Env, userId: string, newTier: string) => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return;
+
+  const limit = getListingLimit(newTier);
+  
+  // Get paused listings for this user
+  const res = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_paused=eq.true&order=created_at.desc&select=*`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!res.ok) {
+    console.log('Failed to fetch paused listings', res.status);
+    return;
+  }
+
+  const pausedListings = (await res.json().catch(() => [])) as any[];
+  
+  // Get current active (non-paused) count
+  const activeRes = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_sold=eq.false&is_hidden=eq.false&is_paused=eq.false&active_until=gte.${encodeURIComponent(new Date().toISOString())}&select=id`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+  
+  const activeListings = activeRes.ok ? (await activeRes.json().catch(() => [])) : [];
+  const currentActiveCount = activeListings.length;
+  const availableSlots = limit - currentActiveCount;
+  
+  // Resume up to available slots
+  const listingsToResume = pausedListings.slice(0, availableSlots);
+  
+  for (const listing of listingsToResume) {
+    const resumeRes = await fetch(
+      `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?id=eq.${encodeURIComponent(listing.id)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ is_paused: false, updated_at: new Date().toISOString() })
+      }
+    );
+    
+    if (!resumeRes.ok) {
+      console.log('Failed to resume listing', listing.id, resumeRes.status);
+    } else {
+      console.log('Resumed listing due to tier upgrade', listing.id, listing.title);
+    }
+  }
+  
+  if (listingsToResume.length > 0) {
+    console.log(`Resumed ${listingsToResume.length} listings due to tier upgrade to ${newTier}`);
+  }
+};
+
+// Fetch current tier from Supabase
+const fetchCurrentTier = async (env: Env, userId: string): Promise<string | null> => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const res = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=tier&limit=1`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!res.ok) {
+    console.log('Failed to fetch current tier', res.status);
+    return null;
+  }
+
+  const data = (await res.json().catch(() => null)) as any;
+  return data?.[0]?.tier || null;
+};
+
 const fetchStripeSubscriptionMetadata = async (
   stripeSecretKey: string,
   subscriptionId: string
@@ -394,9 +561,26 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       newTier = byPrice || byProduct;
       
       if (newTier) {
+        // Fetch current tier to compare
+        const oldTier = await fetchCurrentTier(env, uid);
+        
         const update = await updateTierWithServiceRole(env, uid, newTier);
         if (update.ok) {
-          console.log('stripe webhook tier updated from subscription.updated', { uid, newTier });
+          console.log('stripe webhook tier updated from subscription.updated', { uid, oldTier, newTier });
+          
+          // Handle listing pause/resume on tier change
+          if (oldTier && oldTier !== newTier) {
+            const oldLimit = getListingLimit(oldTier);
+            const newLimit = getListingLimit(newTier);
+            
+            if (newLimit < oldLimit) {
+              // Downgrade: pause excess listings
+              await pauseExcessListings(env, uid, newTier);
+            } else if (newLimit > oldLimit) {
+              // Upgrade: resume paused listings
+              await resumePausedListings(env, uid, newTier);
+            }
+          }
         } else {
           console.log('stripe webhook tier update failed', update.error);
         }

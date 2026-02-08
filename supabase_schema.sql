@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS public.listings (
     archive_until TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
     is_sold BOOLEAN DEFAULT FALSE,
     is_hidden BOOLEAN DEFAULT FALSE,
+    is_paused BOOLEAN DEFAULT FALSE, -- 因配套额度不足暂停
     view_count INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -649,7 +650,7 @@ END $$;
 DROP POLICY IF EXISTS "Active listings are viewable by everyone" ON public.listings;
 CREATE POLICY "Active listings are viewable by everyone" 
 ON public.listings FOR SELECT 
-USING (now() < active_until AND is_hidden = FALSE AND is_sold = FALSE);
+USING (now() < active_until AND is_hidden = FALSE AND is_sold = FALSE AND is_paused = FALSE);
 
 DROP POLICY IF EXISTS "Sellers can view own listings" ON public.listings;
 CREATE POLICY "Sellers can view own listings"
