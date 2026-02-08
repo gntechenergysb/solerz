@@ -381,8 +381,29 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const sub = event?.data?.object;
     await bestEffortPatchPendingFromSubscription(env, sub);
 
-    // Also keep stripe fields fresh
+    // Portal 切换配套时推断新 tier
     const uid = String(sub?.metadata?.user_id || '').trim();
+    let newTier: string | null = null;
+    
+    if (uid && sub?.items?.data?.length) {
+      const item = sub.items.data[0];
+      const priceId = String(item?.price?.id || '').trim();
+      const productId = String(item?.price?.product || '').trim();
+      const byPrice = await getTierFromCatalogId(env, priceId);
+      const byProduct = byPrice ? null : await getTierFromCatalogId(env, productId);
+      newTier = byPrice || byProduct;
+      
+      if (newTier) {
+        const update = await updateTierWithServiceRole(env, uid, newTier);
+        if (update.ok) {
+          console.log('stripe webhook tier updated from subscription.updated', { uid, newTier });
+        } else {
+          console.log('stripe webhook tier update failed', update.error);
+        }
+      }
+    }
+
+    // Also keep stripe fields fresh
     if (uid) {
       const stripePatch: Record<string, any> = {
         stripe_subscription_id: String(sub?.id || '').trim() || null,
@@ -392,6 +413,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       };
       const cpe = Number(sub?.current_period_end ?? NaN);
       if (Number.isFinite(cpe)) stripePatch.stripe_current_period_end = cpe;
+      if (newTier) {
+        stripePatch.pending_tier = null;
+        stripePatch.tier_effective_at = null;
+      }
       await bestEffortPatchStripeFields(env, uid, stripePatch);
     }
 
