@@ -329,7 +329,7 @@ const CreateListing: React.FC = () => {
               <Input label="Max Fuse Rating (A)" type="number" onChange={(v) => handleSpecChange('max_fuse_rating_a', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Temp Coeff Pmax (%/°C)" type="number" onChange={(v) => handleSpecChange('temp_coeff_pmax_pct_per_c', Number(v))} />
+              <Input label="Temp Coeff Pmax (%/°C)" type="number" step="0.001" min="-1" max="0" onChange={(v) => handleSpecChange('temp_coeff_pmax_pct_per_c', Number(v))} />
               <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
             </div>
           </>
