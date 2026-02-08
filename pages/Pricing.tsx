@@ -119,30 +119,25 @@ const Pricing: React.FC = () => {
       const isSubscribed = user.tier !== 'UNSUBSCRIBED';
 
       if (isSubscribed) {
-        const res = await fetch('/api/stripe/subscription/change', {
+        // 已订阅用户跳转到 Stripe Portal 管理
+        const res = await fetch('/api/stripe/portal', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`
           },
-          body: JSON.stringify({
-            planId: selectedPlan.id,
-            billingCycle
-          })
+          body: JSON.stringify({ returnPath: '/dashboard' })
         });
 
         const json = (await res.json().catch(() => null)) as any;
         if (!res.ok) {
-          throw new Error(String(json?.error || 'change_failed'));
+          throw new Error(String(json?.error || 'portal_failed'));
         }
 
-        toast.success(json?.mode === 'downgrade_scheduled'
-          ? 'Downgrade scheduled for next billing cycle.'
-          : 'Plan updated.');
+        const url = String(json?.url || '').trim();
+        if (!url) throw new Error('missing_portal_url');
 
-        setSelectedPlan(null);
-        await refreshUser();
-        navigate('/dashboard');
+        window.location.href = url;
         return;
       }
 

@@ -277,7 +277,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       const updateParams = new URLSearchParams();
       updateParams.set('cancel_at_period_end', 'false');
       updateParams.set('proration_behavior', 'create_prorations');
-      updateParams.set('billing_cycle_anchor', 'unchanged');
+      // 同周期升级才设置 billing_cycle_anchor，跨周期改变 interval 时不设置
+      const isSameInterval = currentPrice?.recurring?.interval === (billingCycle === 'yearly' ? 'year' : 'month');
+      if (isSameInterval) {
+        updateParams.set('billing_cycle_anchor', 'unchanged');
+      }
       updateParams.set('items[0][id]', itemId);
 
       const priceParams = buildPriceParams(env, tier, billingCycle, 'items[0]');
