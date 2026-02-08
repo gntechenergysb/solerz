@@ -291,28 +291,12 @@ const CreateListing: React.FC = () => {
               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cell Type</label>
-                  <select onChange={(e) => handleSpecChange('cell_type', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option value="">Select Type</option>
-                    <option value="Monocrystalline">Monocrystalline</option>
-                    <option value="Polycrystalline">Polycrystalline</option>
-                    <option value="N-type">N-type</option>
-                    <option value="P-type">P-type</option>
-                    <option value="IBC">IBC</option>
-                    <option value="ABC">ABC</option>
-                    <option value="TOPCon">TOPCon</option>
-                    <option value="HJT">HJT</option>
-                    <option value="PERC">PERC</option>
-                    <option value="Bifacial">Bifacial</option>
-                    <option value="Monofacial">Monofacial</option>
-                    <option value="Thin-Film">Thin-Film</option>
-                    <option value="Standard Rigid">Standard Rigid</option>
-                    <option value="Flexible">Flexible</option>
-                    <option value="BIPV">BIPV</option>
-                    <option value="Shingled">Shingled</option>
-                  </select>
-               </div>
+               <MultiSelect 
+                 label="Cell Type (多选)" 
+                 options={['Monocrystalline', 'Polycrystalline', 'N-type', 'P-type', 'IBC', 'ABC', 'TOPCon', 'HJT', 'PERC', 'Bifacial', 'Monofacial', 'Thin-Film', 'Standard Rigid', 'Flexible', 'BIPV', 'Shingled']}
+                 value={String((specs as any).cell_type || '')}
+                 onChange={(v) => handleSpecChange('cell_type', v)}
+               />
                <Input label="Dimensions (mm)" placeholder="e.g. 2278x1134x30" onChange={(v) => handleSpecChange('dimensions', v)} required />
             </div>
 
@@ -339,19 +323,12 @@ const CreateListing: React.FC = () => {
           <>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <Input label="Model" placeholder="e.g. SUN2000" onChange={(v) => handleSpecChange('model', v)} />
-               <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Inverter Type</label>
-                  <select value={String((specs as any).inverter_type || '')} onChange={(e) => handleSpecChange('inverter_type', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option value="">Select Type</option>
-                    <option value="String">String</option>
-                    <option value="Micro">Micro</option>
-                    <option value="Microinverter">Microinverter</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Off-Grid">Off-Grid</option>
-                    <option value="Grid-Tied">Grid-Tied</option>
-                    <option value="Central">Central</option>
-                  </select>
-               </div>
+               <MultiSelect 
+                 label="Inverter Type (多选)" 
+                 options={['String', 'Micro', 'Microinverter', 'Hybrid', 'Off-Grid', 'Grid-Tied', 'Central']}
+                 value={String((specs as any).inverter_type || '')}
+                 onChange={(v) => handleSpecChange('inverter_type', v)}
+               />
                <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
                   <select onChange={(e) => handleSpecChange('phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -390,33 +367,18 @@ const CreateListing: React.FC = () => {
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <Input label="Cycle Life" type="number" onChange={(v) => handleSpecChange('cycle_life', Number(v))} />
-               <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
-                  <select value={String((specs as any).battery_type || '')} onChange={(e) => handleSpecChange('battery_type', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option value="">Select Type</option>
-                    <option value="Rack-mounted">Rack-mounted</option>
-                    <option value="Wall-mounted">Wall-mounted</option>
-                    <option value="Portable">Portable</option>
-                    <option value="Container">Container</option>
-                    <option value="Floor-standing">Floor-standing</option>
-                    <option value="All-in-one">All-in-one</option>
-                  </select>
-               </div>
-               <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Technology</label>
-                  <select value={String((specs as any).technology || '')} onChange={(e) => handleSpecChange('technology', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option value="">Select Technology</option>
-                    <option value="LiFePO4">LiFePO4</option>
-                    <option value="NMC">NMC</option>
-                    <option value="LTO">LTO</option>
-                    <option value="Lead-Acid">Lead-Acid</option>
-                    <option value="AGM">AGM</option>
-                    <option value="Gel">Gel</option>
-                    <option value="Sodium-Ion">Sodium-Ion</option>
-                    <option value="Flow">Flow</option>
-                    <option value="Other">Other</option>
-                  </select>
-               </div>
+               <MultiSelect 
+                 label="Type (多选)" 
+                 options={['Rack-mounted', 'Wall-mounted', 'Portable', 'Container', 'Floor-standing', 'All-in-one']}
+                 value={String((specs as any).battery_type || '')}
+                 onChange={(v) => handleSpecChange('battery_type', v)}
+               />
+               <MultiSelect 
+                 label="Technology (多选)" 
+                 options={['LiFePO4', 'NMC', 'LTO', 'Lead-Acid', 'AGM', 'Gel', 'Sodium-Ion', 'Flow', 'Other']}
+                 value={String((specs as any).technology || '')}
+                 onChange={(v) => handleSpecChange('technology', v)}
+               />
              </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -688,6 +650,46 @@ const CreateListing: React.FC = () => {
   );
 };
 
+// Helper MultiSelect Component
+const MultiSelect: React.FC<{
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (val: string) => void;
+}> = ({ label, options, value, onChange }) => {
+  const selected = value ? value.split(',').filter(Boolean) : [];
+  
+  const toggleOption = (opt: string) => {
+    if (selected.includes(opt)) {
+      onChange(selected.filter(s => s !== opt).join(','));
+    } else {
+      onChange([...selected, opt].join(','));
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{label}</label>
+      <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-950">
+        {options.map(opt => (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => toggleOption(opt)}
+            className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
+              selected.includes(opt)
+                ? 'bg-emerald-500 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Helper Input Component
 const Input: React.FC<{
   label: string; 
@@ -695,8 +697,11 @@ const Input: React.FC<{
   placeholder?: string; 
   required?: boolean;
   value?: string | number;
+  step?: string | number;
+  min?: string | number;
+  max?: string | number;
   onChange: (val: string) => void;
-}> = ({ label, type = "text", placeholder, required, value, onChange }) => (
+}> = ({ label, type = "text", placeholder, required, value, step, min, max, onChange }) => (
   <div>
     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
     <input 
@@ -705,6 +710,9 @@ const Input: React.FC<{
       placeholder={placeholder}
       required={required}
       value={value}
+      step={step}
+      min={min}
+      max={max}
       onChange={(e) => onChange(e.target.value)}
     />
   </div>
