@@ -761,7 +761,7 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 dark:text-slate-400">Free Plan</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">UNSUBSCRIBED</span>
                 <Link
                   to="/pricing"
                   className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
