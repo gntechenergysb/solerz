@@ -3,7 +3,7 @@ import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
-import { Search, SlidersHorizontal, MapPin, ChevronDown, ShieldCheck, Users, ArrowUpDown, Tag } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, ChevronDown, ArrowUpDown, Tag } from 'lucide-react';
 
 const PANEL_CELL_TYPES = [
   'Monocrystalline',
@@ -76,11 +76,7 @@ const Marketplace: React.FC = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const marketplaceLayerRef = useRef<'verified' | 'community'>('verified');
   const fetchSeqRef = useRef(0);
-
-  // Marketplace Layer State: 'verified' | 'community'
-  const [marketplaceLayer, setMarketplaceLayer] = useState<'verified' | 'community'>('verified');
 
   // Filters
   const [searchInput, setSearchInput] = useState('');
@@ -156,9 +152,7 @@ const Marketplace: React.FC = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    marketplaceLayerRef.current = marketplaceLayer;
-
-    const cacheKey = `marketplace_cache_v1_${marketplaceLayer}_${sortBy}`;
+    const cacheKey = `marketplace_cache_v1_${sortBy}`;
     const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition;
 
     const inferCategory = (q: string) => {
@@ -198,13 +192,13 @@ const Marketplace: React.FC = () => {
             category: cat,
             state: selectedState,
             condition: selectedCondition,
-            marketplaceLayer
+            marketplaceLayer: 'verified'
           });
         }
         const data = await db.getMarketplaceListings({
           from: 0,
           to: 4,
-          marketplaceLayer,
+          marketplaceLayer: 'verified',
           searchQuery,
           state: selectedState,
           condition: selectedCondition,
@@ -230,7 +224,7 @@ const Marketplace: React.FC = () => {
       }
     };
     fetchListings();
-  }, [marketplaceLayer, sortBy, searchQuery, selectedState, selectedCategory, selectedCondition]);
+  }, [sortBy, searchQuery, selectedState, selectedCategory, selectedCondition]);
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
@@ -239,18 +233,16 @@ const Marketplace: React.FC = () => {
       const nextPage = page + 1;
       const from = nextPage * 4;
       const to = from + 4;
-      const layerAtCall = marketplaceLayerRef.current;
       const next = await db.getMarketplaceListings({
         from,
         to,
-        marketplaceLayer: layerAtCall,
+        marketplaceLayer: 'verified',
         searchQuery,
         state: selectedState,
         condition: selectedCondition,
         category: selectedCategory,
         sortBy: sortBy as any
       });
-      if (marketplaceLayerRef.current !== layerAtCall) return;
       if (next.length > 0) {
         const nextSlice = next.slice(0, 4);
         setListings(prev => dedupeById([...prev, ...nextSlice]));
@@ -832,33 +824,7 @@ const Marketplace: React.FC = () => {
          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Solar Equipment Hub</h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">Buy & sell new and used solar gear.</p>
-            </div>
-
-            {/* Marketplace Layer Tabs */}
-            <div className="bg-slate-100 dark:bg-slate-900 p-1 rounded-xl flex items-center font-medium text-sm border border-transparent dark:border-slate-800">
-              <button
-                onClick={() => setMarketplaceLayer('verified')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  marketplaceLayer === 'verified'
-                    ? 'bg-white dark:bg-slate-950 text-emerald-700 shadow-sm font-semibold'
-                    : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100'
-                }`}
-              >
-                <ShieldCheck className="h-4 w-4" />
-                Verified Sellers
-              </button>
-              <button
-                onClick={() => setMarketplaceLayer('community')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  marketplaceLayer === 'community'
-                    ? 'bg-white dark:bg-slate-950 text-amber-600 shadow-sm font-semibold'
-                    : 'text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100'
-                }`}
-              >
-                <Users className="h-4 w-4" />
-                Unverified Seller
-              </button>
+              <p className="text-slate-600 dark:text-slate-400 mt-1">Buy & sell new and used solar gear from verified sellers.</p>
             </div>
          </div>
 
@@ -1106,9 +1072,7 @@ const Marketplace: React.FC = () => {
              </div>
              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">No matches found</h3>
              <p className="text-slate-500 dark:text-slate-300 mt-1">
-                {marketplaceLayer === 'verified' 
-                   ? "No verified sellers found matching your criteria." 
-                   : "No unverified sellers found matching your criteria."}
+                No listings found matching your criteria.
              </p>
              <button 
                onClick={() => { setSelectedState(''); setSelectedCategory(''); setSearchInput(''); setSearchQuery(''); }}
