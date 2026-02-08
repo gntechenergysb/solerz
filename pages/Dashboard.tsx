@@ -558,6 +558,14 @@ const Dashboard: React.FC = () => {
 
   if (authLoading && !isAuthenticated) return <div>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" />;
+  if (!user) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center gap-3 text-slate-500">
+        <RefreshCw className="h-5 w-5 animate-spin" />
+        <span>Loading your profile...</span>
+      </div>
+    </div>
+  );
 
   // --- ANALYTICS LOGIC ---
   const totalViewsAllTime = myListings.reduce((acc, curr) => acc + Number((curr as any).view_count || 0), 0);
