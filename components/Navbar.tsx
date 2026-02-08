@@ -171,14 +171,34 @@ const Navbar: React.FC = () => {
                 </div>
               </>
             ) : (isLoading || isAuthenticated) ? (
-              <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-200">
-                 <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-200 font-bold border border-emerald-200 dark:border-emerald-500/20">
-                   {(authEmail || 'U').charAt(0).toUpperCase()}
-                 </div>
-                 <span className="text-sm font-medium hidden sm:block max-w-[140px] truncate">
-                   {authEmail ? authEmail.split('@')[0] : 'Loading...'}
-                 </span>
-                 <ChevronDown className="h-4 w-4 text-slate-300 dark:text-slate-600" />
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 text-slate-700 dark:text-slate-200 focus:outline-none"
+                >
+                  <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-200 font-bold border border-emerald-200 dark:border-emerald-500/20">
+                    {(authEmail || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-medium hidden sm:block max-w-[140px] truncate">
+                    {authEmail ? authEmail.split('@')[0] : 'Loading...'}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-slate-300 dark:text-slate-600" />
+                </button>
+
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 py-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-800">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Profile loading...</p>
+                      {authEmail && <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{authEmail}</p>}
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-3">
