@@ -9,7 +9,7 @@ import { supabase } from './supabaseClient';
 
  // Only cache non-sensitive fields to localStorage (security)
  const MINIMAL_CACHE_FIELDS: Array<keyof Profile> = [
-  'id', 'email', 'company_name', 'tier', 'is_verified', 'role', 'avatar_url'
+  'id', 'email', 'company_name', 'tier', 'is_verified', 'role', 'avatar_url', 'ssm_file_path', 'ssm_new_no', 'ssm_no'
  ];
 
  const extractMinimalProfile = (profile: Profile | null): Partial<Profile> | null => {
