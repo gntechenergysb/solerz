@@ -617,6 +617,9 @@ const CreateListing: React.FC = () => {
         {/* Images */}
         <div className="space-y-4">
            <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Images</h2>
+           <p className="text-xs text-slate-500 dark:text-slate-400">
+             <span className="font-medium text-emerald-600">💡 Tip:</span> Upload photos from all angles (top, bottom, left, right, front, back) to build buyer confidence. Including the original product datasheet also helps showcase your professionalism.
+           </p>
            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-950/40 transition-colors cursor-pointer relative">
               <input 
                 type="file" 

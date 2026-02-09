@@ -197,7 +197,7 @@ const Signup: React.FC = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                placeholder={role === 'Company Seller' ? "Solar Tech Sdn Bhd" : "John Doe"}
+                placeholder=""
               />
             </div>
 
