@@ -115,8 +115,8 @@ begin
       -- Panels fields
       (array[410,450,455,500,535,550,580])[1 + floor(random()*7)::int] as p_wattage,
       (array[
-        'Monocrystalline',
-        'Polycrystalline',
+        'Mono',
+        'Poly',
         'N-type',
         'P-type',
         'IBC',
