@@ -53,6 +53,10 @@ export interface PanelSpecs extends BaseSpecs {
     | 'BIPV'
     | 'Shingled'
     | 'PERC'
+    | 'Mono'
+    | 'Poly'
+    | 'IBC'
+    | 'ABC'
     | string;
   efficiency: number;
   dimensions: string;

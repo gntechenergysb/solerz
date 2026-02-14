@@ -92,10 +92,10 @@ const supabaseServicePatchProfile = async (
 const getListingLimit = (tier: string): number => {
   switch (tier) {
     case 'UNSUBSCRIBED': return 0;
-    case 'STARTER': return 1;
+    case 'STARTER': return 3;
     case 'PRO': return 10;
-    case 'MERCHANT': return 30;
-    case 'ENTERPRISE': return 100;
+    case 'MERCHANT': return 25;
+    case 'ENTERPRISE': return 80;
     default: return 0;
   }
 };

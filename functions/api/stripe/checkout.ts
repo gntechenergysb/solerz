@@ -11,10 +11,10 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
-  STARTER: { monthly: 'price_1SxscwAEbTWGL4T0h3tf72Yb', yearly: 'price_1SxsceAEbTWGL4T0lPMjcbso' },
-  PRO: { monthly: 'price_1SxIVLAEbTWGL4T0zRcmfquj', yearly: 'price_1SxIVoAEbTWGL4T0eEuOEfde' },
-  MERCHANT: { monthly: 'price_1SxIW8AEbTWGL4T0AnrsvXOV', yearly: 'price_1SxIWqAEbTWGL4T0hXqilGER' },
-  ENTERPRISE: { monthly: 'price_1SxIXMAEbTWGL4T0sqlzkmb5', yearly: 'price_1SxIXcAEbTWGL4T0Fxf36hwn' }
+  STARTER: { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
+  PRO: { monthly: 'price_1T0enHAEbTWGL4T0Mbvhwiho', yearly: 'price_1T0ennAEbTWGL4T0Dfs6JlmN' },
+  MERCHANT: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
+  ENTERPRISE: { monthly: 'price_1T0etMAEbTWGL4T0C14VVNLk', yearly: 'price_1T0etmAEbTWGL4T0j1Chp7ri' }
 };
 
 const normalizeTier = (planId: string) => {
@@ -96,10 +96,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
-    STARTER: { monthly: 29, yearly: 290 },
-    PRO: { monthly: 199, yearly: 1990 },
-    MERCHANT: { monthly: 399, yearly: 3990 },
-    ENTERPRISE: { monthly: 1199, yearly: 11990 }
+    STARTER: { monthly: 39, yearly: 428 },
+    PRO: { monthly: 99, yearly: 1088 },
+    MERCHANT: { monthly: 199, yearly: 2188 },
+    ENTERPRISE: { monthly: 499, yearly: 5488 }
   };
 
   const planAmounts = amountMapMyr[tier];

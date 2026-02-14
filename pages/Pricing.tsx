@@ -22,11 +22,11 @@ const PLANS: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 29,
-    yearlyPrice: 290,
-    listingLimit: 1,
+    monthlyPrice: 39,
+    yearlyPrice: 428,
+    listingLimit: 3,
     features: [
-      '1 Active Listing (30 days)',
+      '3 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
       'SSM Verification',
@@ -37,8 +37,8 @@ const PLANS: Plan[] = [
   {
     id: 'pro',
     name: 'Pro',
-    monthlyPrice: 199,
-    yearlyPrice: 1990,
+    monthlyPrice: 99,
+    yearlyPrice: 1088,
     listingLimit: 10,
     features: [
       '10 Active Listings (30 days each)',
@@ -54,11 +54,11 @@ const PLANS: Plan[] = [
   {
     id: 'merchant',
     name: 'Merchant',
-    monthlyPrice: 399,
-    yearlyPrice: 3990,
-    listingLimit: 30,
+    monthlyPrice: 199,
+    yearlyPrice: 2188,
+    listingLimit: 25,
     features: [
-      '30 Active Listings (30 days each)',
+      '25 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
       'SSM Verification',
@@ -71,11 +71,11 @@ const PLANS: Plan[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    monthlyPrice: 1199,
-    yearlyPrice: 11990,
-    listingLimit: 100,
+    monthlyPrice: 499,
+    yearlyPrice: 5488,
+    listingLimit: 80,
     features: [
-      '100 Active Listings (30 days each)',
+      '80 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
       'SSM Verification',
@@ -198,7 +198,7 @@ const Pricing: React.FC = () => {
              onClick={() => setBillingCycle('yearly')}
              className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors w-32 ${billingCycle === 'yearly' ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-300'}`}
           >
-            Yearly <span className="text-[10px] text-emerald-600 ml-1">(-17%)</span>
+            Yearly <span className="text-[10px] text-emerald-600 ml-1">(-1 mo)</span>
           </button>
         </div>
       </div>

@@ -52,7 +52,8 @@ begin
         when b.r < 0.40 then 'Inverters'
         when b.r < 0.60 then 'Batteries'
         when b.r < 0.70 then 'Cable'
-        when b.r < 0.90 then 'Protective'
+        when b.r < 0.85 then 'Protective'
+        when b.r < 0.95 then 'Accessories'
         else 'Miscellaneous'
       end as category,
 
@@ -62,7 +63,8 @@ begin
           when b.r < 0.40 then 'Inverters'
           when b.r < 0.60 then 'Batteries'
           when b.r < 0.70 then 'Cable'
-          when b.r < 0.90 then 'Protective'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
           else 'Miscellaneous'
         end) = 'Panels' then (array['JA Solar','Jinko','Trina','LONGi'])[1 + floor(random()*4)::int]
         when (case
@@ -70,7 +72,8 @@ begin
           when b.r < 0.40 then 'Inverters'
           when b.r < 0.60 then 'Batteries'
           when b.r < 0.70 then 'Cable'
-          when b.r < 0.90 then 'Protective'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
           else 'Miscellaneous'
         end) = 'Inverters' then (array['Huawei','Sungrow','Growatt','SMA','GoodWe'])[1 + floor(random()*5)::int]
         when (case
@@ -78,7 +81,8 @@ begin
           when b.r < 0.40 then 'Inverters'
           when b.r < 0.60 then 'Batteries'
           when b.r < 0.70 then 'Cable'
-          when b.r < 0.90 then 'Protective'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
           else 'Miscellaneous'
         end) = 'Batteries' then (array['BYD','Pylontech','Dyness','Generic'])[1 + floor(random()*4)::int]
         when (case
@@ -86,7 +90,8 @@ begin
           when b.r < 0.40 then 'Inverters'
           when b.r < 0.60 then 'Batteries'
           when b.r < 0.70 then 'Cable'
-          when b.r < 0.90 then 'Protective'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
           else 'Miscellaneous'
         end) = 'Cable' then (array['Prysmian','Nexans','LS Cable','Helukabel','Generic'])[1 + floor(random()*5)::int]
         when (case
@@ -94,9 +99,19 @@ begin
           when b.r < 0.40 then 'Inverters'
           when b.r < 0.60 then 'Batteries'
           when b.r < 0.70 then 'Cable'
-          when b.r < 0.90 then 'Protective'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
           else 'Miscellaneous'
         end) = 'Protective' then (array['Schneider','ABB','Eaton','Siemens','Hager','Generic'])[1 + floor(random()*6)::int]
+        when (case
+          when b.r < 0.20 then 'Panels'
+          when b.r < 0.40 then 'Inverters'
+          when b.r < 0.60 then 'Batteries'
+          when b.r < 0.70 then 'Cable'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
+          else 'Miscellaneous'
+        end) = 'Accessories' then (array['SolarEdge','Tigo','Hoymiles','Renusol','Schletter','K2','Generic','Unbranded'])[1 + floor(random()*8)::int]
         else (array['Generic','Unbranded','Other'])[1 + floor(random()*3)::int]
       end as brand,
 
@@ -106,7 +121,8 @@ begin
           when b.r < 0.40 then 'Inverters'
           when b.r < 0.60 then 'Batteries'
           when b.r < 0.70 then 'Cable'
-          when b.r < 0.90 then 'Protective'
+          when b.r < 0.85 then 'Protective'
+          when b.r < 0.95 then 'Accessories'
           else 'Miscellaneous'
         end) = 'Panels' then (array['New','Used','Refurbished'])[1 + floor(random()*3)::int]
         else (array['New','Used','Refurbished'])[1 + floor(random()*3)::int]
@@ -161,7 +177,13 @@ begin
       (array['Fuse','Breaker','SPD','Isolator','Other'])[1 + floor(random()*5)::int] as prot_device_type,
       (array[10,16,20,25,32,40,50,63,80,100])[1 + floor(random()*10)::int] as prot_rated_current_a,
       (array[230,400,500,600,800,1000])[1 + floor(random()*6)::int] as prot_rated_voltage_v,
-      (array[1,2,3,4])[1 + floor(random()*4)::int] as prot_poles
+      (array[1,2,3,4])[1 + floor(random()*4)::int] as prot_poles,
+
+      -- Accessories fields
+      (array['Mounting Structure','Connector','Optimizer','Monitoring System','Grounding Kit','Junction Box','Combiner Box','Cable Management','Weather Station','Cleaning Kit'])[1 + floor(random()*10)::int] as acc_type,
+      (array['Aluminum','Galvanized Steel','Stainless Steel','Plastic','Copper','Mixed'])[1 + floor(random()*6)::int] as acc_material,
+      (array['Roof Mount','Ground Mount','Carport','Tracking System','Wall Mount','Pole Mount'])[1 + floor(random()*6)::int] as acc_mount_type,
+      (array[10,20,50,100,200,500])[1 + floor(random()*6)::int] as acc_quantity_per_set
     from base b
   )
   select
@@ -182,6 +204,8 @@ begin
           brand || ' ' || cab_type || ' ' || cab_voltage || ' ' || cab_size_mm2::text || 'mm² ' || cab_cores::text || 'C Cable (' || cab_length_m::text || 'm)'
         when category = 'Protective' then
           brand || ' ' || prot_device_type || ' ' || prot_rated_current_a::text || 'A ' || prot_rated_voltage_v::text || 'V (' || prot_poles::text || 'P)'
+        when category = 'Accessories' then
+          brand || ' ' || acc_type || ' (' || acc_mount_type || ')'
         else
           brand || ' Miscellaneous Item (' || cond || ')'
       end
@@ -247,6 +271,13 @@ begin
           'rated_voltage_v', prot_rated_voltage_v,
           'poles', prot_poles
         )
+      when category = 'Accessories' then
+        jsonb_build_object(
+          'accessory_type', acc_type,
+          'material', acc_material,
+          'mount_type', acc_mount_type,
+          'quantity_per_set', acc_quantity_per_set
+        )
       else
         '{}'::jsonb
     end as specs,
@@ -259,6 +290,7 @@ begin
           when category = 'Batteries' then (array[3500,5200,7500,9800])[1 + floor(random()*4)::int]
           when category = 'Cable' then (cab_size_mm2 * cab_length_m * (array[0.6,0.8,1.1])[1 + floor(random()*3)::int])
           when category = 'Protective' then (prot_rated_current_a * (array[12,16,20])[1 + floor(random()*3)::int])
+          when category = 'Accessories' then (array[150,350,800,1500,3000])[1 + floor(random()*5)::int]
           else (array[120,250,480,850])[1 + floor(random()*4)::int]
         end
         * (0.9 + random()*0.25)
@@ -274,6 +306,7 @@ begin
         when category = 'Batteries' then format('https://images.unsplash.com/photo-1617783756017-38d7c1b32402?w=800&h=600&fit=crop&lock=%s', img_seed)
         when category = 'Cable' then format('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&lock=%s', img_seed)
         when category = 'Protective' then format('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=600&fit=crop&lock=%s', img_seed)
+        when category = 'Accessories' then format('https://images.unsplash.com/photo-1548613053-220e7558185a?w=800&h=600&fit=crop&lock=%s', img_seed)
         else format('https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=800&h=600&fit=crop&lock=%s', img_seed)
       end
     ]::text[] as images_url,
