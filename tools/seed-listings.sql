@@ -1,16 +1,21 @@
 do $$
 declare
-  v_seller_ids uuid[] := array[
-    'PUT_SELLER_UUID_1_HERE'::uuid,
-    'PUT_SELLER_UUID_2_HERE'::uuid,
-    'PUT_SELLER_UUID_3_HERE'::uuid
-  ];
-  v_count int := 30;          -- how many listings
-  v_hidden_every int := 0;    -- e.g. 10 => every 10th listing is hidden; 0 => none
-  v_sold_every int := 0;      -- e.g. 8 => every 8th listing is sold; 0 => none
+  -- ============ CONFIGURATION ============
+  -- Set your seller UUID here (replace with actual user ID)
+  v_seller_id uuid := 'PUT_USER_UUID_HERE'::uuid;
+  
+  -- How many listings to generate
+  v_count int := 30;
+  
+  -- Every Nth listing is hidden (0 = none hidden)
+  v_hidden_every int := 0;
+  
+  -- Every Nth listing is sold (0 = none sold)
+  v_sold_every int := 0;
+  -- =======================================
 begin
-  if v_seller_ids is null or array_length(v_seller_ids, 1) is null then
-    raise exception 'v_seller_ids is null/empty';
+  if v_seller_id is null then
+    raise exception 'Please set v_seller_id to a valid UUID';
   end if;
 
   insert into public.listings (
@@ -27,21 +32,17 @@ begin
     is_hidden
   )
   with
-  sellers as (
-    select unnest(v_seller_ids) as seller_id
-  ),
   gs as (
     select generate_series(1, v_count) as i
   ),
   base as (
     select
-      s.seller_id,
+      v_seller_id as seller_id,
       i,
       random() as r,
       (array['Selangor','Johor','Penang','Perak','Kuala Lumpur','Sarawak','Sabah'])[1 + floor(random()*7)::int] as location_state,
       (1 + floor(random()*1000)::int) as img_seed
-    from sellers s
-    cross join gs
+    from gs
   ),
   derived as (
     select
@@ -115,18 +116,7 @@ begin
         else (array['Generic','Unbranded','Other'])[1 + floor(random()*3)::int]
       end as brand,
 
-      case
-        when (case
-          when b.r < 0.20 then 'Panels'
-          when b.r < 0.40 then 'Inverters'
-          when b.r < 0.60 then 'Batteries'
-          when b.r < 0.70 then 'Cable'
-          when b.r < 0.85 then 'Protective'
-          when b.r < 0.95 then 'Accessories'
-          else 'Miscellaneous'
-        end) = 'Panels' then (array['New','Used','Refurbished'])[1 + floor(random()*3)::int]
-        else (array['New','Used','Refurbished'])[1 + floor(random()*3)::int]
-      end as cond,
+      (array['New','Used','Refurbished'])[1 + floor(random()*3)::int] as cond,
 
       -- Panels fields
       (array[410,450,455,500,535,550,580])[1 + floor(random()*7)::int] as p_wattage,
