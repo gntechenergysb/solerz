@@ -740,8 +740,8 @@ const Dashboard: React.FC = () => {
                   </span>
                 </span>
                 
-                {/* Change History inline - hide if cancelling */}
-                {user?.pending_tier && user?.tier_effective_at && !(subscriptionData.cancel_at_period_end || user?.stripe_cancel_at_period_end) && (
+                {/* Change History inline */}
+                {user?.pending_tier && user?.tier_effective_at && (
                   <>
                     <span className="text-slate-400">|</span>
                     <span className="text-blue-600 dark:text-blue-400">
