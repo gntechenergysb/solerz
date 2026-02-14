@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
     status?: string;
   }>({});
 
-  // Fetch real-time subscription data from Stripe
+  // Fetch real-time subscription data from Stripe (background sync, non-blocking)
   const fetchSubscriptionSync = async () => {
     if (!user) return;
     try {
@@ -291,42 +291,54 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Optimized data loading: parallel Supabase queries + background Stripe sync
   useEffect(() => {
-    fetchSubscriptionSync();
-  }, [user?.id]);
-
-  useEffect(() => {
-    const fetchMyData = async () => {
-      if (user) {
-        const mine = await db.getListingsBySellerId(user.id);
-        setMyListings(mine);
-
-        const [demandRows, funnelRow] = await Promise.all([
-          db.getMarketDemand(7),
-          db.getSellerFunnel(user.id, 7)
-        ]);
-
-        const map: Record<string, number> = {};
-        for (const r of demandRows || []) {
-          const k = String((r as any).category || '').trim();
-          const v = Number((r as any).searches || 0);
-          if (!k) continue;
-          map[k] = v;
-        }
-        setMarketDemand({
-          inverters: map['Inverters'] || 0,
-          panels: map['Panels'] || 0,
-          batteries: map['Batteries'] || 0
-        });
-        setFunnel({
-          impressions: Number((funnelRow as any)?.impressions || 0),
-          views: Number((funnelRow as any)?.views || 0),
-          contacts: Number((funnelRow as any)?.contacts || 0)
-        });
+    if (!user) return;
+    
+    const loadData = async () => {
+      // Parallel Supabase queries (fast)
+      const [mine, demandRows, funnelRow] = await Promise.all([
+        db.getListingsBySellerId(user.id),
+        db.getMarketDemand(7),
+        db.getSellerFunnel(user.id, 7)
+      ]);
+      
+      setMyListings(mine);
+      
+      const map: Record<string, number> = {};
+      for (const r of demandRows || []) {
+        const k = String((r as any).category || '').trim();
+        const v = Number((r as any).searches || 0);
+        if (!k) continue;
+        map[k] = v;
       }
+      setMarketDemand({
+        inverters: map['Inverters'] || 0,
+        panels: map['Panels'] || 0,
+        batteries: map['Batteries'] || 0
+      });
+      
+      setFunnel({
+        impressions: Number((funnelRow as any)?.impressions || 0),
+        views: Number((funnelRow as any)?.views || 0),
+        contacts: Number((funnelRow as any)?.contacts || 0)
+      });
+      
       setLoading(false);
     };
-    fetchMyData();
+    
+    // Load data immediately
+    loadData();
+    
+    // Background Stripe sync: only sync if no recent data or subscription might be stale
+    const needsSync = !user?.stripe_current_period_end || 
+      (user?.stripe_current_period_end * 1000) < Date.now() ||
+      !user?.stripe_subscription_status;
+    
+    if (needsSync) {
+      // Delay slightly to not block initial render
+      setTimeout(() => fetchSubscriptionSync(), 100);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -465,10 +477,10 @@ const Dashboard: React.FC = () => {
   const getListingLimit = (tier: UserTier) => {
     switch (tier) {
       case 'UNSUBSCRIBED': return 0;
-      case 'STARTER': return 1;
+      case 'STARTER': return 3;
       case 'PRO': return 10;
-      case 'MERCHANT': return 30;
-      case 'ENTERPRISE': return 100;
+      case 'MERCHANT': return 25;
+      case 'ENTERPRISE': return 80;
       default: return 0;
     }
   };
