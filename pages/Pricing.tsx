@@ -198,7 +198,7 @@ const Pricing: React.FC = () => {
              onClick={() => setBillingCycle('yearly')}
              className={`relative z-10 px-6 py-2 text-sm font-semibold transition-colors w-32 ${billingCycle === 'yearly' ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-300'}`}
           >
-            Yearly <span className="text-[10px] text-emerald-600 ml-1">(-1 mo)</span>
+            Yearly <span className="text-[10px] text-emerald-600 ml-1">(1 month free)</span>
           </button>
         </div>
       </div>
