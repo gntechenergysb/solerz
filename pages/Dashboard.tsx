@@ -258,6 +258,18 @@ const Dashboard: React.FC = () => {
     status?: string;
   }>({});
 
+  // Initialize subscriptionData from Supabase user data (immediate, no delay)
+  useEffect(() => {
+    if (user?.stripe_current_period_end) {
+      setSubscriptionData({
+        current_period_end: user.stripe_current_period_end,
+        billing_interval: user.stripe_billing_interval || 'month',
+        cancel_at_period_end: user.stripe_cancel_at_period_end || false,
+        status: user.stripe_subscription_status || 'active'
+      });
+    }
+  }, [user?.id, user?.stripe_current_period_end, user?.stripe_billing_interval, user?.stripe_cancel_at_period_end, user?.stripe_subscription_status]);
+
   // Fetch real-time subscription data from Stripe (background sync, non-blocking)
   const fetchSubscriptionSync = async () => {
     if (!user) return;
