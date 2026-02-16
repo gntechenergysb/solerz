@@ -1072,11 +1072,11 @@ const Dashboard: React.FC = () => {
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-300 font-medium">
                   <tr>
-                    <th className="px-6 py-3 w-2/5">Title</th>
-                    <th className="px-6 py-3 w-24">Status</th>
-                    <th className="px-6 py-3 w-28">Duration</th>
-                    <th className="px-6 py-3 text-right w-20">Views</th>
-                    <th className="px-6 py-3 text-right w-24">Action</th>
+                    <th className="px-4 py-3 w-1/2">Title</th>
+                    <th className="px-4 py-3 w-20">Status</th>
+                    <th className="px-4 py-3 w-24">Duration</th>
+                    <th className="px-4 py-3 text-right w-16">Views</th>
+                    <th className="px-4 py-3 text-right w-32">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1099,77 +1099,60 @@ const Dashboard: React.FC = () => {
 
                       return (
                         <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors group">
-                          <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">
-                            <div className="truncate max-w-[280px]" title={l.title}>{l.title}</div>
+                          <td className="px-4 py-4 font-medium text-slate-900 dark:text-slate-100">
+                            <div className="truncate max-w-[360px]" title={l.title}>{l.title}</div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-4">
                             {isHidden ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-700">
-                                Deactivated
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-200 text-slate-700">
+                                Hidden
                               </span>
                             ) : l.is_sold ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
                                 Sold
                               </span>
                             ) : (l as any).is_paused ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                ⏸️ Paused (Tier Limit)
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
+                                Paused
                               </span>
                             ) : !isExpired ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
                                 Active
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
                                 Expired
                               </span>
                             )}
                           </td>
 
-                          <td className="px-6 py-4">
-                            <div className="w-24">
-                              <div className="flex justify-between items-center text-[10px] mb-1 uppercase tracking-wide font-bold">
-                                <span className={isExpired ? 'text-red-600' : 'text-emerald-600'}>
-                                  {isExpired ? 'Expired' : 'Active'}
-                                </span>
-                                <span className="text-slate-400">
-                                  {isExpired ? '100%' : `${Math.round(percent)}%`}
-                                </span>
-                              </div>
-                              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2 w-24">
+                              <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all duration-700 ease-out ${isExpired ? 'bg-red-500' : 'bg-emerald-500'}`}
                                   style={{ width: `${percent}%` }}
                                 ></div>
                               </div>
-
-                              {isExpired && !l.is_sold && (
-                                <button
-                                  onClick={() => handleRenew(l.id)}
-                                  className="mt-1.5 text-xs flex items-center gap-1 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-0.5 rounded shadow-sm hover:border-emerald-500 transition-colors"
-                                >
-                                  <RotateCcw className="h-3 w-3" />
-                                  Renew
-                                </button>
-                              )}
+                              <span className={`text-[10px] font-medium w-7 text-right ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>
+                                {isExpired ? 'Exp' : `${Math.round(percent)}%`}
+                              </span>
                             </div>
                           </td>
 
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end items-center gap-1 text-slate-600 dark:text-slate-300">
-                              <Eye className="h-3 w-3" />
-                              {l.view_count}
-                            </div>
+                          <td className="px-4 py-4 text-right">
+                            <span className="text-slate-500 dark:text-slate-400 text-xs">{l.view_count}</span>
                           </td>
 
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex flex-col items-end gap-1">
+                          <td className="px-4 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
                               <Link
                                 to={`/edit/${l.id}`}
-                                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:hover:text-emerald-400"
+                                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:hover:text-emerald-400"
                               >
                                 Edit
                               </Link>
+                              <span className="text-slate-300">|</span>
                               {!l.is_sold && (
                                 <button
                                   onClick={async () => {
@@ -1181,11 +1164,11 @@ const Dashboard: React.FC = () => {
                                       toast.error('Failed to update listing status.');
                                       return;
                                     }
-                                    toast.success(next ? 'Listing deactivated.' : 'Listing activated.');
+                                    toast.success(next ? 'Listing hidden.' : 'Listing shown.');
                                   }}
-                                  className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                                  className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                                 >
-                                  {isHidden ? 'Activate' : 'Deactivate'}
+                                  {isHidden ? 'Show' : 'Hide'}
                                 </button>
                               )}
                             </div>
