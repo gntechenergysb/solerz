@@ -303,19 +303,23 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Optimized data loading: parallel Supabase queries + background Stripe sync
+  // Optimized data loading: load listings immediately, other data in background
   useEffect(() => {
     if (!user) return;
     
-    const loadData = async () => {
-      // Parallel Supabase queries (fast)
-      const [mine, demandRows, funnelRow] = await Promise.all([
-        db.getListingsBySellerId(user.id),
+    // Load listings immediately (fastest - most important)
+    const loadListings = async () => {
+      const mine = await db.getListingsBySellerIdMinimal(user.id);
+      setMyListings(mine);
+      setLoading(false); // Show listings immediately
+    };
+    
+    // Load stats in background (less critical)
+    const loadStats = async () => {
+      const [demandRows, funnelRow] = await Promise.all([
         db.getMarketDemand(7),
         db.getSellerFunnel(user.id, 7)
       ]);
-      
-      setMyListings(mine);
       
       const map: Record<string, number> = {};
       for (const r of demandRows || []) {
@@ -335,21 +339,19 @@ const Dashboard: React.FC = () => {
         views: Number((funnelRow as any)?.views || 0),
         contacts: Number((funnelRow as any)?.contacts || 0)
       });
-      
-      setLoading(false);
     };
     
-    // Load data immediately
-    loadData();
+    // Execute: listings first, then stats
+    loadListings();
+    loadStats();
     
-    // Background Stripe sync: only sync if no recent data or subscription might be stale
+    // Background Stripe sync: only sync if no recent data
     const needsSync = !user?.stripe_current_period_end || 
       (user?.stripe_current_period_end * 1000) < Date.now() ||
       !user?.stripe_subscription_status;
     
     if (needsSync) {
-      // Delay slightly to not block initial render
-      setTimeout(() => fetchSubscriptionSync(), 100);
+      setTimeout(() => fetchSubscriptionSync(), 500); // Delay more to not compete with listing load
     }
   }, [user]);
 
@@ -1070,11 +1072,11 @@ const Dashboard: React.FC = () => {
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-300 font-medium">
                   <tr>
-                    <th className="px-6 py-3 w-1/4">Title</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3 w-1/3">Active Duration</th>
-                    <th className="px-6 py-3 text-right">Views</th>
-                    <th className="px-6 py-3 text-right">Action</th>
+                    <th className="px-6 py-3 w-2/5">Title</th>
+                    <th className="px-6 py-3 w-24">Status</th>
+                    <th className="px-6 py-3 w-28">Duration</th>
+                    <th className="px-6 py-3 text-right w-20">Views</th>
+                    <th className="px-6 py-3 text-right w-24">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1098,8 +1100,7 @@ const Dashboard: React.FC = () => {
                       return (
                         <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors group">
                           <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">
-                            <div className="truncate max-w-[150px]" title={l.title}>{l.title}</div>
-                            <div className="text-xs text-slate-400 mt-0.5">{l.category}</div>
+                            <div className="truncate max-w-[280px]" title={l.title}>{l.title}</div>
                           </td>
                           <td className="px-6 py-4">
                             {isHidden ? (
@@ -1126,8 +1127,8 @@ const Dashboard: React.FC = () => {
                           </td>
 
                           <td className="px-6 py-4">
-                            <div className="w-full max-w-[180px]">
-                              <div className="flex justify-between items-center text-[10px] mb-1.5 uppercase tracking-wide font-bold">
+                            <div className="w-24">
+                              <div className="flex justify-between items-center text-[10px] mb-1 uppercase tracking-wide font-bold">
                                 <span className={isExpired ? 'text-red-600' : 'text-emerald-600'}>
                                   {isExpired ? 'Expired' : 'Active'}
                                 </span>
@@ -1135,7 +1136,7 @@ const Dashboard: React.FC = () => {
                                   {isExpired ? '100%' : `${Math.round(percent)}%`}
                                 </span>
                               </div>
-                              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mb-2 overflow-hidden">
+                              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all duration-700 ease-out ${isExpired ? 'bg-red-500' : 'bg-emerald-500'}`}
                                   style={{ width: `${percent}%` }}
@@ -1145,7 +1146,7 @@ const Dashboard: React.FC = () => {
                               {isExpired && !l.is_sold && (
                                 <button
                                   onClick={() => handleRenew(l.id)}
-                                  className="text-xs flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1 rounded-md shadow-sm hover:border-emerald-500 transition-colors"
+                                  className="mt-1.5 text-xs flex items-center gap-1 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-0.5 rounded shadow-sm hover:border-emerald-500 transition-colors"
                                 >
                                   <RotateCcw className="h-3 w-3" />
                                   Renew
@@ -1162,7 +1163,13 @@ const Dashboard: React.FC = () => {
                           </td>
 
                           <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end items-center gap-3">
+                            <div className="flex flex-col items-end gap-1">
+                              <Link
+                                to={`/edit/${l.id}`}
+                                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:hover:text-emerald-400"
+                              >
+                                Edit
+                              </Link>
                               {!l.is_sold && (
                                 <button
                                   onClick={async () => {
@@ -1176,17 +1183,11 @@ const Dashboard: React.FC = () => {
                                     }
                                     toast.success(next ? 'Listing deactivated.' : 'Listing activated.');
                                   }}
-                                  className="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                  className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
                                 >
                                   {isHidden ? 'Activate' : 'Deactivate'}
                                 </button>
                               )}
-                              <Link
-                                to={`/edit/${l.id}`}
-                                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:hover:text-emerald-400"
-                              >
-                                Edit
-                              </Link>
                             </div>
                           </td>
                         </tr>

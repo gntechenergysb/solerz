@@ -195,26 +195,36 @@ const Marketplace: React.FC = () => {
             marketplaceLayer: 'verified'
           });
         }
-        const data = await db.getMarketplaceListings({
-          from: 0,
-          to: 4,
-          marketplaceLayer: 'verified',
-          searchQuery,
-          state: selectedState,
-          condition: selectedCondition,
-          category: selectedCategory,
-          sortBy: sortBy as any
-        });
+        
+        let data: Listing[];
+        if (isDefaultQuery && !searchQuery && !selectedState && !selectedCategory && !selectedCondition) {
+          // Use optimized random listings for homepage (minimal Supabase traffic)
+          data = await db.getRandomListings(20, 'verified');
+          setHasMore(false); // Random listings don't support pagination
+        } else {
+          // Use full query for filtered searches
+          data = await db.getMarketplaceListings({
+            from: 0,
+            to: 4,
+            marketplaceLayer: 'verified',
+            searchQuery,
+            state: selectedState,
+            condition: selectedCondition,
+            category: selectedCategory,
+            sortBy: sortBy as any
+          });
+          setHasMore(data.length > 4);
+        }
+        
         if (fetchSeqRef.current !== mySeq) return;
-        const pageRows = data.slice(0, 4);
+        const pageRows = data.slice(0, 20);
         const next = dedupeById(pageRows);
         setListings(next);
         setPage(0);
-        setHasMore(data.length > 4);
 
         if (isDefaultQuery) {
           try {
-            sessionStorage.setItem(cacheKey, JSON.stringify({ listings: next, hasMore: data.length > 4 }));
+            sessionStorage.setItem(cacheKey, JSON.stringify({ listings: next, hasMore: false }));
           } catch {
             // ignore cache errors
           }
@@ -228,6 +238,30 @@ const Marketplace: React.FC = () => {
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
+    
+    // Don't load more if we're using random listings (default query without filters)
+    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition;
+    if (isDefaultQuery) {
+      // For random listings, fetch a fresh batch instead of paginating
+      setIsLoadingMore(true);
+      try {
+        const data = await db.getRandomListings(20, 'verified');
+        const next = dedupeById(data);
+        setListings(next);
+        setPage(0);
+        setHasMore(false);
+        // Update cache
+        try {
+          sessionStorage.setItem(`marketplace_cache_v1_${sortBy}`, JSON.stringify({ listings: next, hasMore: false }));
+        } catch {
+          // ignore cache errors
+        }
+      } finally {
+        setIsLoadingMore(false);
+      }
+      return;
+    }
+    
     setIsLoadingMore(true);
     try {
       const nextPage = page + 1;
@@ -1046,7 +1080,8 @@ const Marketplace: React.FC = () => {
                   <ProductCard key={listing.id} listing={listing} />
                ))}
             </div>
-            {isLoading && (
+            {/* Only show loading/updating indicator for paginated results (not random listings) */}
+            {isLoading && hasMore && (
               <div className="flex justify-center">
                 <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full px-4 py-2 shadow-sm">
                   <span className="w-3 h-3 border-2 border-slate-200 border-t-emerald-500 rounded-full animate-spin" />
@@ -1054,16 +1089,19 @@ const Marketplace: React.FC = () => {
                 </div>
               </div>
             )}
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={handleLoadMore}
-                disabled={isLoadingMore || !hasMore}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold px-6 py-3 rounded-xl shadow-sm hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors disabled:opacity-60"
-              >
-                {isLoadingMore ? 'Loading...' : hasMore ? 'Load more' : 'No more'}
-              </button>
-            </div>
+            {/* Only show Load more button when pagination is supported (hasMore = true) */}
+            {hasMore && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold px-6 py-3 rounded-xl shadow-sm hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors disabled:opacity-60"
+                >
+                  {isLoadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">

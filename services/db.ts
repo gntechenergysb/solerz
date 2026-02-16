@@ -280,6 +280,58 @@ export const db = {
     return enrichListingsWithSeller(listings || []);
   },
 
+  // Minimal version for Dashboard - only fetches essential fields (much faster)
+  getListingsBySellerIdMinimal: async (sellerId: string): Promise<Partial<Listing>[]> => {
+    const { data: listings, error } = await supabase
+      .from('listings')
+      .select('id, title, active_until, is_hidden, is_sold, is_paused, view_count, created_at')
+      .eq('seller_id', sellerId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching minimal listings by seller:', error);
+      return [];
+    }
+
+    return listings || [];
+  },
+
+  // Homepage optimized: returns N random active listings with minimal Supabase traffic
+  // Uses local randomization on ID list to avoid ORDER BY RANDOM() performance hit
+  getRandomListings: async (limit: number = 20, marketplaceLayer: 'verified' | 'community' = 'verified'): Promise<Listing[]> => {
+    const nowIso = new Date().toISOString();
+
+    // Step 1: Get all active listing IDs (fast - minimal data transfer)
+    const { data: idRows, error: idError } = await supabase
+      .from('listings')
+      .select('id')
+      .eq('is_hidden', false)
+      .eq('is_sold', false)
+      .eq('is_verified_listing', marketplaceLayer === 'verified')
+      .gt('active_until', nowIso);
+
+    if (idError) {
+      console.error('Error fetching listing IDs:', idError);
+      return [];
+    }
+
+    if (!idRows || idRows.length === 0) {
+      return [];
+    }
+
+    // Step 2: Randomize IDs locally (no DB overhead)
+    const allIds = idRows.map((r: any) => r.id);
+    const shuffled = [...allIds].sort(() => Math.random() - 0.5);
+    const selectedIds = shuffled.slice(0, limit);
+
+    // Step 3: Fetch full data only for selected IDs
+    const listings = await db.getListingsByIds(selectedIds);
+
+    // Return in random order
+    const byId = new Map(listings.map(l => [l.id, l]));
+    return selectedIds.map(id => byId.get(id)).filter(Boolean) as Listing[];
+  },
+
   getListingById: async (id: string): Promise<Listing | null> => {
     let { data, error } = await supabase
       .from('listings')
