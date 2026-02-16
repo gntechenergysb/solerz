@@ -21,7 +21,7 @@ const ProductDetails: React.FC = () => {
       if (id) {
         const data = await db.getListingById(id);
         setListing(data);
-        const fallback = 'https://via.placeholder.com/1200x900?text=No+Image';
+        const fallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
         const first = (data && Array.isArray(data.images_url) && data.images_url.length > 0) ? data.images_url[0] : '';
         setMainImage(first || fallback);
         db.updateViewCount(id);
@@ -86,7 +86,7 @@ const ProductDetails: React.FC = () => {
               alt={listing.title} 
               className="w-full h-full object-cover"
               loading="lazy"
-              onError={() => setMainImage('https://via.placeholder.com/1200x900?text=No+Image')}
+              onError={() => setMainImage('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E')}
             />
           </div>
           <div className="grid grid-cols-4 gap-4">
@@ -102,7 +102,7 @@ const ProductDetails: React.FC = () => {
                   className="w-full h-full object-cover"
                   loading="lazy"
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=No+Image';
+                    (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"%3E%3Crect width="300" height="300" fill="%23f1f5f9"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="24" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
                   }}
                 />
               </button>
