@@ -98,7 +98,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
     STARTER: { monthly: 39, yearly: 428 },
     PRO: { monthly: 99, yearly: 1088 },
-    MERCHANT: { monthly: 199, yearly: 2188 },
+    ELITE: { monthly: 199, yearly: 2188 },
     ENTERPRISE: { monthly: 499, yearly: 5488 }
   };
 

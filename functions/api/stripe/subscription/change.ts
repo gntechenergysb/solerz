@@ -12,7 +12,7 @@ type StripeCatalogProductIds = Partial<
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
   STARTER: { monthly: 'price_1SxscwAEbTWGL4T0h3tf72Yb', yearly: 'price_1SxsceAEbTWGL4T0lPMjcbso' },
   PRO: { monthly: 'price_1SxIVLAEbTWGL4T0zRcmfquj', yearly: 'price_1SxIVoAEbTWGL4T0eEuOEfde' },
-  ELITE: { monthly: 'price_1SxIW8AEbTWGL4T0AnrsvXOV', yearly: 'price_1SxIWqAEbTWGL4T0hXqilGER' },
+  ELITE: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
   ENTERPRISE: { monthly: 'price_1SxIXMAEbTWGL4T0sqlzkmb5', yearly: 'price_1SxIXcAEbTWGL4T0Fxf36hwn' }
 };
 

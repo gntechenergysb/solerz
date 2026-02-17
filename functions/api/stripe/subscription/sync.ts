@@ -9,7 +9,7 @@ const normalizeTier = (t: string) => {
 const getTierFromPriceProduct = (productName: string): string | null => {
   const name = String(productName || '').toLowerCase();
   if (name.includes('enterprise')) return 'ENTERPRISE';
-  if (name.includes('merchant')) return 'MERCHANT';
+  if (name.includes('elite')) return 'ELITE';
   if (name.includes('pro')) return 'PRO';
   if (name.includes('starter')) return 'STARTER';
   return null;
