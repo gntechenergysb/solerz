@@ -17,6 +17,7 @@ export interface Profile {
   stripe_subscription_id?: string | null;
   stripe_subscription_status?: string | null;
   stripe_current_period_end?: number | null;
+  stripe_current_period_start?: number | null;
   stripe_billing_interval?: 'month' | 'year' | null;
   // KYC Fields
   ssm_no?: string; // Accessor for backward compatibility if needed, though we prefer new fields

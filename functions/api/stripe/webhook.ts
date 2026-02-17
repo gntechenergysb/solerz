@@ -220,12 +220,17 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
 
   const cancelAtPeriodEnd = sub?.cancel_at_period_end;
   const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
+  const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
   const patch: Record<string, any> = {
     stripe_cancel_at_period_end: typeof cancelAtPeriodEnd === 'boolean' ? cancelAtPeriodEnd : null
   };
 
   if (Number.isFinite(currentPeriodEnd)) {
     patch.stripe_current_period_end = currentPeriodEnd;
+  }
+
+  if (Number.isFinite(currentPeriodStart)) {
+    patch.stripe_current_period_start = currentPeriodStart;
   }
 
   if (cancelAtPeriodEnd === true) {
@@ -596,7 +601,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         stripe_cancel_at_period_end: typeof sub?.cancel_at_period_end === 'boolean' ? sub.cancel_at_period_end : null
       };
       const cpe = Number(sub?.current_period_end ?? NaN);
+      const cps = Number(sub?.current_period_start ?? NaN);
       if (Number.isFinite(cpe)) stripePatch.stripe_current_period_end = cpe;
+      if (Number.isFinite(cps)) stripePatch.stripe_current_period_start = cps;
       if (newTier) {
         stripePatch.pending_tier = null;
         stripePatch.tier_effective_at = null;

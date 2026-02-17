@@ -253,6 +253,7 @@ const Dashboard: React.FC = () => {
   // Real-time subscription data from Stripe
   const [subscriptionData, setSubscriptionData] = useState<{
     current_period_end?: number;
+    current_period_start?: number;
     billing_interval?: 'month' | 'year';
     cancel_at_period_end?: boolean;
     status?: string;
@@ -263,12 +264,13 @@ const Dashboard: React.FC = () => {
     if (user?.stripe_current_period_end) {
       setSubscriptionData({
         current_period_end: user.stripe_current_period_end,
+        current_period_start: user.stripe_current_period_start,
         billing_interval: user.stripe_billing_interval || 'month',
         cancel_at_period_end: user.stripe_cancel_at_period_end || false,
         status: user.stripe_subscription_status || 'active'
       });
     }
-  }, [user?.id, user?.stripe_current_period_end, user?.stripe_billing_interval, user?.stripe_cancel_at_period_end, user?.stripe_subscription_status]);
+  }, [user?.id, user?.stripe_current_period_end, user?.stripe_current_period_start, user?.stripe_billing_interval, user?.stripe_cancel_at_period_end, user?.stripe_subscription_status]);
 
   // Fetch real-time subscription data from Stripe (background sync, non-blocking)
   const fetchSubscriptionSync = async () => {
@@ -748,7 +750,11 @@ const Dashboard: React.FC = () => {
                 <span>
                   <span className="text-slate-400">Started:</span>{' '}
                   <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                    {(subscriptionData.current_period_start || user?.stripe_current_period_start)
+                      ? new Date((subscriptionData.current_period_start || user?.stripe_current_period_start) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+                      : user?.created_at 
+                        ? new Date(user.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : '-'}
                   </span>
                 </span>
                 <span>

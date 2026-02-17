@@ -332,6 +332,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     
     // Extract other subscription data
     const currentPeriodEnd = Number(sub?.current_period_end || 0);
+    const currentPeriodStart = Number(sub?.current_period_start || 0);
     const cancelAtPeriodEnd = sub?.cancel_at_period_end || false;
     const status = String(sub?.status || '');
     
@@ -362,6 +363,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     
     if (Number.isFinite(currentPeriodEnd) && currentPeriodEnd !== profile?.stripe_current_period_end) {
       patch.stripe_current_period_end = currentPeriodEnd;
+    }
+    if (Number.isFinite(currentPeriodStart) && currentPeriodStart !== profile?.stripe_current_period_start) {
+      patch.stripe_current_period_start = currentPeriodStart;
     }
     if (billingInterval && billingInterval !== profile?.stripe_billing_interval) {
       patch.stripe_billing_interval = billingInterval;
