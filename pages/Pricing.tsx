@@ -289,25 +289,6 @@ const Pricing: React.FC = () => {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Enterprise Solutions</p>
             <p className="text-xs text-slate-500 dark:text-slate-300">Large-scale projects & custom requirements</p>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">Unlimited Listings</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">Dedicated Support</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">Custom Analytics</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm text-slate-600 dark:text-slate-300">API Access</span>
-            </div>
-          </div>
         </div>
 
         <a 
