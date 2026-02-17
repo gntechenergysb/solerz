@@ -45,15 +45,14 @@ const PLANS: Plan[] = [
       'Basic View Counter',
       'Standard Visibility',
       'SSM Verification',
-      'Company Profile Page',
-      'Priority Email Support'
+      'Company Profile Page'
     ],
     isPopular: true,
     colorTheme: 'emerald'
   },
   {
-    id: 'merchant',
-    name: 'Merchant',
+    id: 'elite',
+    name: 'Elite',
     monthlyPrice: 199,
     yearlyPrice: 2188,
     listingLimit: 25,
@@ -63,7 +62,6 @@ const PLANS: Plan[] = [
       'Standard Visibility',
       'SSM Verification',
       'Company Profile Page',
-      'Priority Email Support',
       'Basic Analytics'
     ],
     colorTheme: 'emerald'
@@ -80,7 +78,6 @@ const PLANS: Plan[] = [
       'Standard Visibility',
       'SSM Verification',
       'Company Profile Page',
-      'Priority Email Support',
       'Basic Analytics'
     ],
     colorTheme: 'emerald'
@@ -204,7 +201,7 @@ const Pricing: React.FC = () => {
       </div>
 
       {/* Bento Grid Layout */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         
         {PLANS.map((plan) => {
           const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
@@ -274,6 +271,52 @@ const Pricing: React.FC = () => {
             </div>
           );
         })}
+
+      {/* Custom Plan */}
+      <div className="relative flex flex-col p-6 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+        <div className="mb-6">
+          <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">Custom</h3>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-sm font-semibold text-slate-500 dark:text-slate-300">Contact Us</span>
+          </div>
+        </div>
+
+        <div className="flex-grow space-y-4 mb-8">
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950 rounded-full flex items-center justify-center mx-auto">
+              <TrendingUp className="h-6 w-6 text-emerald-600" />
+            </div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Enterprise Solutions</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300">Large-scale projects & custom requirements</p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-300">Unlimited Listings</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-300">Dedicated Support</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-300">Custom Analytics</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-300">API Access</span>
+            </div>
+          </div>
+        </div>
+
+        <a 
+          href="mailto:support@solerz.com?subject=Custom%20Plan%20Inquiry"
+          className="w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+        >
+          Get Quote
+        </a>
+      </div>
       </div>
 
       {/* Checkout Modal */}

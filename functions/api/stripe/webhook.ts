@@ -3,19 +3,19 @@ import type { Env } from '../../_utils';
 const STRIPE_SIGNATURE_HEADER = 'stripe-signature';
 
 type StripeCatalogProductIds = Partial<
-  Record<'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
+  Record<'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
   STARTER: { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
   PRO: { monthly: 'price_1T0enHAEbTWGL4T0Mbvhwiho', yearly: 'price_1T0ennAEbTWGL4T0Dfs6JlmN' },
-  MERCHANT: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
+  ELITE: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
   ENTERPRISE: { monthly: 'price_1T0etMAEbTWGL4T0C14VVNLk', yearly: 'price_1T0etmAEbTWGL4T0j1Chp7ri' }
 };
 
 const normalizeTier = (t: string) => {
   const v = String(t || '').trim().toUpperCase();
-  if (v === 'STARTER' || v === 'PRO' || v === 'MERCHANT' || v === 'ENTERPRISE') return v;
+  if (v === 'STARTER' || v === 'PRO' || v === 'ELITE' || v === 'ENTERPRISE') return v;
   return null;
 };
 
@@ -33,7 +33,7 @@ const getTierFromCatalogProductId = (env: Env, productId: string): string | null
     }
   }
 
-  const tiers: Array<keyof StripeCatalogProductIds> = ['STARTER', 'PRO', 'MERCHANT', 'ENTERPRISE'];
+  const tiers: Array<keyof StripeCatalogProductIds> = ['STARTER', 'PRO', 'ELITE', 'ENTERPRISE'];
   for (const parsed of candidates) {
     for (const t of tiers) {
       const monthly = String(parsed?.[t]?.monthly || '').trim();
@@ -244,7 +244,7 @@ const getListingLimit = (tier: string): number => {
     case 'UNSUBSCRIBED': return 0;
     case 'STARTER': return 3;
     case 'PRO': return 10;
-    case 'MERCHANT': return 25;
+    case 'ELITE': return 25;
     case 'ENTERPRISE': return 80;
     default: return 0;
   }

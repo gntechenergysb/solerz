@@ -40,8 +40,8 @@ const CreateListing: React.FC = () => {
       case 'UNSUBSCRIBED': return 0;
       case 'STARTER': return 1;
       case 'PRO': return 10;
-      case 'MERCHANT': return 30;
-      case 'ENTERPRISE': return 100;
+      case 'ELITE': return 25;
+      case 'ENTERPRISE': return 80;
       default: return 0;
     }
   };
@@ -540,6 +540,22 @@ const CreateListing: React.FC = () => {
         {/* Core Info */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Basic Information</h2>
+          
+          {/* Important Notice */}
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center">
+                <span className="text-amber-600 dark:text-amber-400 text-sm font-bold">!</span>
+              </div>
+              <div>
+                <h4 className="font-semibold text-amber-800 dark:text-amber-200 text-sm mb-1">Important Listing Rule</h4>
+                <p className="text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+                  Each listing must contain only <strong>one product type</strong> (e.g., only panels, only inverters, or only batteries). 
+                  Do not combine different product types in a single listing. Violations will result in listing removal.
+                </p>
+              </div>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              <div>

@@ -1,5 +1,5 @@
 
-export type UserTier = 'UNSUBSCRIBED' | 'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE';
+export type UserTier = 'UNSUBSCRIBED' | 'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE';
 
 export interface Profile {
   id: string;

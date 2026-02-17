@@ -2,7 +2,7 @@ import type { Env } from '../../../_utils';
 
 const normalizeTier = (t: string) => {
   const v = String(t || '').trim().toUpperCase();
-  if (v === 'STARTER' || v === 'PRO' || v === 'MERCHANT' || v === 'ENTERPRISE') return v;
+  if (v === 'STARTER' || v === 'PRO' || v === 'ELITE' || v === 'ENTERPRISE') return v;
   return null;
 };
 
@@ -94,7 +94,7 @@ const getListingLimit = (tier: string): number => {
     case 'UNSUBSCRIBED': return 0;
     case 'STARTER': return 3;
     case 'PRO': return 10;
-    case 'MERCHANT': return 25;
+    case 'ELITE': return 25;
     case 'ENTERPRISE': return 80;
     default: return 0;
   }

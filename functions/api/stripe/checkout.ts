@@ -7,19 +7,19 @@ type CheckoutRequest = {
 };
 
 type StripeCatalogProductIds = Partial<
-  Record<'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
+  Record<'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
   STARTER: { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
   PRO: { monthly: 'price_1T0enHAEbTWGL4T0Mbvhwiho', yearly: 'price_1T0ennAEbTWGL4T0Dfs6JlmN' },
-  MERCHANT: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
+  ELITE: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
   ENTERPRISE: { monthly: 'price_1T0etMAEbTWGL4T0C14VVNLk', yearly: 'price_1T0etmAEbTWGL4T0j1Chp7ri' }
 };
 
 const normalizeTier = (planId: string) => {
   const t = String(planId || '').trim().toUpperCase();
-  if (t === 'STARTER' || t === 'PRO' || t === 'MERCHANT' || t === 'ENTERPRISE') return t;
+  if (t === 'STARTER' || t === 'PRO' || t === 'ELITE' || t === 'ENTERPRISE') return t;
   return null;
 };
 

@@ -6,19 +6,19 @@ type ChangeRequest = {
 };
 
 type StripeCatalogProductIds = Partial<
-  Record<'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
+  Record<'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
   STARTER: { monthly: 'price_1SxscwAEbTWGL4T0h3tf72Yb', yearly: 'price_1SxsceAEbTWGL4T0lPMjcbso' },
   PRO: { monthly: 'price_1SxIVLAEbTWGL4T0zRcmfquj', yearly: 'price_1SxIVoAEbTWGL4T0eEuOEfde' },
-  MERCHANT: { monthly: 'price_1SxIW8AEbTWGL4T0AnrsvXOV', yearly: 'price_1SxIWqAEbTWGL4T0hXqilGER' },
+  ELITE: { monthly: 'price_1SxIW8AEbTWGL4T0AnrsvXOV', yearly: 'price_1SxIWqAEbTWGL4T0hXqilGER' },
   ENTERPRISE: { monthly: 'price_1SxIXMAEbTWGL4T0sqlzkmb5', yearly: 'price_1SxIXcAEbTWGL4T0Fxf36hwn' }
 };
 
 const normalizeTier = (planId: string) => {
   const t = String(planId || '').trim().toUpperCase();
-  if (t === 'STARTER' || t === 'PRO' || t === 'MERCHANT' || t === 'ENTERPRISE') return t;
+  if (t === 'STARTER' || t === 'PRO' || t === 'ELITE' || t === 'ENTERPRISE') return t;
   return null;
 };
 
@@ -120,7 +120,7 @@ const getUnitAmount = (tier: string, billingCycle: 'monthly' | 'yearly') => {
   const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
     STARTER: { monthly: 29, yearly: 290 },
     PRO: { monthly: 199, yearly: 1990 },
-    MERCHANT: { monthly: 399, yearly: 3990 },
+    ELITE: { monthly: 399, yearly: 3990 },
     ENTERPRISE: { monthly: 1199, yearly: 11990 }
   };
   const planAmounts = amountMapMyr[tier];
@@ -132,7 +132,7 @@ const tierRank = (tier: string) => {
   const map: Record<string, number> = {
     STARTER: 1,
     PRO: 2,
-    MERCHANT: 3,
+    ELITE: 3,
     ENTERPRISE: 4
   };
   return map[String(tier || '').trim().toUpperCase()] || 0;

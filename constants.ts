@@ -28,7 +28,7 @@ export const MOCK_USERS = [
     ssm_no: '202301001234',
     is_verified: true,
     whatsapp_no: '60123456789',
-    tier: 'MERCHANT',
+    tier: 'ELITE',
     seller_type: 'COMPANY',
     created_at: new Date().toISOString()
   },

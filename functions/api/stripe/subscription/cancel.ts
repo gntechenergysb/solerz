@@ -5,12 +5,12 @@ type CancelRequest = {
 };
 
 type StripeCatalogProductIds = Partial<
-  Record<'STARTER' | 'PRO' | 'MERCHANT' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
+  Record<'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
 >;
 
 const normalizeTier = (t: string) => {
   const v = String(t || '').trim().toUpperCase();
-  if (v === 'STARTER' || v === 'PRO' || v === 'MERCHANT' || v === 'ENTERPRISE') return v;
+  if (v === 'STARTER' || v === 'PRO' || v === 'ELITE' || v === 'ENTERPRISE') return v;
   return null;
 };
 
