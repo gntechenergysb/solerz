@@ -415,6 +415,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         id: subscriptionId,
         status,
         current_period_end: currentPeriodEnd,
+        current_period_start: currentPeriodStart,
         cancel_at_period_end: cancelAtPeriodEnd,
         billing_interval: billingInterval,
         items: items.map((item: any) => ({
