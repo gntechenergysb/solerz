@@ -3,7 +3,7 @@ import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
-import { Search, SlidersHorizontal, MapPin, ChevronDown, ArrowUpDown, Tag } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, ChevronDown, ArrowUpDown, Tag, AlertTriangle } from 'lucide-react';
 
 const PANEL_CELL_TYPES = [
   'Monocrystalline',
@@ -860,6 +860,20 @@ const Marketplace: React.FC = () => {
               <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Solar Equipment Hub</h1>
               <p className="text-slate-600 dark:text-slate-400 mt-1">Buy & sell new and used solar gear from verified sellers.</p>
             </div>
+         </div>
+
+         {/* Safety Notice */}
+         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-4">
+           <div className="flex items-start gap-3">
+             <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+             <div className="text-sm text-amber-700 dark:text-amber-300">
+               <p className="font-semibold mb-1">🛡️ Important Safety Notice</p>
+               <p className="leading-relaxed">
+                 This platform only provides listing services. For unverified sellers, we recommend face-to-face transactions. 
+                 Do not make advance payments. The platform is not responsible for any disputes or losses.
+               </p>
+             </div>
+           </div>
          </div>
 
          {/* Search & Filter Row */}

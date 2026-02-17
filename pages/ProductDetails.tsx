@@ -289,6 +289,22 @@ const ProductDetails: React.FC = () => {
                 </div>
              </div>
 
+             {/* Security Warning for Unverified Sellers */}
+             {!listing.is_verified_seller && (
+               <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg">
+                 <div className="flex items-start gap-2">
+                   <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                   <div className="text-xs text-amber-700 dark:text-amber-300">
+                     <p className="font-semibold mb-1">⚠️ Safety Notice</p>
+                     <p className="leading-relaxed">
+                       This seller is unverified. Please exercise caution and consider face-to-face transactions. 
+                       Do not make advance payments. The platform is not responsible for any disputes.
+                     </p>
+                   </div>
+                 </div>
+               </div>
+             )}
+
              <div className="mt-4 grid grid-cols-1 gap-2 text-xs text-slate-600 dark:text-slate-400">
                <div className="flex items-center justify-between gap-3">
                  <span className="font-semibold">SSM No</span>

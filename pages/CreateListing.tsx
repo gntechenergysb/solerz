@@ -30,9 +30,9 @@ const CreateListing: React.FC = () => {
   const [specs, setSpecs] = useState<any>({});
 
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (user && (user.tier === 'UNSUBSCRIBED' || !user.is_verified)) {
-    toast.error(user.tier === 'UNSUBSCRIBED' ? "Please subscribe to a plan before posting." : "You must be verified to post.");
-    return <Navigate to={user.tier === 'UNSUBSCRIBED' ? "/pricing" : "/dashboard"} />;
+  if (user && user.tier === 'UNSUBSCRIBED') {
+    toast.error("Please subscribe to a plan before posting.");
+    return <Navigate to="/pricing" />;
   }
 
   const getListingLimit = (tier: any) => {
