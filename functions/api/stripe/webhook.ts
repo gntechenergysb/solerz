@@ -215,7 +215,14 @@ const bestEffortPatchStripeFields = async (
 };
 
 const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
-  const userId = String(sub?.metadata?.user_id || '').trim();
+  let userId = String(sub?.metadata?.user_id || '').trim();
+  
+  // If no userId in metadata, try to find by customer_id
+  if (!userId && sub?.customer) {
+    const customerId = String(sub.customer).trim();
+    userId = await findUserIdByStripeCustomerId(env, customerId);
+  }
+  
   if (!userId) return;
 
   const cancelAtPeriodEnd = sub?.cancel_at_period_end;
@@ -411,6 +418,27 @@ const fetchCurrentTier = async (env: Env, userId: string): Promise<string | null
   return data?.[0]?.tier || null;
 };
 
+const findUserIdByStripeCustomerId = async (env: Env, customerId: string): Promise<string | null> => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const res = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?stripe_customer_id=eq.${encodeURIComponent(customerId)}&select=id&limit=1`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => null)) as any;
+  return data?.[0]?.id || null;
+};
+
 const fetchStripeSubscriptionMetadata = async (
   stripeSecretKey: string,
   subscriptionId: string
@@ -512,6 +540,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       }
       tier = inferred;
     }
+    
+    // If no userId from metadata, try to find by customer_id
+    if (!userId && stripeCustomerId) {
+      userId = await findUserIdByStripeCustomerId(env, stripeCustomerId);
+    }
   } else if (type === 'invoice.payment_failed') {
     const invoice = event?.data?.object;
     stripeCustomerId = String(invoice?.customer || '').trim();
@@ -528,6 +561,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         // ignore
       }
     }
+    
+    // If no userId from metadata, try to find by customer_id
+    if (!userId && stripeCustomerId) {
+      userId = await findUserIdByStripeCustomerId(env, stripeCustomerId);
+    }
 
     if (userId) {
       const stripePatch: Record<string, any> = {};
@@ -543,6 +581,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   } else if (type === 'customer.subscription.deleted') {
     const sub = event?.data?.object;
     userId = String(sub?.metadata?.user_id || '').trim();
+    
+    // If no userId in metadata, try to find by customer_id
+    if (!userId && sub?.customer) {
+      const customerId = String(sub.customer).trim();
+      userId = await findUserIdByStripeCustomerId(env, customerId);
+    }
+    
     tier = 'UNSUBSCRIBED';
     stripeCustomerId = String(sub?.customer || '').trim();
     stripeSubscriptionId = String(sub?.id || '').trim();
@@ -554,7 +599,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     await bestEffortPatchPendingFromSubscription(env, sub);
 
     // Portal 切换配套时推断新 tier
-    const uid = String(sub?.metadata?.user_id || '').trim();
+    let uid = String(sub?.metadata?.user_id || '').trim();
+    
+    // If no userId in metadata, try to find by customer_id
+    if (!uid && sub?.customer) {
+      const customerId = String(sub.customer).trim();
+      uid = await findUserIdByStripeCustomerId(env, customerId);
+    }
+    
     let newTier: string | null = null;
     
     if (uid && sub?.items?.data?.length) {

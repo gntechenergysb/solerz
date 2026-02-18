@@ -752,9 +752,7 @@ const Dashboard: React.FC = () => {
                   <span className="font-medium text-slate-700 dark:text-slate-200">
                     {(subscriptionData.current_period_start || user?.stripe_current_period_start)
                       ? new Date((subscriptionData.current_period_start || user?.stripe_current_period_start) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
-                      : user?.created_at 
-                        ? new Date(user.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
-                        : '-'}
+                      : '-'}
                   </span>
                 </span>
                 <span>
@@ -778,7 +776,7 @@ const Dashboard: React.FC = () => {
                     <span className="text-slate-400">|</span>
                     <span className="text-blue-600 dark:text-blue-400">
                       Changing to <span className="font-medium capitalize">{user.pending_tier.toLowerCase()}</span> on{' '}
-                      <span className="font-medium">{new Date(user.tier_effective_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}</span>
+                      <span className="font-medium">{new Date(user.tier_effective_at * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </span>
                   </>
                 )}
