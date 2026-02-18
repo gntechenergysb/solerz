@@ -65,10 +65,10 @@ const handleCheckout = async (req: http.IncomingMessage, res: http.ServerRespons
   
   // Map plan to Stripe Price IDs
   const priceMap: Record<string, { monthly: string; yearly: string }> = {
-    'starter': { monthly: 'price_1SxscwAEbTWGL4T0h3tf72Yb', yearly: 'price_1SxsceAEbTWGL4T0lPMjcbso' },
-    'pro': { monthly: 'price_1SxIVLAEbTWGL4T0zRcmfquj', yearly: 'price_1SxIVoAEbTWGL4T0eEuOEfde' },
+    'starter': { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
+    'pro': { monthly: 'price_1T0enHAEbTWGL4T0Mbvhwiho', yearly: 'price_1T0ennAEbTWGL4T0Dfs6JlmN' },
     'elite': { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
-    'enterprise': { monthly: 'price_1SxIXMAEbTWGL4T0sqlzkmb5', yearly: 'price_1SxIXcAEbTWGL4T0Fxf36hwn' },
+    'enterprise': { monthly: 'price_1T0etMAEbTWGL4T0C14VVNLk', yearly: 'price_1T0etmAEbTWGL4T0j1Chp7ri' },
   };
 
   const priceId = planId ? priceMap[planId]?.[billingCycle as 'monthly' | 'yearly'] : undefined;

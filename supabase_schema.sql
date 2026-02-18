@@ -77,6 +77,7 @@ BEGIN
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_subscription_status TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_current_period_end BIGINT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_current_period_start BIGINT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_cancel_at_period_end BOOLEAN;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripe_billing_interval TEXT; -- 'month' or 'year'
 
@@ -1069,7 +1070,7 @@ BEGIN
   END IF;
 
   normalized := upper(COALESCE(new_tier, ''));
-  IF normalized NOT IN ('STARTER', 'PRO', 'MERCHANT', 'ENTERPRISE') THEN
+  IF normalized NOT IN ('STARTER', 'PRO', 'ELITE', 'ENTERPRISE') THEN
     RAISE EXCEPTION 'invalid tier';
   END IF;
 
@@ -1130,3 +1131,32 @@ $$;
 
 REVOKE ALL ON FUNCTION public.admin_set_profile_role(UUID, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.admin_set_profile_role(UUID, TEXT) TO authenticated;
+
+-- =============================================
+-- Stripe Webhook 事件去重表 (幂等性保护)
+-- =============================================
+-- 用途: 防止 Stripe webhook 重复处理同一事件
+-- 清理: 30天前的记录自动删除
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+  event_id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 添加索引便于查询
+CREATE INDEX IF NOT EXISTS idx_stripe_webhook_events_processed_at 
+  ON stripe_webhook_events(processed_at);
+
+-- 注释说明
+COMMENT ON TABLE stripe_webhook_events IS 'Stripe webhook 事件去重表，用于幂等性保护';
+COMMENT ON COLUMN stripe_webhook_events.event_id IS 'Stripe 事件唯一ID (evt_xxx)';
+COMMENT ON COLUMN stripe_webhook_events.event_type IS '事件类型 (如: customer.subscription.updated)';
+COMMENT ON COLUMN stripe_webhook_events.processed_at IS '处理时间，用于TTL清理';
+
+-- 30天后自动清理旧记录 (可选，需要 pg_cron 扩展)
+-- 注意: 如果未安装 pg_cron，请手动定期清理或使用外部定时任务
+-- SELECT cron.schedule('cleanup-stripe-webhook-events', '0 0 * * *', 
+--   $$ DELETE FROM stripe_webhook_events WHERE processed_at < NOW() - INTERVAL '30 days' $$);
+

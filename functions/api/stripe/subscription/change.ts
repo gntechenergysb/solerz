@@ -10,10 +10,10 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
-  STARTER: { monthly: 'price_1SxscwAEbTWGL4T0h3tf72Yb', yearly: 'price_1SxsceAEbTWGL4T0lPMjcbso' },
-  PRO: { monthly: 'price_1SxIVLAEbTWGL4T0zRcmfquj', yearly: 'price_1SxIVoAEbTWGL4T0eEuOEfde' },
+  STARTER: { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
+  PRO: { monthly: 'price_1T0enHAEbTWGL4T0Mbvhwiho', yearly: 'price_1T0ennAEbTWGL4T0Dfs6JlmN' },
   ELITE: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
-  ENTERPRISE: { monthly: 'price_1SxIXMAEbTWGL4T0sqlzkmb5', yearly: 'price_1SxIXcAEbTWGL4T0Fxf36hwn' }
+  ENTERPRISE: { monthly: 'price_1T0etMAEbTWGL4T0C14VVNLk', yearly: 'price_1T0etmAEbTWGL4T0j1Chp7ri' }
 };
 
 const normalizeTier = (planId: string) => {
@@ -118,10 +118,10 @@ const getCatalogId = (env: Env, tier: string, billingCycle: 'monthly' | 'yearly'
 
 const getUnitAmount = (tier: string, billingCycle: 'monthly' | 'yearly') => {
   const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
-    STARTER: { monthly: 29, yearly: 290 },
-    PRO: { monthly: 199, yearly: 1990 },
-    ELITE: { monthly: 399, yearly: 3990 },
-    ENTERPRISE: { monthly: 1199, yearly: 11990 }
+    STARTER: { monthly: 39, yearly: 428 },
+    PRO: { monthly: 99, yearly: 1088 },
+    ELITE: { monthly: 199, yearly: 2188 },
+    ENTERPRISE: { monthly: 499, yearly: 5488 }
   };
   const planAmounts = amountMapMyr[tier];
   const myrAmount = billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly;
@@ -136,6 +136,88 @@ const tierRank = (tier: string) => {
     ENTERPRISE: 4
   };
   return map[String(tier || '').trim().toUpperCase()] || 0;
+};
+
+const getListingLimit = (tier: string) => {
+  switch (tier) {
+    case 'STARTER': return 3;
+    case 'PRO': return 10;
+    case 'ELITE': return 25;
+    case 'ENTERPRISE': return 80;
+    default: return 0;
+  }
+};
+
+const resumePausedListings = async (env: Env, userId: string, newTier: string) => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return;
+
+  const limit = getListingLimit(newTier);
+  
+  // Get paused listings for this user
+  const res = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_paused=eq.true&order=created_at.desc&select=*`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!res.ok) {
+    console.log('Failed to fetch paused listings', res.status);
+    return;
+  }
+
+  const pausedListings = (await res.json().catch(() => [])) as any[];
+  
+  // Get current active (non-paused) count
+  const activeRes = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_sold=eq.false&is_hidden=eq.false&is_paused=eq.false&active_until=gte.${encodeURIComponent(new Date().toISOString())}&select=id`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+  
+  const activeListings = activeRes.ok ? (await activeRes.json().catch(() => [])) : [];
+  const currentActiveCount = activeListings.length;
+  const availableSlots = limit - currentActiveCount;
+  
+  // Resume up to available slots
+  const listingsToResume = pausedListings.slice(0, availableSlots);
+  
+  for (const listing of listingsToResume) {
+    const resumeRes = await fetch(
+      `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?id=eq.${encodeURIComponent(listing.id)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ is_paused: false, updated_at: new Date().toISOString() })
+      }
+    );
+    
+    if (!resumeRes.ok) {
+      console.log('Failed to resume listing', listing.id, resumeRes.status);
+    } else {
+      console.log('Resumed listing due to tier upgrade', listing.id, listing.title);
+    }
+  }
+  
+  if (listingsToResume.length > 0) {
+    console.log(`Resumed ${listingsToResume.length} listings due to tier upgrade to ${newTier}`);
+  }
 };
 
 const buildPriceParams = (env: Env, tier: string, billingCycle: 'monthly' | 'yearly', prefix: string) => {
@@ -259,9 +341,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const currentItem = Array.isArray(sub?.items?.data) && sub.items.data.length ? sub.items.data[0] : null;
     const itemId = String(currentItem?.id || '').trim();
     const currentPrice = currentItem?.price;
-    const currentPeriodEnd = Number(sub?.current_period_end || 0);
+    const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
 
-    if (!itemId || !currentPrice || !currentPeriodEnd) {
+    if (!itemId || !currentPrice || !Number.isFinite(currentPeriodEnd)) {
       return new Response(JSON.stringify({ error: 'Invalid subscription state.' }), {
         status: 409,
         headers: { 'Content-Type': 'application/json' }
@@ -293,15 +375,29 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         body: updateParams.toString()
       });
 
-      await supabaseServicePatchProfile(env, userId, {
+      // Fetch updated subscription to get new period dates
+      const updatedSub = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`);
+      const newPeriodEnd = Number(updatedSub?.current_period_end ?? NaN);
+      const newPeriodStart = Number(updatedSub?.current_period_start ?? NaN);
+
+      const patch: any = {
         tier,
         pending_tier: null,
         tier_effective_at: null,
         stripe_cancel_at_period_end: false,
         stripe_subscription_id: subscriptionId,
+        stripe_subscription_status: updatedSub?.status || 'active',
         stripe_billing_interval: billingCycle === 'yearly' ? 'year' : 'month',
         ...(customerId ? { stripe_customer_id: customerId } : {})
-      });
+      };
+      
+      if (Number.isFinite(newPeriodEnd)) patch.stripe_current_period_end = newPeriodEnd;
+      if (Number.isFinite(newPeriodStart)) patch.stripe_current_period_start = newPeriodStart;
+      
+      await supabaseServicePatchProfile(env, userId, patch);
+
+      // Immediately resume paused listings due to tier upgrade
+      await resumePausedListings(env, userId, tier);
 
       return new Response(JSON.stringify({
         mode: 'upgrade',
@@ -355,6 +451,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       stripe_cancel_at_period_end: false,
       stripe_subscription_id: subscriptionId,
       stripe_billing_interval: billingCycle === 'yearly' ? 'year' : 'month',
+      stripe_current_period_end: currentPeriodEnd || null,
+      stripe_current_period_start: Number(sub?.current_period_start ?? NaN) || null,
       ...(customerId ? { stripe_customer_id: customerId } : {})
     });
 

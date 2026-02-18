@@ -228,6 +228,7 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   const cancelAtPeriodEnd = sub?.cancel_at_period_end;
   const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
   const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
+  const billingInterval = sub?.items?.data?.[0]?.price?.recurring?.interval;
   const patch: Record<string, any> = {
     stripe_cancel_at_period_end: typeof cancelAtPeriodEnd === 'boolean' ? cancelAtPeriodEnd : null
   };
@@ -239,6 +240,10 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   if (Number.isFinite(currentPeriodStart)) {
     patch.stripe_current_period_start = currentPeriodStart;
   }
+  
+  if (billingInterval === 'month' || billingInterval === 'year') {
+    patch.stripe_billing_interval = billingInterval;
+  }
 
   if (cancelAtPeriodEnd === true) {
     patch.pending_tier = 'UNSUBSCRIBED';
@@ -249,6 +254,63 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   }
 
   await bestEffortPatchStripeFields(env, userId, patch);
+};
+
+// =============================================
+// Webhook 事件去重 (幂等性保护)
+// =============================================
+
+const checkEventProcessed = async (env: Env, eventId: string): Promise<boolean> => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey || !eventId) return false;
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl.replace(/\/$/, '')}/rest/v1/stripe_webhook_events?event_id=eq.${encodeURIComponent(eventId)}&select=event_id`,
+      {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          Accept: 'application/json'
+        }
+      }
+    );
+    if (!res.ok) return false;
+    const data = await res.json().catch(() => []);
+    return Array.isArray(data) && data.length > 0;
+  } catch (e) {
+    console.log('Failed to check event processed', e);
+    return false;
+  }
+};
+
+const recordEventProcessed = async (env: Env, eventId: string, eventType: string): Promise<void> => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey || !eventId) return;
+
+  try {
+    await fetch(
+      `${supabaseUrl.replace(/\/$/, '')}/rest/v1/stripe_webhook_events`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({
+          event_id: eventId,
+          event_type: eventType,
+          processed_at: new Date().toISOString()
+        })
+      }
+    );
+  } catch (e) {
+    console.log('Failed to record event processed', e);
+  }
 };
 
 const getListingLimit = (tier: string): number => {
@@ -487,7 +549,18 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
   const event = JSON.parse(payload || '{}') as any;
   const type = String(event?.type || '');
-  console.log('stripe webhook event', type);
+  const eventId = String(event?.id || '').trim();
+  
+  // 幂等性检查: 如果事件已处理过,直接返回成功
+  if (eventId) {
+    const alreadyProcessed = await checkEventProcessed(env, eventId);
+    if (alreadyProcessed) {
+      console.log('stripe webhook event already processed', eventId, type);
+      return new Response('Already processed', { status: 200 });
+    }
+  }
+  
+  console.log('stripe webhook event', type, eventId);
 
   // We only need to update tier on successful payments.
   // - checkout.session.completed for one-time payment
@@ -499,6 +572,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   let stripeSubscriptionStatus = '';
   let stripeCurrentPeriodEnd: number | null = null;
   let stripeCancelAtPeriodEnd: boolean | null = null;
+  let stripeCurrentPeriodStart: number | null = null;
+  let stripeBillingInterval: 'month' | 'year' | null = null;
 
   if (type === 'checkout.session.completed') {
     const session = event?.data?.object;
@@ -506,12 +581,46 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     tier = normalizeTier(String(session?.metadata?.tier || ''));
     stripeCustomerId = String(session?.customer || '').trim();
     stripeSubscriptionId = String(session?.subscription || '').trim();
+    
+    // For checkout.session.completed, we need to fetch subscription details to get status and period end
+    if (stripeSubscriptionId && env.STRIPE_SECRET_KEY) {
+      try {
+        const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(stripeSubscriptionId)}`, {
+          headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` }
+        });
+        if (subRes.ok) {
+          const sub = await subRes.json();
+          stripeSubscriptionStatus = String(sub?.status || '').trim() || null;
+          const cpe = Number(sub?.current_period_end ?? NaN);
+          const cps = Number(sub?.current_period_start ?? NaN);
+          if (Number.isFinite(cpe)) stripeCurrentPeriodEnd = cpe;
+          if (Number.isFinite(cps)) stripeCurrentPeriodStart = cps;
+          const interval = sub?.items?.data?.[0]?.price?.recurring?.interval;
+          if (interval === 'month' || interval === 'year') {
+            stripeBillingInterval = interval;
+          }
+        }
+      } catch (e) {
+        console.log('Failed to fetch subscription details from checkout.session.completed', e);
+      }
+    }
   } else if (type === 'invoice.paid' || type === 'invoice.payment_succeeded') {
     const invoice = event?.data?.object;
     userId = String(invoice?.subscription_details?.metadata?.user_id || invoice?.metadata?.user_id || '').trim();
     tier = normalizeTier(String(invoice?.subscription_details?.metadata?.tier || invoice?.metadata?.tier || ''));
     stripeCustomerId = String(invoice?.customer || '').trim();
     stripeSubscriptionId = String(invoice?.subscription || '').trim();
+    stripeSubscriptionStatus = 'active'; // Invoice paid means subscription is active
+    stripeCurrentPeriodEnd = Number(invoice?.period_end ?? NaN); // Get period end from invoice
+    stripeCurrentPeriodStart = Number(invoice?.period_start ?? NaN); // Get period start from invoice
+    
+    // Extract billing interval from invoice line items
+    const lines = invoice?.lines?.data;
+    const firstLine = Array.isArray(lines) && lines.length ? lines[0] : null;
+    const interval = firstLine?.price?.recurring?.interval;
+    if (interval === 'month' || interval === 'year') {
+      stripeBillingInterval = interval;
+    }
   
     // If Stripe doesn't include subscription metadata on invoice events (can happen), fetch subscription.
     if ((!userId || !tier) && invoice?.subscription && env.STRIPE_SECRET_KEY) {
@@ -527,8 +636,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     // Tier from subscription metadata can be stale when we use Subscription Schedules (downgrade next cycle).
     // Always attempt to infer the tier from invoice line items and override metadata when inference succeeds.
-    const lines = invoice?.lines?.data;
-    const firstLine = Array.isArray(lines) && lines.length ? lines[0] : null;
     const priceId = String(firstLine?.price?.id || '').trim();
     const productId = String(firstLine?.price?.product || '').trim();
     const byPrice = await getTierFromCatalogId(env, priceId);
@@ -588,12 +695,26 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       userId = await findUserIdByStripeCustomerId(env, customerId);
     }
     
+    // If still no userId, we cannot update the profile - return error to trigger Stripe retry
+    if (!userId) {
+      console.log('stripe webhook customer.subscription.deleted: unable to find user', { 
+        subscriptionId: sub?.id, 
+        customerId: sub?.customer 
+      });
+      return new Response('Unable to find user for deleted subscription', { status: 500 });
+    }
+    
     tier = 'UNSUBSCRIBED';
     stripeCustomerId = String(sub?.customer || '').trim();
     stripeSubscriptionId = String(sub?.id || '').trim();
     stripeSubscriptionStatus = String(sub?.status || '').trim();
     stripeCurrentPeriodEnd = Number(sub?.current_period_end ?? NaN);
+    stripeCurrentPeriodStart = Number(sub?.current_period_start ?? NaN);
     stripeCancelAtPeriodEnd = typeof sub?.cancel_at_period_end === 'boolean' ? sub.cancel_at_period_end : null;
+    const interval = sub?.items?.data?.[0]?.price?.recurring?.interval;
+    if (interval === 'month' || interval === 'year') {
+      stripeBillingInterval = interval;
+    }
   } else if (type === 'customer.subscription.updated') {
     const sub = event?.data?.object;
     await bestEffortPatchPendingFromSubscription(env, sub);
@@ -656,6 +777,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       const cps = Number(sub?.current_period_start ?? NaN);
       if (Number.isFinite(cpe)) stripePatch.stripe_current_period_end = cpe;
       if (Number.isFinite(cps)) stripePatch.stripe_current_period_start = cps;
+      
+      // Extract billing interval
+      const interval = sub?.items?.data?.[0]?.price?.recurring?.interval;
+      if (interval === 'month' || interval === 'year') {
+        stripePatch.stripe_billing_interval = interval;
+      }
+      
       if (newTier) {
         stripePatch.pending_tier = null;
         stripePatch.tier_effective_at = null;
@@ -663,9 +791,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       await bestEffortPatchStripeFields(env, uid, stripePatch);
     }
 
+    // 记录事件已处理
+    await recordEventProcessed(env, eventId, type);
     return new Response('ok', { status: 200 });
   } else {
     // Ignore other events
+    // 记录事件已处理(即使是忽略的事件也要记录,防止重复处理)
+    await recordEventProcessed(env, eventId, type);
     return new Response('ok', { status: 200 });
   }
 
@@ -685,12 +817,17 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (stripeSubscriptionId) stripePatch.stripe_subscription_id = stripeSubscriptionId;
   if (stripeSubscriptionStatus) stripePatch.stripe_subscription_status = stripeSubscriptionStatus;
   if (Number.isFinite(stripeCurrentPeriodEnd as number)) stripePatch.stripe_current_period_end = stripeCurrentPeriodEnd;
+  if (Number.isFinite(stripeCurrentPeriodStart as number)) stripePatch.stripe_current_period_start = stripeCurrentPeriodStart;
+  if (stripeBillingInterval) stripePatch.stripe_billing_interval = stripeBillingInterval;
   if (stripeCancelAtPeriodEnd !== null) stripePatch.stripe_cancel_at_period_end = stripeCancelAtPeriodEnd;
   stripePatch.pending_tier = null;
   stripePatch.tier_effective_at = null;
   if (Object.keys(stripePatch).length) {
     await bestEffortPatchStripeFields(env, userId, stripePatch);
   }
+
+  // 记录事件已处理
+  await recordEventProcessed(env, eventId, type);
 
   console.log('stripe webhook tier updated', { userId, tier });
   return new Response('ok', { status: 200 });

@@ -173,7 +173,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     const sub = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}?expand[]=items.data.price`);
     const scheduleId = String(sub?.schedule || '').trim() || null;
-    const currentPeriodEnd = Number(sub?.current_period_end || 0);
+    const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
+    const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
     
     // Extract billing interval from subscription
     const items = sub?.items?.data || [];
@@ -197,7 +198,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         pending_tier: 'UNSUBSCRIBED',
         tier_effective_at: currentPeriodEnd || null,
         stripe_cancel_at_period_end: true,
+        stripe_subscription_status: 'active', // Still active until period end
         stripe_subscription_id: subscriptionId,
+        stripe_current_period_end: currentPeriodEnd || null,
+        stripe_current_period_start: currentPeriodStart || null,
         stripe_billing_interval: billingInterval,
         ...(customerId ? { stripe_customer_id: customerId } : {})
       });
@@ -220,7 +224,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       pending_tier: null,
       tier_effective_at: null,
       stripe_cancel_at_period_end: false,
+      stripe_subscription_status: 'canceled',
       stripe_subscription_id: subscriptionId,
+      stripe_current_period_end: currentPeriodEnd || null,
       stripe_billing_interval: billingInterval,
       ...(customerId ? { stripe_customer_id: customerId } : {})
     });

@@ -290,6 +290,7 @@ const Dashboard: React.FC = () => {
         if (data.subscription) {
           setSubscriptionData({
             current_period_end: data.subscription.current_period_end,
+            current_period_start: data.subscription.current_period_start,
             billing_interval: data.subscription.billing_interval,
             cancel_at_period_end: data.subscription.cancel_at_period_end,
             status: data.subscription.status
@@ -347,12 +348,20 @@ const Dashboard: React.FC = () => {
     loadListings();
     loadStats();
     
+    // Portal 返回后立即同步(不检查 needsSync)
+    const isPortalReturn = document.referrer?.includes('stripe.com') || 
+      (user?.tier && location.pathname === '/dashboard' && !location.search);
+    
+    if (isPortalReturn) {
+      setTimeout(() => fetchSubscriptionSync(), 100);
+    }
+    
     // Background Stripe sync: only sync if no recent data
     const needsSync = !user?.stripe_current_period_end || 
       (user?.stripe_current_period_end * 1000) < Date.now() ||
       !user?.stripe_subscription_status;
     
-    if (needsSync) {
+    if (needsSync && !isPortalReturn) {
       setTimeout(() => fetchSubscriptionSync(), 500); // Delay more to not compete with listing load
     }
   }, [user]);
@@ -750,23 +759,23 @@ const Dashboard: React.FC = () => {
                 <span>
                   <span className="text-slate-400">Started:</span>{' '}
                   <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {(subscriptionData.current_period_start || user?.stripe_current_period_start)
-                      ? new Date((subscriptionData.current_period_start || user?.stripe_current_period_start) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+                    {(subscriptionData.current_period_start !== undefined ? subscriptionData.current_period_start : user?.stripe_current_period_start)
+                      ? new Date((subscriptionData.current_period_start !== undefined ? subscriptionData.current_period_start : user?.stripe_current_period_start) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
                       : '-'}
                   </span>
                 </span>
                 <span>
                   <span className="text-slate-400">Next billing:</span>{' '}
                   <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {(subscriptionData.current_period_end || user?.stripe_current_period_end)
-                      ? new Date((subscriptionData.current_period_end || user?.stripe_current_period_end) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+                    {(subscriptionData.current_period_end !== undefined ? subscriptionData.current_period_end : user?.stripe_current_period_end)
+                      ? new Date((subscriptionData.current_period_end !== undefined ? subscriptionData.current_period_end : user?.stripe_current_period_end) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
                       : '-'}
                   </span>
                 </span>
                 <span>
                   <span className="text-slate-400">Period:</span>{' '}
                   <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {(subscriptionData.billing_interval || user?.stripe_billing_interval) === 'year' ? 'Yearly' : 'Monthly'}
+                    {(subscriptionData.billing_interval !== undefined ? subscriptionData.billing_interval : user?.stripe_billing_interval) === 'year' ? 'Yearly' : 'Monthly'}
                   </span>
                 </span>
                 
@@ -782,11 +791,11 @@ const Dashboard: React.FC = () => {
                 )}
                 
                 {/* Cancel Notice inline */}
-                {(subscriptionData.cancel_at_period_end || user?.stripe_cancel_at_period_end) && (subscriptionData.current_period_end || user?.stripe_current_period_end) && (
+                {(subscriptionData.cancel_at_period_end !== undefined ? subscriptionData.cancel_at_period_end : user?.stripe_cancel_at_period_end) && (subscriptionData.current_period_end !== undefined ? subscriptionData.current_period_end : user?.stripe_current_period_end) && (
                   <>
                     <span className="text-slate-400">|</span>
                     <span className="text-amber-600 dark:text-amber-400">
-                      Cancelling on <span className="font-medium">{new Date((subscriptionData.current_period_end || user?.stripe_current_period_end) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}</span>
+                      Cancelling on <span className="font-medium">{new Date((subscriptionData.current_period_end !== undefined ? subscriptionData.current_period_end : user?.stripe_current_period_end) * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}</span>
                     </span>
                   </>
                 )}

@@ -38,7 +38,7 @@ const CreateListing: React.FC = () => {
   const getListingLimit = (tier: any) => {
     switch (tier) {
       case 'UNSUBSCRIBED': return 0;
-      case 'STARTER': return 1;
+      case 'STARTER': return 3;
       case 'PRO': return 10;
       case 'ELITE': return 25;
       case 'ENTERPRISE': return 80;

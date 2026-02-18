@@ -138,13 +138,13 @@ FROM profiles WHERE email = '测试邮箱';
 ### 步骤
 1. 确保账号为 Free Plan (UNSUBSCRIBED)
 2. 前往 `/pricing`
-3. 选择 **Merchant Plan** + **Yearly**
+3. 选择 **Elite Plan** + **Yearly**
 4. 完成 Stripe Checkout
 
 ### 预期结果
 - [ ] Dashboard 显示 Active 状态
 - [ ] Period: Yearly
-- [ ] tier = MERCHANT
+- [ ] tier = ELITE
 
 ---
 
@@ -227,7 +227,7 @@ FROM profiles WHERE email = '测试邮箱';
 | 场景 3: Upgrade Plan | | ☐ 通过 ☐ 失败 | |
 | 场景 4: Downgrade Plan | | ☐ 通过 ☐ 失败 | |
 | 场景 5: Cancel Subscription | | ☐ 通过 ☐ 失败 | |
-| 场景 6: Yearly Merchant | | ☐ 通过 ☐ 失败 | |
+| 场景 6: Yearly Elite | | ☐ 通过 ☐ 失败 | |
 
 ---
 

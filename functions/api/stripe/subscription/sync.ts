@@ -331,8 +331,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const inferredTier = getTierFromPriceProduct(productName);
     
     // Extract other subscription data
-    const currentPeriodEnd = Number(sub?.current_period_end || 0);
-    const currentPeriodStart = Number(sub?.current_period_start || 0);
+    const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
+    const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
     const cancelAtPeriodEnd = sub?.cancel_at_period_end || false;
     const status = String(sub?.status || '');
     
@@ -343,15 +343,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     // If cancel_at_period_end is true but pending_tier is not set, set it
     if (cancelAtPeriodEnd && !pendingTier) {
       pendingTier = 'UNSUBSCRIBED';
-      tierEffectiveAt = currentPeriodEnd;
+      tierEffectiveAt = Number.isFinite(currentPeriodEnd) ? currentPeriodEnd : null;
     }
     
     // Sync back to Supabase if data has changed
     const patch: Record<string, any> = {};
     
-    // Update tier if it has changed and subscription is active
+    // Update tier if it has changed and subscription is active (including past_due and unpaid)
     let tierChanged = false;
-    if (inferredTier && inferredTier !== profile?.tier && ['active', 'trialing'].includes(status)) {
+    if (inferredTier && inferredTier !== profile?.tier && ['active', 'trialing', 'past_due', 'unpaid'].includes(status)) {
       patch.tier = inferredTier;
       tierChanged = true;
       // Clear any pending tier since we're setting the actual tier
@@ -414,8 +414,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       subscription: {
         id: subscriptionId,
         status,
-        current_period_end: currentPeriodEnd,
-        current_period_start: currentPeriodStart,
+        current_period_end: Number.isFinite(currentPeriodEnd) ? currentPeriodEnd : undefined,
+        current_period_start: Number.isFinite(currentPeriodStart) ? currentPeriodStart : undefined,
         cancel_at_period_end: cancelAtPeriodEnd,
         billing_interval: billingInterval,
         items: items.map((item: any) => ({
@@ -430,7 +430,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       },
       profile: updatedProfile || profile,
       pending_tier: pendingTier,
-      tier_effective_at: tierEffectiveAt
+      tier_effective_at: Number.isFinite(tierEffectiveAt) ? tierEffectiveAt : null
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
