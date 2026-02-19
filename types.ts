@@ -20,14 +20,9 @@ export interface Profile {
   stripe_current_period_start?: number | null;
   stripe_billing_interval?: 'month' | 'year' | null;
   stripe_cancel_at_period_end?: boolean | null;
-  // KYC Fields
-  ssm_no?: string; // Accessor for backward compatibility if needed, though we prefer new fields
-  ssm_new_no?: string;
-  ssm_old_no?: string;
-  business_address?: string;
-  incorporation_date?: string; // YYYY-MM-DD
-  nature_of_business?: string;
-  ssm_file_path?: string;
+  // KYC Fields - International company registration number
+  company_reg_no?: string;  // Company/Business Registration Number
+  company_doc_path?: string;  // Path to company registration document
   avatar_url?: string;
 }
 

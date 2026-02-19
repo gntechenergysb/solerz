@@ -100,15 +100,15 @@ const SampleModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-xl w-full p-4 animate-in zoom-in-50 duration-200" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-2">
-          <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">SSM e-Profile Sample</h3>
+          <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Company Registration Sample</h3>
           <button onClick={onClose}><X className="h-5 w-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" /></button>
         </div>
         <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded flex justify-center">
-          <img src="/ssm-sample.png" alt="SSM Sample" className="max-h-[70vh] w-auto object-contain rounded border border-slate-200 dark:border-slate-800 shadow-sm" />
+          <img src="/company-reg-sample.png" alt="Company Registration Sample" className="max-h-[70vh] w-auto object-contain rounded border border-slate-200 dark:border-slate-800 shadow-sm" />
         </div>
         <div className="mt-3 text-center">
           <p className="text-sm font-bold text-red-600">Important:</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">We only accept the LATEST version of SSM e-Profile (PDF Format).</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">We only accept the LATEST version of Company Registration document (PDF Format).</p>
         </div>
       </div>
     </div>
@@ -117,8 +117,7 @@ const SampleModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
 
 const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File) => void, isSubmitting: boolean }) => {
   const [formData, setFormData] = useState({
-    ssm_new_no: '',
-    ssm_old_no: '',
+    company_reg_no: '',
     handphone_no: '',
     business_address: '',
     incorporation_date: '',
@@ -157,7 +156,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const isValid = formData.ssm_new_no && formData.handphone_no && formData.business_address && formData.incorporation_date && selectedFile;
+  const isValid = formData.company_reg_no && formData.handphone_no && formData.business_address && formData.incorporation_date && selectedFile;
 
   return (
     <div className="space-y-3 max-w-2xl animate-in slide-in-from-bottom-2 duration-300">
@@ -165,13 +164,13 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">New SSM No.</label>
-          <input required name="ssm_new_no" value={formData.ssm_new_no} onChange={handleChange}
+          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Company Reg. No.</label>
+          <input required name="company_reg_no" value={formData.company_reg_no} onChange={handleChange}
             placeholder="e.g. 201901001234" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Old SSM No. (Optional)</label>
-          <input name="ssm_old_no" value={formData.ssm_old_no} onChange={handleChange}
+          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Company Reg. No. (Optional)</label>
+          <input name="company_reg_no" value={formData.company_reg_no} onChange={handleChange}
             placeholder="e.g. 123456-X" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
         </div>
       </div>
@@ -183,7 +182,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Business Address (As in SSM)</label>
+        <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Business Address (As in company registration)</label>
         <textarea required name="business_address" value={formData.business_address} onChange={handleChange}
           rows={2} className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary resize-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"></textarea>
       </div>
@@ -203,7 +202,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
 
       <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 dashed-border">
         <div className="flex justify-between items-start mb-2">
-          <label className="block text-xs font-bold text-indigo-900 dark:text-indigo-300">Upload SSM e-Profile (PDF Only)</label>
+          <label className="block text-xs font-bold text-indigo-900 dark:text-indigo-300">Upload Company Registration Document (PDF Only)</label>
           <button onClick={() => setShowSample(true)} className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline flex items-center gap-1">
             <Eye className="h-3 w-3" /> View Sample
           </button>
@@ -554,23 +553,23 @@ const Dashboard: React.FC = () => {
       done: myListings.length > 0
     },
     {
-      key: 'ssm_no',
-      label: 'Add SSM number',
-      hint: 'Fill in your New SSM No. in verification section.',
+      key: 'company_reg_no',
+      label: 'Add company registration number',
+      hint: 'Fill in your Company Reg. No. in verification section.',
       points: 10,
-      done: !!(user.ssm_new_no || user.ssm_no)
+      done: !!(user.company_reg_no)
     },
     {
-      key: 'ssm_doc',
-      label: 'Upload SSM document (PDF)',
-      hint: 'Upload your SSM e-Profile for admin review.',
+      key: 'company_doc',
+      label: 'Upload company registration document (PDF)',
+      hint: 'Upload your company registration document for admin review.',
       points: 10,
-      done: !!user.ssm_file_path
+      done: !!user.company_doc_path
     },
     {
       key: 'business_address',
       label: 'Business address',
-      hint: 'Use the same address as in SSM.',
+      hint: 'Use the same address as in company registration document.',
       points: 10,
       done: !!user.business_address
     },
@@ -843,8 +842,8 @@ const Dashboard: React.FC = () => {
               <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.whatsapp_no || user?.handphone_no || '-'}</div>
             </div>
             <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
-              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">SSM No.</div>
-              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.ssm_new_no || user?.ssm_no || '-'}</div>
+              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Company Reg. No.</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.company_reg_no || '-'}</div>
             </div>
             <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
               <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Seller Type</div>
@@ -865,7 +864,7 @@ const Dashboard: React.FC = () => {
         {!user?.is_verified && (
           <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <h2 className="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">Complete Your Verification</h2>
-            {(user?.ssm_file_path || submitted) ? (
+            {(user?.company_doc_path || submitted) ? (
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg p-4 flex items-start gap-4">
                 <div className="p-2 bg-white dark:bg-slate-900 rounded-full shadow-sm shrink-0">
                   <RefreshCw className="h-5 w-5 text-amber-600 animate-spin-slow" />
@@ -874,7 +873,7 @@ const Dashboard: React.FC = () => {
                   <h4 className="font-bold text-amber-900 dark:text-amber-200">Verification in Progress</h4>
                   <p className="text-sm text-amber-700 dark:text-amber-200/80 mt-1">
                     We are reviewing your application for <strong>{user?.company_name}</strong>.
-                    SSM: <span className="font-mono font-bold">{submittedData?.ssm_new_no || user?.ssm_new_no || user?.ssm_no || '-'}</span>
+                    Company Reg. No.: <span className="font-mono font-bold">{submittedData?.company_reg_no || user?.company_reg_no || '-'}</span>
                   </p>
                 </div>
               </div>
@@ -886,28 +885,28 @@ const Dashboard: React.FC = () => {
                   try {
                     // Validate file type before upload (security)
                     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                      throw new Error('Only PDF files are allowed for SSM documents');
+                      throw new Error('Only PDF files are allowed for company registration documents');
                     }
                     // Validate file size (max 10MB)
                     const MAX_SIZE = 10 * 1024 * 1024;
                     if (file.size > MAX_SIZE) {
                       throw new Error('File size must be less than 10MB');
                     }
-                    setSubmittedData({ ...data, ssm_file_path: 'Uploading...' });
+                    setSubmittedData({ ...data, company_doc_path: 'Uploading...' });
                     setSubmitted(true);
                     const fileExt = file.name.split('.').pop();
                     const filePath = `${user.id}/kyc_${Date.now()}.${fileExt}`;
                     const { error: uploadError } = await supabase.storage
-                      .from('ssm-documents')
+                      .from('company-documents')
                       .upload(filePath, file);
                     if (uploadError) throw uploadError;
                     const { success, error } = await db.updateProfile({
                       id: user.id,
                       ...data,
                       handphone_no: data.handphone_no,
-                      ssm_file_path: filePath,
+                      company_doc_path: filePath,
                       is_verified: false,
-                      ssm_no: data.ssm_new_no
+                      company_reg_no: data.company_reg_no
                     });
                     if (success) {
                       await refreshUser();

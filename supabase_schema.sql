@@ -38,9 +38,7 @@ CREATE TABLE IF NOT EXISTS public.profiles_public (
     seller_type TEXT DEFAULT 'INDIVIDUAL',
     handphone_no TEXT,
     business_address TEXT,
-    ssm_new_no TEXT,
-    ssm_old_no TEXT,
-    ssm_no TEXT,
+    company_reg_no TEXT,  -- Company/Business Registration Number (international)
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -52,9 +50,7 @@ BEGIN
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS seller_type TEXT DEFAULT 'INDIVIDUAL';
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS handphone_no TEXT;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS business_address TEXT;
-    ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS ssm_new_no TEXT;
-    ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS ssm_old_no TEXT;
-    ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS ssm_no TEXT;
+    ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS company_reg_no TEXT;  -- International company reg number
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 END $$;
 
@@ -86,15 +82,11 @@ BEGIN
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tier_effective_at BIGINT;
 
     -- 核心 KYC 字段
-    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ssm_new_no TEXT;
-    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ssm_old_no TEXT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company_reg_no TEXT;  -- International company/business registration number
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS business_address TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS incorporation_date DATE;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS nature_of_business TEXT;
-    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ssm_file_path TEXT;
-    
-    -- 兼容性字段 (解决 "Column ssm_no does not exist" 错误)
-    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ssm_no TEXT;
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company_doc_path TEXT;  -- Path to company registration document
 END $$;
 
 -- 3. 产品列表表 (Listings)

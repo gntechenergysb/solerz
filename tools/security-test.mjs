@@ -90,10 +90,8 @@ async function run() {
         'business_address',
         'incorporation_date',
         'nature_of_business',
-        'ssm_no',
-        'ssm_new_no',
-        'ssm_old_no',
-        'ssm_file_path',
+        'company_reg_no',
+        'company_doc_path',
         'role',
         'tier'
       ];

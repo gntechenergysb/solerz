@@ -11,8 +11,8 @@ const AdminRow: React.FC<{ profile: Profile; onVerify: (p: Profile, s: boolean) 
     const [docUrl, setDocUrl] = useState<string | null>(null);
 
     const getDocUrl = async () => {
-        if (!profile.ssm_file_path) return;
-        const { data } = await supabase.storage.from('ssm-documents').createSignedUrl(profile.ssm_file_path, 3600);
+        if (!profile.company_doc_path) return;
+        const { data } = await supabase.storage.from('company-documents').createSignedUrl(profile.company_doc_path, 3600);
 
         if (data?.signedUrl) {
             setDocUrl(data.signedUrl);
@@ -30,7 +30,7 @@ const AdminRow: React.FC<{ profile: Profile; onVerify: (p: Profile, s: boolean) 
                 </td>
                 <td className="px-6 py-4">
                     <span className="font-mono text-slate-700 dark:text-slate-200 font-medium bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                        {profile.ssm_new_no || profile.ssm_no || '-'}
+                        {profile.company_reg_no || profile.ssm_no || '-'}
                     </span>
                 </td>
                 <td className="px-6 py-4">
@@ -38,7 +38,7 @@ const AdminRow: React.FC<{ profile: Profile; onVerify: (p: Profile, s: boolean) 
                         <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-200 font-bold text-xs bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-500/20">
                             <Award className="h-3 w-3" /> Verified
                         </span>
-                    ) : (profile.ssm_new_no || profile.ssm_no) ? (
+                    ) : (profile.company_reg_no || profile.ssm_no) ? (
                         <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-200 font-bold text-xs bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-100 dark:border-amber-500/20">
                             Pending Review
                         </span>
@@ -76,19 +76,19 @@ const AdminRow: React.FC<{ profile: Profile; onVerify: (p: Profile, s: boolean) 
                             <div>
                                 <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">KYC Information</h4>
                                 <div className="space-y-2 text-sm">
-                                    <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">New SSM No:</span> <span className="col-span-2 font-medium">{profile.ssm_new_no || profile.ssm_no || '-'}</span></div>
+                                    <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Company Reg. No.</span> <span className="col-span-2 font-medium">{profile.company_reg_no || '-'}</span></div>
                                     <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Phone:</span> <span className="col-span-2 font-medium">{profile.handphone_no || '-'}</span></div>
                                     <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Business Addr:</span> <span className="col-span-2 font-medium">{profile.business_address || '-'}</span></div>
                                     <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Incorp Date:</span> <span className="col-span-2 font-medium">{profile.incorporation_date || '-'}</span></div>
                                     <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Business Nature:</span> <span className="col-span-2 font-medium">{profile.nature_of_business || '-'}</span></div>
-                                    <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Old SSM No:</span> <span className="col-span-2 font-medium">{profile.ssm_old_no || '-'}</span></div>
+                                    <div className="grid grid-cols-3"><span className="text-slate-500 dark:text-slate-400">Company Reg. No. (Optional)</span> <span className="col-span-2 font-medium">{profile.company_reg_no || '-'}</span></div>
                                 </div>
                             </div>
                             <div>
                                 <h4 className="font-bold text-slate-800 dark:text-slate-100 mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">Documents</h4>
-                                {profile.ssm_file_path ? (
+                                {profile.company_doc_path ? (
                                     <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Attached Document: {profile.ssm_file_path}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Attached Document: {profile.company_doc_path}</p>
                                         {!docUrl ? (
                                             <button onClick={getDocUrl} className="text-indigo-600 dark:text-indigo-300 text-sm font-bold hover:underline">View Document (Generate Link)</button>
                                         ) : (
@@ -262,7 +262,7 @@ const AdminDashboard: React.FC = () => {
 
     const filteredProfiles = profiles.filter(p => {
         if (filter === 'ALL') return true;
-        if (filter === 'PENDING') return !p.is_verified && (p.ssm_no || p.ssm_new_no);
+        if (filter === 'PENDING') return !p.is_verified && (p.ssm_no || p.company_reg_no);
         if (filter === 'VERIFIED') return p.is_verified;
         return true;
     });

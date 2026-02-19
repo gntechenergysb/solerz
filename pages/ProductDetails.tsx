@@ -280,7 +280,7 @@ const ProductDetails: React.FC = () => {
                    
                    <div className="flex items-center gap-1 mt-1 text-sm text-slate-600 dark:text-slate-400">
                       <ShieldCheck className="h-4 w-4" /> 
-                      {listing.is_verified_seller ? 'SSM Registered Entity' : 'Unverified'}
+                      {listing.is_verified_seller ? 'Registered Company' : 'Unverified'}
                    </div>
                 </div>
                 
@@ -307,8 +307,8 @@ const ProductDetails: React.FC = () => {
 
              <div className="mt-4 grid grid-cols-1 gap-2 text-xs text-slate-600 dark:text-slate-400">
                <div className="flex items-center justify-between gap-3">
-                 <span className="font-semibold">SSM No</span>
-                 <span className="font-medium text-right">{ssmNo || '-'}</span>
+                 <span className="font-semibold">Company Reg. No</span>
+                 <span className="font-medium text-right">{listing.seller_company_reg_no || '-'}</span>
                </div>
                <div className="flex items-center justify-between gap-3">
                  <span className="font-semibold">Address</span>

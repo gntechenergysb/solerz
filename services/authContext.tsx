@@ -9,7 +9,7 @@ import { supabase } from './supabaseClient';
 
  // Only cache non-sensitive fields to localStorage (security)
  const MINIMAL_CACHE_FIELDS: Array<keyof Profile> = [
-  'id', 'email', 'company_name', 'tier', 'is_verified', 'role', 'avatar_url', 'ssm_file_path', 'ssm_new_no', 'ssm_no',
+  'id', 'email', 'company_name', 'tier', 'is_verified', 'role', 'avatar_url', 'company_doc_path', 'company_reg_no',
   // Stripe subscription fields needed for Dashboard display
   'stripe_subscription_status', 'stripe_current_period_end', 'stripe_current_period_start', 
   'stripe_billing_interval', 'stripe_cancel_at_period_end', 'pending_tier', 'tier_effective_at'
