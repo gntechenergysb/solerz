@@ -110,7 +110,10 @@ const Navbar: React.FC = () => {
           {/* Center: Optional Navigation Links (Hidden on mobile) */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-emerald-600 transition-colors">
-              Equipment Listings
+              Listings
+            </Link>
+            <Link to="/how-it-works" className="text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-emerald-600 transition-colors">
+              How It Works
             </Link>
             <Link to="/pricing" className="text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-emerald-600 transition-colors">
               Pricing

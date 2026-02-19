@@ -29,8 +29,7 @@ const PLANS: Plan[] = [
       '3 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
-      'SSM Verification',
-      'Company Profile Page'
+      'SSM Verification'
     ],
     colorTheme: 'slate'
   },
@@ -44,8 +43,7 @@ const PLANS: Plan[] = [
       '10 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
-      'SSM Verification',
-      'Company Profile Page'
+      'SSM Verification'
     ],
     isPopular: true,
     colorTheme: 'emerald'
@@ -61,7 +59,6 @@ const PLANS: Plan[] = [
       'Basic View Counter',
       'Standard Visibility',
       'SSM Verification',
-      'Company Profile Page',
       'Basic Analytics'
     ],
     colorTheme: 'emerald'
@@ -77,7 +74,6 @@ const PLANS: Plan[] = [
       'Basic View Counter',
       'Standard Visibility',
       'SSM Verification',
-      'Company Profile Page',
       'Basic Analytics'
     ],
     colorTheme: 'emerald'

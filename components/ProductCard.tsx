@@ -116,12 +116,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
                 <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
              </button>
 
-             {/* Unverified Disclaimer */}
+             {/* Unverified Seller - Important Safety Notice */}
              {!isVerified && (
-               <div className="mt-3 text-center">
-                 <p className="text-[10px] text-amber-600 dark:text-amber-300 font-medium bg-amber-50 dark:bg-amber-950/30 py-1 px-2 rounded border border-amber-100/50 dark:border-amber-900/40">
-                    ⚠️ Individual seller. Deal with caution.
-                 </p>
+               <div className="mt-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-lg p-2.5">
+                 <div className="flex items-start gap-2">
+                   <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                   <div className="text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                     <p className="font-semibold mb-0.5">Individual seller</p>
+                     <p>Recommend face-to-face deal. No advance payment.</p>
+                   </div>
+                 </div>
                </div>
              )}
           </div>

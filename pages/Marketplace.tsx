@@ -862,20 +862,6 @@ const Marketplace: React.FC = () => {
             </div>
          </div>
 
-         {/* Safety Notice */}
-         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-4">
-           <div className="flex items-start gap-3">
-             <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-             <div className="text-sm text-amber-700 dark:text-amber-300">
-               <p className="font-semibold mb-1">🛡️ Important Safety Notice</p>
-               <p className="leading-relaxed">
-                 This platform only provides listing services. For unverified sellers, we recommend face-to-face transactions. 
-                 Do not make advance payments. The platform is not responsible for any disputes or losses.
-               </p>
-             </div>
-           </div>
-         </div>
-
          {/* Search & Filter Row */}
          <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-grow">
