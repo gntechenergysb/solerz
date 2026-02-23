@@ -80,12 +80,45 @@ const PLANS: Plan[] = [
   }
 ];
 
+const TIER_RANK: Record<string, number> = { STARTER: 1, PRO: 2, ELITE: 3, ENTERPRISE: 4 };
+
 const Pricing: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const isSubscribed = !!user && user.tier !== 'UNSUBSCRIBED';
+  const currentTier = user?.tier?.toUpperCase() || '';
+  const currentBilling = user?.stripe_billing_interval === 'year' ? 'yearly' : 'monthly';
+  const isCancelPending = !!user?.stripe_cancel_at_period_end;
+
+  // Determine button label and state for each plan card
+  const getPlanAction = (plan: Plan): { label: string; disabled: boolean; action: string } => {
+    if (!isSubscribed) return { label: 'Subscribe Now', disabled: false, action: 'subscribe' };
+
+    const planTier = plan.id.toUpperCase();
+    const isSameTier = planTier === currentTier;
+    const isSameBilling = billingCycle === currentBilling;
+
+    if (isSameTier && isSameBilling) {
+      if (isCancelPending) return { label: 'Resubscribe', disabled: false, action: 'resubscribe' };
+      return { label: 'Current Plan', disabled: true, action: 'current' };
+    }
+
+    const planRank = TIER_RANK[planTier] || 0;
+    const currentRank = TIER_RANK[currentTier] || 0;
+
+    if (planRank > currentRank) return { label: 'Upgrade', disabled: false, action: 'upgrade' };
+    if (planRank < currentRank) return { label: 'Downgrade', disabled: false, action: 'downgrade' };
+
+    // Same rank but different billing cycle
+    if (billingCycle === 'yearly') {
+      return { label: 'Switch to Yearly', disabled: false, action: 'switch_to_yearly' };
+    }
+    return { label: 'Switch to Monthly', disabled: false, action: 'switch_to_monthly' };
+  };
 
   // Helper to handle plan selection
   const handleSelectPlan = (plan: Plan) => {
@@ -94,6 +127,8 @@ const Pricing: React.FC = () => {
       navigate('/login');
       return;
     }
+    const { disabled } = getPlanAction(plan);
+    if (disabled) return;
     setSelectedPlan(plan);
   };
 
@@ -109,19 +144,8 @@ const Pricing: React.FC = () => {
         return;
       }
 
-      const isSubscribed = user.tier !== 'UNSUBSCRIBED';
-
       if (isSubscribed) {
-        // 已订阅用户 → 调用 change API 来更换配套
-        const currentTier = user.tier?.toUpperCase();
-        const selectedTier = selectedPlan.id.toUpperCase();
-
-        if (selectedTier === currentTier && billingCycle === (user.stripe_billing_interval === 'year' ? 'yearly' : 'monthly')) {
-          toast('You are already on this plan.', { icon: 'ℹ️' });
-          setIsProcessing(false);
-          return;
-        }
-
+        // Already subscribed → call change API
         const res = await fetch('/api/stripe/subscription/change', {
           method: 'POST',
           headers: {
@@ -139,7 +163,9 @@ const Pricing: React.FC = () => {
           throw new Error(String(json?.error || 'change_failed'));
         }
 
-        if (json?.mode === 'upgrade') {
+        if (json?.mode === 'resubscribed') {
+          toast.success('Subscription reactivated!');
+        } else if (json?.mode === 'upgrade') {
           toast.success('Plan upgraded successfully!');
         } else if (json?.mode === 'downgrade_scheduled') {
           const effectiveDate = json?.effectiveAt
@@ -150,7 +176,6 @@ const Pricing: React.FC = () => {
 
         await refreshUser();
         setSelectedPlan(null);
-        setIsProcessing(false);
         navigate('/dashboard');
         return;
       }
@@ -179,6 +204,7 @@ const Pricing: React.FC = () => {
     } catch (error) {
       console.error('Stripe checkout error:', error);
       toast.error('Unable to start checkout. Please try again.');
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -275,16 +301,28 @@ const Pricing: React.FC = () => {
                 )}
               </div>
 
-              <button
-                onClick={() => handleSelectPlan(plan)}
-                className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-base
-                    ${isEmerald
-                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
-                    : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 shadow-md shadow-slate-900/20'
-                  }`}
-              >
-                Subscribe Now
-              </button>
+              {(() => {
+                const { label, disabled, action } = getPlanAction(plan);
+                const isResubscribe = action === 'resubscribe';
+                const isCurrent = action === 'current';
+                return (
+                  <button
+                    onClick={() => handleSelectPlan(plan)}
+                    disabled={disabled}
+                    className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-base
+                      ${isCurrent
+                        ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                        : isResubscribe
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30'
+                          : isEmerald
+                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 shadow-md shadow-slate-900/20'
+                      }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })()}
             </div>
           );
         })}
@@ -338,30 +376,50 @@ const Pricing: React.FC = () => {
           {/* FAQ 2 */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
-              <Zap className="h-5 w-5 text-emerald-500" /> Can I change tiers later?
+              <Zap className="h-5 w-5 text-emerald-500" /> How do upgrades work?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              Absolutely! You can upgrade or downgrade your plan at any time through your dashboard. Upgrades are prorated automatically, giving you instant access to your new limits.
+              Upgrades take effect immediately. You'll only pay the prorated difference for the remainder of your current billing cycle, then the full new price from the next cycle. Switching from monthly to yearly billing also takes effect immediately.
             </p>
           </div>
 
           {/* FAQ 3 */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
-              <X className="h-5 w-5 text-rose-500" /> How do cancellations work?
+              <TrendingUp className="h-5 w-5 text-blue-500" /> How do downgrades work?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              If you cancel, you will retain your current tier's privileges until the end of your billing cycle. After that, your listings will simply be safely paused, never deleted.
+              Downgrades are scheduled to take effect at the end of your current billing period. You'll continue to enjoy your current plan's benefits until then. No partial refunds are issued for the remaining period. Switching from yearly to monthly billing follows the same policy.
             </p>
           </div>
 
           {/* FAQ 4 */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
+              <X className="h-5 w-5 text-rose-500" /> How do cancellations work?
+            </h4>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              If you cancel, you retain your current plan's privileges until the end of your billing cycle. After that, your listings are safely paused — never deleted. You can resubscribe at any time to resume them. No refunds are provided for unused time.
+            </p>
+          </div>
+
+          {/* FAQ 5 */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
               <Check className="h-5 w-5 text-emerald-500" /> Are there transaction fees?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               No! We are a zero-commission classifieds platform. Our flat monthly/annual fee is the only cost you pay. You handle 100% of the financial transaction and shipping with buyers directly.
+            </p>
+          </div>
+
+          {/* FAQ 6 */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-emerald-500" /> What is the refund policy?
+            </h4>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              All subscription fees are non-refundable. When you upgrade, you only pay the prorated difference — no overpayment occurs. Downgrades and cancellations let you keep your current benefits until the billing period ends. We recommend starting with a monthly plan if you'd like to try the platform first.
             </p>
           </div>
         </div>
@@ -407,19 +465,28 @@ const Pricing: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handlePayment}
-                disabled={isProcessing}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2"
-              >
-                {isProcessing ? (
-                  <span>Processing Payment...</span>
-                ) : (
-                  <>
-                    <span>Pay with Stripe</span>
-                  </>
-                )}
-              </button>
+              {(() => {
+                const action = selectedPlan ? getPlanAction(selectedPlan).action : 'subscribe';
+                const actionLabel = action === 'resubscribe' ? 'Reactivate Subscription'
+                  : action === 'upgrade' ? 'Confirm Upgrade'
+                    : action === 'downgrade' ? 'Schedule Downgrade'
+                      : action === 'switch_to_yearly' ? 'Confirm Switch'
+                        : action === 'switch_to_monthly' ? 'Schedule Switch'
+                          : 'Pay with Stripe';
+                return (
+                  <button
+                    onClick={handlePayment}
+                    disabled={isProcessing}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2"
+                  >
+                    {isProcessing ? (
+                      <span>Processing...</span>
+                    ) : (
+                      <span>{actionLabel}</span>
+                    )}
+                  </button>
+                );
+              })()}
 
               <div className="mt-4 flex items-center justify-center gap-4 opacity-50 grayscale">
                 {/* Mock Bank Icons */}

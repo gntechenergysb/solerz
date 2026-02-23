@@ -351,7 +351,62 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     const currentTier = normalizeTier(String(profile?.tier || ''));
-    const isUpgrade = tierRank(tier) >= tierRank(currentTier || '');
+    const currentBilling = currentPrice?.recurring?.interval === 'year' ? 'yearly' : 'monthly';
+    const isSamePlan = tier === currentTier && billingCycle === currentBilling;
+
+    // Same plan + same billing cycle
+    if (isSamePlan) {
+      if (sub?.cancel_at_period_end) {
+        // Resubscribe: undo cancellation
+        await releaseScheduleIfAny(env, scheduleId);
+
+        await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ cancel_at_period_end: 'false' }).toString()
+        });
+
+        const firstSubItem = sub?.items?.data?.[0];
+        const cpe = Number(sub?.current_period_end ?? firstSubItem?.current_period_end ?? NaN);
+        const cps = Number(sub?.current_period_start ?? firstSubItem?.current_period_start ?? NaN);
+
+        const resubPatch: Record<string, any> = {
+          pending_tier: null,
+          tier_effective_at: null,
+          stripe_cancel_at_period_end: false,
+          stripe_subscription_status: 'active',
+          stripe_subscription_id: subscriptionId,
+          ...(customerId ? { stripe_customer_id: customerId } : {})
+        };
+        if (Number.isFinite(cpe)) resubPatch.stripe_current_period_end = cpe;
+        if (Number.isFinite(cps)) resubPatch.stripe_current_period_start = cps;
+
+        await supabaseServicePatchProfile(env, userId, resubPatch);
+
+        return new Response(JSON.stringify({
+          mode: 'resubscribed',
+          subscriptionId
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Truly the same plan, no cancellation pending
+      return new Response(JSON.stringify({ error: 'You are already on this plan.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Determine upgrade vs downgrade:
+    // - Higher tier → immediate upgrade (prorate)
+    // - Same tier + monthly→yearly → immediate upgrade (user pays more)
+    // - Same tier + yearly→monthly → scheduled downgrade (no refund)
+    // - Lower tier → scheduled downgrade (no refund)
+    const tierDiff = tierRank(tier) - tierRank(currentTier || '');
+    const isUpgrade = tierDiff > 0 ||
+      (tierDiff === 0 && billingCycle === 'yearly' && currentBilling === 'monthly');
 
     if (isUpgrade) {
       await releaseScheduleIfAny(env, scheduleId);
@@ -411,6 +466,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     let finalScheduleId = scheduleId;
     if (!finalScheduleId) {
+      // If subscription has cancel_at_period_end, undo it first before creating schedule
+      if (sub?.cancel_at_period_end) {
+        await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ cancel_at_period_end: 'false' }).toString()
+        });
+      }
+
       const created = await stripeRequest(env, `/v1/subscription_schedules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -429,7 +493,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const scheduleParams = new URLSearchParams();
     scheduleParams.set('end_behavior', 'release');
 
-    scheduleParams.set('phases[0][start_date]', 'now');
+    // Do NOT set phases[0][start_date] — Stripe does not allow modifying
+    // the start date of the current phase when created from a subscription.
     scheduleParams.set('phases[0][end_date]', String(currentPeriodEnd));
     scheduleParams.set('phases[0][items][0][price]', String(currentPrice?.id || ''));
     scheduleParams.set('phases[0][items][0][quantity]', '1');

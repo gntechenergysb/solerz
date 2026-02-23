@@ -251,6 +251,7 @@ const Dashboard: React.FC = () => {
     cancel_at_period_end?: boolean;
     status?: string;
   }>({});
+  const [isSubActionProcessing, setIsSubActionProcessing] = useState(false);
 
   // Initialize subscriptionData from Supabase user data (immediate, no delay)
   useEffect(() => {
@@ -459,8 +460,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleCancelSubscriptionAtPeriodEnd = async () => {
+    if (isSubActionProcessing) return;
     try {
       if (!window.confirm('Cancel your subscription at the end of the current billing period?')) return;
+      setIsSubActionProcessing(true);
 
       const { data } = await supabase.auth.getSession();
       const accessToken = data.session?.access_token;
@@ -490,6 +493,49 @@ const Dashboard: React.FC = () => {
     } catch (e) {
       console.error(e);
       toast.error('Failed to schedule cancellation.');
+    } finally {
+      setIsSubActionProcessing(false);
+    }
+  };
+
+  const handleUndoCancellation = async () => {
+    if (isSubActionProcessing) return;
+    setIsSubActionProcessing(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        toast.error('Please login again to continue.');
+        navigate('/login');
+        return;
+      }
+
+      const currentBilling = user?.stripe_billing_interval === 'year' ? 'yearly' : 'monthly';
+      const res = await fetch('/api/stripe/subscription/change', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          planId: user?.tier,
+          billingCycle: currentBilling
+        })
+      });
+
+      const json = (await res.json().catch(() => null)) as any;
+      if (!res.ok) {
+        throw new Error(String(json?.error || 'undo_cancel_failed'));
+      }
+
+      toast.success('Subscription reactivated!');
+      await fetchSubscriptionSync();
+      await refreshUser();
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to undo cancellation.');
+    } finally {
+      setIsSubActionProcessing(false);
     }
   };
 
@@ -802,13 +848,23 @@ const Dashboard: React.FC = () => {
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                   Change Plan
                 </Link>
-                {!user?.pending_tier && (
+                {(subscriptionData.cancel_at_period_end !== undefined ? subscriptionData.cancel_at_period_end : user?.stripe_cancel_at_period_end) ? (
+                  <button
+                    onClick={handleUndoCancellation}
+                    disabled={isSubActionProcessing}
+                    className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded border border-emerald-200 dark:border-emerald-900/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 010 10H9" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 14l-4-4 4-4" /></svg>
+                    {isSubActionProcessing ? 'Processing...' : 'Undo Cancellation'}
+                  </button>
+                ) : !user?.pending_tier && (
                   <button
                     onClick={handleCancelSubscriptionAtPeriodEnd}
-                    className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                    disabled={isSubActionProcessing}
+                    className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors disabled:opacity-50 disabled:cursor-wait"
                   >
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    Cancel Subscription
+                    {isSubActionProcessing ? 'Processing...' : 'Cancel Subscription'}
                   </button>
                 )}
               </div>

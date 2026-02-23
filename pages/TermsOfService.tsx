@@ -6,7 +6,7 @@ const TermsOfService: React.FC = () => {
       <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">Terms of Service</h1>
       <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 space-y-4">
         <p>Last updated: {new Date().toLocaleDateString()}</p>
-        
+
         <section className="space-y-2">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">1. Welcome to Solerz</h2>
           <p>
@@ -63,7 +63,7 @@ const TermsOfService: React.FC = () => {
             <li>Use the platform for legitimate business purposes only</li>
             <li>Report any security concerns or suspicious activity promptly</li>
           </ul>
-          
+
           <p className="mt-3">
             <strong>For Sellers:</strong>
           </p>
@@ -74,7 +74,7 @@ const TermsOfService: React.FC = () => {
             <li>Respond professionally to buyer inquiries</li>
             <li>Comply with all applicable laws and industry regulations</li>
           </ul>
-          
+
           <p className="mt-3">
             <strong>For Buyers:</strong>
           </p>
@@ -105,21 +105,64 @@ const TermsOfService: React.FC = () => {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">6. Subscription Services</h2>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">6. Subscription Services, Billing & Refund Policy</h2>
           <p>
-            We offer tiered subscription plans that provide sellers with listing capacity based on their business needs:
+            We offer tiered subscription plans (Starter, Pro, Elite, Enterprise) that provide sellers with listing capacity based on their business needs. Subscriptions are available on a monthly or annual basis.
+          </p>
+
+          <p className="mt-2">
+            <strong>Billing and Auto-Renewal:</strong>
           </p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Fees grant access to platform tools and listing services</li>
-            <li>Subscriptions are charged in advance and renewed automatically</li>
-            <li>Cancellations take effect at the end of the current billing period</li>
-            <li>We provide 30 days notice for any pricing changes</li>
+            <li>Subscription fees are charged in advance at the start of each billing period via Stripe</li>
+            <li>All subscriptions renew automatically unless cancelled before the end of the current billing period</li>
+            <li>Annual subscriptions offer a discounted rate equivalent to one free month</li>
+            <li>We provide at least 30 days notice for any pricing changes to existing subscribers</li>
+          </ul>
+
+          <p className="mt-3">
+            <strong>Upgrades:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Plan upgrades (e.g., Starter to Pro) take effect immediately</li>
+            <li>You will only be charged the prorated difference for the remainder of your current billing period</li>
+            <li>Switching from monthly to annual billing is treated as an upgrade and takes effect immediately</li>
+          </ul>
+
+          <p className="mt-3">
+            <strong>Downgrades:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Plan downgrades (e.g., Elite to Pro) are scheduled to take effect at the end of your current billing period</li>
+            <li>You retain full access to your current plan's features until the billing period ends</li>
+            <li>Switching from annual to monthly billing is treated as a downgrade and takes effect at the end of your current annual period</li>
+            <li>No partial refunds are issued for the remaining period when downgrading</li>
+          </ul>
+
+          <p className="mt-3">
+            <strong>Cancellations:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>You may cancel your subscription at any time from your dashboard</li>
+            <li>Cancellations take effect at the end of the current billing period — you will retain access until then</li>
+            <li>Upon cancellation, your listings will be paused (not deleted) and can be resumed if you resubscribe</li>
+            <li>You may undo a pending cancellation at any time before the billing period ends</li>
+          </ul>
+
+          <p className="mt-3">
+            <strong>Refund Policy:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>All subscription fees are non-refundable once charged</li>
+            <li>No partial refunds are issued for downgrades, cancellations, or unused time within a billing period</li>
+            <li>When upgrading, you are only charged the prorated difference — no overpayment occurs and therefore no refund is necessary</li>
+            <li>We recommend starting with a monthly plan if you wish to evaluate the platform before committing to an annual subscription</li>
           </ul>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">7. Working Together: Rights and Responsibilities</h2>
-          
+
           <p className="mt-2">
             <strong>What Solerz Provides:</strong>
           </p>
@@ -129,7 +172,7 @@ const TermsOfService: React.FC = () => {
             <li>Tools for sellers to showcase their products effectively</li>
             <li>Support for reported issues and disputes between users</li>
           </ul>
-          
+
           <p className="mt-3">
             <strong>What We Cannot Do:</strong>
           </p>
@@ -140,7 +183,7 @@ const TermsOfService: React.FC = () => {
             <li>Verify every claim made in product listings</li>
             <li>Assume liability for transactions conducted off-platform</li>
           </ul>
-          
+
           <p className="mt-3">
             <strong>User Accountability:</strong>
           </p>
