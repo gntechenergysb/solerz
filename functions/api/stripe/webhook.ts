@@ -699,6 +699,24 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     if (!userId && stripeCustomerId) {
       userId = await findUserIdByStripeCustomerId(env, stripeCustomerId);
     }
+
+    // Save period dates immediately if we have userId and valid dates
+    if (userId && (Number.isFinite(stripeCurrentPeriodEnd) || Number.isFinite(stripeCurrentPeriodStart))) {
+      const datePatch: Record<string, any> = {};
+      if (Number.isFinite(stripeCurrentPeriodEnd)) datePatch.stripe_current_period_end = stripeCurrentPeriodEnd;
+      if (Number.isFinite(stripeCurrentPeriodStart)) datePatch.stripe_current_period_start = stripeCurrentPeriodStart;
+      if (stripeBillingInterval) datePatch.stripe_billing_interval = stripeBillingInterval;
+      if (stripeCustomerId) datePatch.stripe_customer_id = stripeCustomerId;
+      if (stripeSubscriptionId) datePatch.stripe_subscription_id = stripeSubscriptionId;
+      if (stripeSubscriptionStatus) datePatch.stripe_subscription_status = stripeSubscriptionStatus;
+      
+      console.log('[WEBHOOK] invoice.paid - Saving dates to Supabase:', {
+        userId,
+        datePatch
+      });
+      
+      await bestEffortPatchStripeFields(env, userId, datePatch);
+    }
   } else if (type === 'invoice.payment_failed') {
     const invoice = event?.data?.object;
     stripeCustomerId = String(invoice?.customer || '').trim();
