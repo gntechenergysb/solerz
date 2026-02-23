@@ -593,6 +593,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
           stripeSubscriptionStatus = String(sub?.status || '').trim() || null;
           const cpe = Number(sub?.current_period_end ?? NaN);
           const cps = Number(sub?.current_period_start ?? NaN);
+          console.log('[WEBHOOK] checkout.session.completed - Subscription data:', {
+            subscriptionId: stripeSubscriptionId,
+            rawEnd: sub?.current_period_end,
+            rawStart: sub?.current_period_start,
+            parsedEnd: cpe,
+            parsedStart: cps,
+            isFiniteEnd: Number.isFinite(cpe),
+            isFiniteStart: Number.isFinite(cps)
+          });
           if (Number.isFinite(cpe)) stripeCurrentPeriodEnd = cpe;
           if (Number.isFinite(cps)) stripeCurrentPeriodStart = cps;
           const interval = sub?.items?.data?.[0]?.price?.recurring?.interval;
@@ -616,6 +625,16 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const firstLine = Array.isArray(lines) && lines.length ? lines[0] : null;
     stripeCurrentPeriodEnd = Number(firstLine?.period?.end ?? invoice?.period_end ?? NaN);
     stripeCurrentPeriodStart = Number(firstLine?.period?.start ?? invoice?.period_start ?? NaN);
+    
+    console.log('[WEBHOOK] invoice.paid - Invoice data:', {
+      subscriptionId: stripeSubscriptionId,
+      rawEnd: firstLine?.period?.end ?? invoice?.period_end,
+      rawStart: firstLine?.period?.start ?? invoice?.period_start,
+      parsedEnd: stripeCurrentPeriodEnd,
+      parsedStart: stripeCurrentPeriodStart,
+      isFiniteEnd: Number.isFinite(stripeCurrentPeriodEnd),
+      isFiniteStart: Number.isFinite(stripeCurrentPeriodStart)
+    });
 
     // Extract billing interval from invoice line items
     const interval = firstLine?.price?.recurring?.interval;
@@ -841,6 +860,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (stripeCancelAtPeriodEnd !== null) stripePatch.stripe_cancel_at_period_end = stripeCancelAtPeriodEnd;
   stripePatch.pending_tier = null;
   stripePatch.tier_effective_at = null;
+  
+  console.log('[WEBHOOK] Saving stripePatch to Supabase:', {
+    userId,
+    stripePatch,
+    hasPeriodEnd: 'stripe_current_period_end' in stripePatch,
+    hasPeriodStart: 'stripe_current_period_start' in stripePatch
+  });
+  
   if (Object.keys(stripePatch).length) {
     await bestEffortPatchStripeFields(env, userId, stripePatch);
   }

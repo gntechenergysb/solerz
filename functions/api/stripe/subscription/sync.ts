@@ -336,6 +336,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const cancelAtPeriodEnd = sub?.cancel_at_period_end || false;
     const status = String(sub?.status || '');
     
+    console.log('[SYNC] Raw Stripe data:', {
+      current_period_end: sub?.current_period_end,
+      current_period_start: sub?.current_period_start,
+      parsedEnd: currentPeriodEnd,
+      parsedStart: currentPeriodStart,
+      isFiniteEnd: Number.isFinite(currentPeriodEnd),
+      isFiniteStart: Number.isFinite(currentPeriodStart)
+    });
+    
     // Check for pending changes (schedule)
     let pendingTier = profile?.pending_tier || null;
     let tierEffectiveAt = profile?.tier_effective_at || null;
