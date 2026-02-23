@@ -611,12 +611,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     stripeCustomerId = String(invoice?.customer || '').trim();
     stripeSubscriptionId = String(invoice?.subscription || '').trim();
     stripeSubscriptionStatus = 'active'; // Invoice paid means subscription is active
-    stripeCurrentPeriodEnd = Number(invoice?.period_end ?? NaN); // Get period end from invoice
-    stripeCurrentPeriodStart = Number(invoice?.period_start ?? NaN); // Get period start from invoice
 
-    // Extract billing interval from invoice line items
     const lines = invoice?.lines?.data;
     const firstLine = Array.isArray(lines) && lines.length ? lines[0] : null;
+    stripeCurrentPeriodEnd = Number(firstLine?.period?.end ?? invoice?.period_end ?? NaN);
+    stripeCurrentPeriodStart = Number(firstLine?.period?.start ?? invoice?.period_start ?? NaN);
+
+    // Extract billing interval from invoice line items
     const interval = firstLine?.price?.recurring?.interval;
     if (interval === 'month' || interval === 'year') {
       stripeBillingInterval = interval;
