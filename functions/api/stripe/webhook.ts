@@ -193,14 +193,14 @@ const bestEffortPatchStripeFields = async (
 ) => {
   const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   console.log('[PATCH] bestEffortPatchStripeFields called:', {
     userId,
     patchKeys: Object.keys(patch),
     hasSupabaseUrl: !!supabaseUrl,
     hasServiceKey: !!serviceKey
   });
-  
+
   if (!supabaseUrl || !serviceKey) {
     console.log('[PATCH] Missing env vars - skipping patch');
     return;
@@ -230,6 +230,10 @@ const bestEffortPatchStripeFields = async (
 const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   let userId = String(sub?.metadata?.user_id || '').trim();
 
+  // Stripe deprecated top-level current_period_end/start (API 2025-03-31).
+  // Fall back to items.data[0] where Stripe now puts them.
+  const firstSubItem = sub?.items?.data?.[0];
+
   // If no userId in metadata, try to find by customer_id
   if (!userId && sub?.customer) {
     const customerId = String(sub.customer).trim();
@@ -239,8 +243,8 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   if (!userId) return;
 
   const cancelAtPeriodEnd = sub?.cancel_at_period_end;
-  const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
-  const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
+  const currentPeriodEnd = Number(sub?.current_period_end ?? firstSubItem?.current_period_end ?? NaN);
+  const currentPeriodStart = Number(sub?.current_period_start ?? firstSubItem?.current_period_start ?? NaN);
   const billingInterval = sub?.items?.data?.[0]?.price?.recurring?.interval;
   const patch: Record<string, any> = {
     stripe_cancel_at_period_end: typeof cancelAtPeriodEnd === 'boolean' ? cancelAtPeriodEnd : null
@@ -618,8 +622,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
           console.log('[WEBHOOK] Raw current_period_end:', sub?.current_period_end, 'type:', typeof sub?.current_period_end);
           console.log('[WEBHOOK] Raw current_period_start:', sub?.current_period_start, 'type:', typeof sub?.current_period_start);
           stripeSubscriptionStatus = String(sub?.status || '').trim() || null;
-          const cpe = Number(sub?.current_period_end ?? NaN);
-          const cps = Number(sub?.current_period_start ?? NaN);
+          // Stripe deprecated top-level current_period_end/start (API 2025-03-31)
+          const firstSubItem = sub?.items?.data?.[0];
+          const cpe = Number(sub?.current_period_end ?? firstSubItem?.current_period_end ?? NaN);
+          const cps = Number(sub?.current_period_start ?? firstSubItem?.current_period_start ?? NaN);
           console.log('[WEBHOOK] checkout.session.completed - Subscription data:', {
             subscriptionId: stripeSubscriptionId,
             rawEnd: sub?.current_period_end,
@@ -654,7 +660,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const firstLine = Array.isArray(lines) && lines.length ? lines[0] : null;
     stripeCurrentPeriodEnd = Number(firstLine?.period?.end ?? invoice?.period_end ?? NaN);
     stripeCurrentPeriodStart = Number(firstLine?.period?.start ?? invoice?.period_start ?? NaN);
-    
+
     console.log('[WEBHOOK] invoice.paid - Invoice data:', {
       subscriptionId: stripeSubscriptionId,
       rawEnd: firstLine?.period?.end ?? invoice?.period_end,
@@ -714,12 +720,12 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       if (stripeCustomerId) datePatch.stripe_customer_id = stripeCustomerId;
       if (stripeSubscriptionId) datePatch.stripe_subscription_id = stripeSubscriptionId;
       if (stripeSubscriptionStatus) datePatch.stripe_subscription_status = stripeSubscriptionStatus;
-      
+
       console.log('[WEBHOOK] invoice.paid - Saving dates to Supabase:', {
         userId,
         datePatch
       });
-      
+
       await bestEffortPatchStripeFields(env, userId, datePatch);
     }
 
@@ -784,8 +790,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     stripeCustomerId = String(sub?.customer || '').trim();
     stripeSubscriptionId = String(sub?.id || '').trim();
     stripeSubscriptionStatus = String(sub?.status || '').trim();
-    stripeCurrentPeriodEnd = Number(sub?.current_period_end ?? NaN);
-    stripeCurrentPeriodStart = Number(sub?.current_period_start ?? NaN);
+    // Stripe deprecated top-level current_period_end/start (API 2025-03-31)
+    const deletedSubItem = sub?.items?.data?.[0];
+    stripeCurrentPeriodEnd = Number(sub?.current_period_end ?? deletedSubItem?.current_period_end ?? NaN);
+    stripeCurrentPeriodStart = Number(sub?.current_period_start ?? deletedSubItem?.current_period_start ?? NaN);
     stripeCancelAtPeriodEnd = typeof sub?.cancel_at_period_end === 'boolean' ? sub.cancel_at_period_end : null;
     const interval = sub?.items?.data?.[0]?.price?.recurring?.interval;
     if (interval === 'month' || interval === 'year') {
@@ -849,8 +857,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         stripe_subscription_status: String(sub?.status || '').trim() || null,
         stripe_cancel_at_period_end: typeof sub?.cancel_at_period_end === 'boolean' ? sub.cancel_at_period_end : null
       };
-      const cpe = Number(sub?.current_period_end ?? NaN);
-      const cps = Number(sub?.current_period_start ?? NaN);
+      // Stripe deprecated top-level current_period_end/start (API 2025-03-31)
+      const updatedSubItem = sub?.items?.data?.[0];
+      const cpe = Number(sub?.current_period_end ?? updatedSubItem?.current_period_end ?? NaN);
+      const cps = Number(sub?.current_period_start ?? updatedSubItem?.current_period_start ?? NaN);
       if (Number.isFinite(cpe)) stripePatch.stripe_current_period_end = cpe;
       if (Number.isFinite(cps)) stripePatch.stripe_current_period_start = cps;
 
@@ -914,14 +924,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (stripeCancelAtPeriodEnd !== null) stripePatch.stripe_cancel_at_period_end = stripeCancelAtPeriodEnd;
   stripePatch.pending_tier = null;
   stripePatch.tier_effective_at = null;
-  
+
   console.log('[WEBHOOK] Saving stripePatch to Supabase:', {
     userId,
     stripePatch,
     hasPeriodEnd: 'stripe_current_period_end' in stripePatch,
     hasPeriodStart: 'stripe_current_period_start' in stripePatch
   });
-  
+
   if (Object.keys(stripePatch).length) {
     await bestEffortPatchStripeFields(env, userId, stripePatch);
   }

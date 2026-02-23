@@ -107,7 +107,7 @@ const pauseExcessListings = async (env: Env, userId: string, newTier: string) =>
   if (!supabaseUrl || !serviceKey) return;
 
   const limit = getListingLimit(newTier);
-  
+
   // Get active listings for this user, ordered by creation date (newest first)
   const res = await fetch(
     `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_sold=eq.false&is_hidden=eq.false&is_paused=eq.false&active_until=gte.${encodeURIComponent(new Date().toISOString())}&order=created_at.desc&select=*`,
@@ -126,11 +126,11 @@ const pauseExcessListings = async (env: Env, userId: string, newTier: string) =>
   }
 
   const listings = (await res.json().catch(() => [])) as any[];
-  
+
   // If listings exceed limit, pause the excess ones
   if (listings.length > limit) {
     const listingsToPause = listings.slice(limit); // Keep newest, pause oldest
-    
+
     for (const listing of listingsToPause) {
       const pauseRes = await fetch(
         `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?id=eq.${encodeURIComponent(listing.id)}`,
@@ -145,14 +145,14 @@ const pauseExcessListings = async (env: Env, userId: string, newTier: string) =>
           body: JSON.stringify({ is_paused: true, updated_at: new Date().toISOString() })
         }
       );
-      
+
       if (!pauseRes.ok) {
         console.log('Failed to pause listing', listing.id, pauseRes.status);
       } else {
         console.log('Paused listing due to tier downgrade', listing.id, listing.title);
       }
     }
-    
+
     console.log(`Paused ${listingsToPause.length} listings due to tier downgrade to ${newTier}`);
   }
 };
@@ -164,7 +164,7 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
   if (!supabaseUrl || !serviceKey) return;
 
   const limit = getListingLimit(newTier);
-  
+
   // Get paused listings for this user
   const res = await fetch(
     `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_paused=eq.true&order=created_at.desc&select=*`,
@@ -183,7 +183,7 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
   }
 
   const pausedListings = (await res.json().catch(() => [])) as any[];
-  
+
   // Get current active (non-paused) count
   const activeRes = await fetch(
     `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_sold=eq.false&is_hidden=eq.false&is_paused=eq.false&active_until=gte.${encodeURIComponent(new Date().toISOString())}&select=id`,
@@ -195,14 +195,14 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
       }
     }
   );
-  
+
   const activeListings = activeRes.ok ? (await activeRes.json().catch(() => [])) : [];
   const currentActiveCount = activeListings.length;
   const availableSlots = limit - currentActiveCount;
-  
+
   // Resume up to available slots
   const listingsToResume = pausedListings.slice(0, availableSlots);
-  
+
   for (const listing of listingsToResume) {
     const resumeRes = await fetch(
       `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?id=eq.${encodeURIComponent(listing.id)}`,
@@ -217,14 +217,14 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
         body: JSON.stringify({ is_paused: false, updated_at: new Date().toISOString() })
       }
     );
-    
+
     if (!resumeRes.ok) {
       console.log('Failed to resume listing', listing.id, resumeRes.status);
     } else {
       console.log('Resumed listing due to tier upgrade', listing.id, listing.title);
     }
   }
-  
+
   if (listingsToResume.length > 0) {
     console.log(`Resumed ${listingsToResume.length} listings due to tier upgrade to ${newTier}`);
   }
@@ -284,7 +284,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Get current profile from Supabase
     const profile = await supabaseServiceGetProfile(env, userId);
-    
+
     let subscriptionId = String(profile?.stripe_subscription_id || '').trim();
     let customerId = String(profile?.stripe_customer_id || '').trim();
 
@@ -316,7 +316,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     // Fetch real-time subscription data from Stripe
     const sub = await stripeRequest(
-      env, 
+      env,
       `/v1/subscriptions/${encodeURIComponent(subscriptionId)}?expand[]=items.data.price.product`
     );
 
@@ -325,17 +325,19 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const firstItem = items[0];
     const recurring = firstItem?.price?.recurring;
     const billingInterval = recurring?.interval || null; // 'month' or 'year'
-    
+
     // Extract tier from product name
     const productName = firstItem?.price?.product?.name || '';
     const inferredTier = getTierFromPriceProduct(productName);
-    
+
     // Extract other subscription data
-    const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
-    const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
+    // Stripe deprecated top-level current_period_end/start (API 2025-03-31).
+    // Fall back to items.data[0] where Stripe now puts them.
+    const currentPeriodEnd = Number(sub?.current_period_end ?? firstItem?.current_period_end ?? NaN);
+    const currentPeriodStart = Number(sub?.current_period_start ?? firstItem?.current_period_start ?? NaN);
     const cancelAtPeriodEnd = sub?.cancel_at_period_end || false;
     const status = String(sub?.status || '');
-    
+
     console.log('[SYNC] Raw Stripe data:', {
       current_period_end: sub?.current_period_end,
       current_period_start: sub?.current_period_start,
@@ -344,20 +346,20 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       isFiniteEnd: Number.isFinite(currentPeriodEnd),
       isFiniteStart: Number.isFinite(currentPeriodStart)
     });
-    
+
     // Check for pending changes (schedule)
     let pendingTier = profile?.pending_tier || null;
     let tierEffectiveAt = profile?.tier_effective_at || null;
-    
+
     // If cancel_at_period_end is true but pending_tier is not set, set it
     if (cancelAtPeriodEnd && !pendingTier) {
       pendingTier = 'UNSUBSCRIBED';
       tierEffectiveAt = Number.isFinite(currentPeriodEnd) ? currentPeriodEnd : null;
     }
-    
+
     // Sync back to Supabase if data has changed
     const patch: Record<string, any> = {};
-    
+
     // Update tier if it has changed and subscription is active (including past_due and unpaid)
     let tierChanged = false;
     if (inferredTier && inferredTier !== profile?.tier && ['active', 'trialing', 'past_due', 'unpaid'].includes(status)) {
@@ -369,7 +371,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         patch.tier_effective_at = null;
       }
     }
-    
+
     if (Number.isFinite(currentPeriodEnd) && currentPeriodEnd !== profile?.stripe_current_period_end) {
       patch.stripe_current_period_end = currentPeriodEnd;
     }
@@ -402,14 +404,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     if (Object.keys(patch).length > 0) {
       updatedProfile = await supabaseServicePatchProfile(env, userId, patch);
     }
-    
+
     // Handle listing pause/resume on tier change
     if (tierChanged && inferredTier) {
       const oldTier = profile?.tier || 'UNSUBSCRIBED';
       const newTier = inferredTier;
       const oldLimit = getListingLimit(oldTier);
       const newLimit = getListingLimit(newTier);
-      
+
       if (newLimit < oldLimit) {
         // Downgrade: pause excess listings
         await pauseExcessListings(env, userId, newTier);
