@@ -193,7 +193,18 @@ const bestEffortPatchStripeFields = async (
 ) => {
   const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceKey) return;
+  
+  console.log('[PATCH] bestEffortPatchStripeFields called:', {
+    userId,
+    patchKeys: Object.keys(patch),
+    hasSupabaseUrl: !!supabaseUrl,
+    hasServiceKey: !!serviceKey
+  });
+  
+  if (!supabaseUrl || !serviceKey) {
+    console.log('[PATCH] Missing env vars - skipping patch');
+    return;
+  }
 
   const res = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`,
     {
@@ -210,7 +221,9 @@ const bestEffortPatchStripeFields = async (
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    console.log('stripe webhook stripe-field patch skipped', res.status, text);
+    console.log('[PATCH] stripe-field patch failed:', res.status, text);
+  } else {
+    console.log('[PATCH] stripe-field patch success:', res.status);
   }
 };
 
@@ -854,8 +867,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (stripeCustomerId) stripePatch.stripe_customer_id = stripeCustomerId;
   if (stripeSubscriptionId) stripePatch.stripe_subscription_id = stripeSubscriptionId;
   if (stripeSubscriptionStatus) stripePatch.stripe_subscription_status = stripeSubscriptionStatus;
-  if (Number.isFinite(stripeCurrentPeriodEnd as number)) stripePatch.stripe_current_period_end = stripeCurrentPeriodEnd;
-  if (Number.isFinite(stripeCurrentPeriodStart as number)) stripePatch.stripe_current_period_start = stripeCurrentPeriodStart;
+  if (Number.isFinite(stripeCurrentPeriodEnd)) stripePatch.stripe_current_period_end = stripeCurrentPeriodEnd;
+  if (Number.isFinite(stripeCurrentPeriodStart)) stripePatch.stripe_current_period_start = stripeCurrentPeriodStart;
   if (stripeBillingInterval) stripePatch.stripe_billing_interval = stripeBillingInterval;
   if (stripeCancelAtPeriodEnd !== null) stripePatch.stripe_cancel_at_period_end = stripeCancelAtPeriodEnd;
   stripePatch.pending_tier = null;
