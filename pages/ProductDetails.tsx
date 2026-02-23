@@ -273,47 +273,26 @@ const ProductDetails: React.FC = () => {
           {/* Seller Card */}
           <div className="bg-emerald-50/50 dark:bg-slate-900 rounded-2xl p-6 border border-emerald-100 dark:border-slate-800">
             <p className="text-xs font-bold text-emerald-800 dark:text-slate-300 uppercase tracking-wide mb-3">{listing.is_verified_seller ? 'Verified Supplier' : 'Supplier'}</p>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-bold text-lg text-slate-900 dark:text-slate-100">{listing.seller_name}</p>
 
-                <div className="flex items-center gap-1 mt-1 text-sm text-slate-600 dark:text-slate-400">
-                  <ShieldCheck className="h-4 w-4 text-slate-400" />
-                  {listing.is_verified_seller ? 'Registered Company' : 'Unverified'}
+            {/* Seller Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600`}>
+                  {listing.seller_name.charAt(0)}
                 </div>
-
-                <div className="mt-3 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-                  {listing.seller_company_reg_no && (
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">Reg No:</span> {listing.seller_company_reg_no}
-                    </div>
-                  )}
-                  {hasPhone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-3.5 w-3.5 text-slate-400" /> {isPhoneRevealed ? phoneRaw : '******** (Click Phone above to reveal)'}
-                    </div>
-                  )}
-                  {hasEmail && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-3.5 w-3.5 text-slate-400" /> {listing.seller_email}
-                    </div>
-                  )}
-                  {listing.seller_business_address && (
-                    <div className="flex items-start gap-2 max-w-sm mt-2">
-                      <MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" /> <span className="line-clamp-2">{listing.seller_business_address}</span>
-                    </div>
-                  )}
+                <div>
+                  <p className="font-bold text-lg text-slate-900 dark:text-slate-100">{listing.seller_name}</p>
+                  <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {listing.is_verified_seller ? 'Registered Company' : 'Unverified'}
+                  </div>
                 </div>
-              </div>
-
-              <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600`}>
-                {listing.seller_name.charAt(0)}
               </div>
             </div>
 
             {/* Security Warning for Unverified Sellers */}
             {!listing.is_verified_seller && (
-              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg">
+              <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                   <div className="text-xs text-amber-700 dark:text-amber-300">
@@ -327,22 +306,47 @@ const ProductDetails: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-4 grid grid-cols-1 gap-2 text-xs text-slate-600 dark:text-slate-400">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold">Company Reg. No</span>
-                <span className="font-medium text-right">{listing.seller_company_reg_no || '-'}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold">Address</span>
-                <span className="font-medium text-right">{listing.seller_business_address ? listing.seller_business_address : '-'}</span>
-              </div>
+            {/* Seller Info Grid */}
+            <div className="space-y-2 text-sm">
+              {listing.seller_company_reg_no && (
+                <div className="flex items-center justify-between py-2 border-b border-emerald-100/50 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Company Reg. No</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">{listing.seller_company_reg_no}</span>
+                </div>
+              )}
+              {hasPhone && (
+                <div className="flex items-center justify-between py-2 border-b border-emerald-100/50 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5" /> Phone
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {isPhoneRevealed ? phoneRaw : '******** (Click Phone above to reveal)'}
+                  </span>
+                </div>
+              )}
+              {hasEmail && (
+                <div className="flex items-center justify-between py-2 border-b border-emerald-100/50 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5" /> Email
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">{listing.seller_email}</span>
+                </div>
+              )}
+              {listing.seller_business_address && (
+                <div className="flex items-start justify-between py-2">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                    <MapPin className="h-3.5 w-3.5" /> Address
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 text-right max-w-[60%] line-clamp-2">{listing.seller_business_address}</span>
+                </div>
+              )}
             </div>
 
             {listing.is_verified_seller && (
               <div className="mt-4 pt-4 border-t border-emerald-100/50 dark:border-slate-800 flex gap-4 text-xs text-slate-600 dark:text-slate-400">
-                <div className="flex items-center gap-1"><Check className="h-3 w-3" /> Identity Verified</div>
+                <div className="flex items-center gap-1"><Check className="h-3 w-3 text-emerald-500" /> Identity Verified</div>
                 {listing.seller_phone && (
-                  <div className="flex items-center gap-1"><Check className="h-3 w-3" /> Phone Verified</div>
+                  <div className="flex items-center gap-1"><Check className="h-3 w-3 text-emerald-500" /> Phone Verified</div>
                 )}
               </div>
             )}

@@ -306,7 +306,7 @@ const Demo: React.FC = () => {
                                                     Verified
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">demo@solartech.com.my</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">demo@example-solar.test</p>
                                         </div>
                                     </div>
 
@@ -327,7 +327,7 @@ const Demo: React.FC = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                     <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
                                         <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Email</div>
-                                        <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">demo@solartech.com.my</div>
+                                        <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">demo@example-solar.test</div>
                                     </div>
                                     <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
                                         <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">WhatsApp</div>
