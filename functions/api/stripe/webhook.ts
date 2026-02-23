@@ -614,6 +614,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         });
         if (subRes.ok) {
           const sub = await subRes.json();
+          console.log('[WEBHOOK] Raw subscription object keys:', Object.keys(sub));
+          console.log('[WEBHOOK] Raw current_period_end:', sub?.current_period_end, 'type:', typeof sub?.current_period_end);
+          console.log('[WEBHOOK] Raw current_period_start:', sub?.current_period_start, 'type:', typeof sub?.current_period_start);
           stripeSubscriptionStatus = String(sub?.status || '').trim() || null;
           const cpe = Number(sub?.current_period_end ?? NaN);
           const cps = Number(sub?.current_period_start ?? NaN);
