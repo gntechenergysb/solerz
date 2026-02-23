@@ -493,26 +493,7 @@ const fetchCurrentTier = async (env: Env, userId: string): Promise<string | null
   return data?.[0]?.tier || null;
 };
 
-const findUserIdByStripeSubscriptionId = async (env: Env, subscriptionId: string): Promise<string | null> => {
-  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
-  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceKey) return null;
-
-  const res = await fetch(
-    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?stripe_subscription_id=eq.${encodeURIComponent(subscriptionId)}&select=id&limit=1`,
-    {
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        Accept: 'application/json'
-      }
-    }
-  );
-
-  if (!res.ok) return null;
-  const data = (await res.json().catch(() => null)) as any;
-  return data?.[0]?.id || null;
-};
+const findUserIdByStripeCustomerId = async (env: Env, customerId: string): Promise<string | null> => {
   const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) return null;
@@ -666,9 +647,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     // Handle case where invoice.customer might be an object or string
     const rawCustomer = invoice?.customer;
     stripeCustomerId = typeof rawCustomer === 'string' ? rawCustomer.trim() : (rawCustomer?.id || '').trim();
-    // Handle case where invoice.subscription might be an object or string
-    const rawSubscription = invoice?.subscription;
-    stripeSubscriptionId = typeof rawSubscription === 'string' ? rawSubscription.trim() : (rawSubscription?.id || '').trim();
+    stripeSubscriptionId = String(invoice?.subscription || '').trim();
     stripeSubscriptionStatus = 'active'; // Invoice paid means subscription is active
 
     const lines = invoice?.lines?.data;
@@ -693,11 +672,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // If Stripe doesn't include subscription metadata on invoice events (can happen), fetch subscription.
-    if ((!userId || !tier) && stripeSubscriptionId && env.STRIPE_SECRET_KEY) {
-      const meta = await fetchStripeSubscriptionMetadata(env.STRIPE_SECRET_KEY, stripeSubscriptionId);
-      if (meta) {
-        userId = meta.userId;
-        tier = meta.tier;
+    if ((!userId || !tier) && invoice?.subscription && env.STRIPE_SECRET_KEY) {
+      const subId = String(invoice.subscription || '').trim();
+      if (subId) {
+        const meta = await fetchStripeSubscriptionMetadata(env.STRIPE_SECRET_KEY, subId);
+        if (meta) {
+          userId = meta.userId;
+          tier = meta.tier;
+        }
       }
     }
 
