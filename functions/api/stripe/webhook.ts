@@ -493,7 +493,26 @@ const fetchCurrentTier = async (env: Env, userId: string): Promise<string | null
   return data?.[0]?.tier || null;
 };
 
-const findUserIdByStripeCustomerId = async (env: Env, customerId: string): Promise<string | null> => {
+const findUserIdByStripeSubscriptionId = async (env: Env, subscriptionId: string): Promise<string | null> => {
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const res = await fetch(
+    `${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?stripe_subscription_id=eq.${encodeURIComponent(subscriptionId)}&select=id&limit=1`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Accept: 'application/json'
+      }
+    }
+  );
+
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => null)) as any;
+  return data?.[0]?.id || null;
+};
   const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) return null;
@@ -644,8 +663,12 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const invoice = event?.data?.object;
     userId = String(invoice?.subscription_details?.metadata?.user_id || invoice?.metadata?.user_id || '').trim();
     tier = normalizeTier(String(invoice?.subscription_details?.metadata?.tier || invoice?.metadata?.tier || ''));
-    stripeCustomerId = String(invoice?.customer || '').trim();
-    stripeSubscriptionId = String(invoice?.subscription || '').trim();
+    // Handle case where invoice.customer might be an object or string
+    const rawCustomer = invoice?.customer;
+    stripeCustomerId = typeof rawCustomer === 'string' ? rawCustomer.trim() : (rawCustomer?.id || '').trim();
+    // Handle case where invoice.subscription might be an object or string
+    const rawSubscription = invoice?.subscription;
+    stripeSubscriptionId = typeof rawSubscription === 'string' ? rawSubscription.trim() : (rawSubscription?.id || '').trim();
     stripeSubscriptionStatus = 'active'; // Invoice paid means subscription is active
 
     const lines = invoice?.lines?.data;
@@ -670,14 +693,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // If Stripe doesn't include subscription metadata on invoice events (can happen), fetch subscription.
-    if ((!userId || !tier) && invoice?.subscription && env.STRIPE_SECRET_KEY) {
-      const subId = String(invoice.subscription || '').trim();
-      if (subId) {
-        const meta = await fetchStripeSubscriptionMetadata(env.STRIPE_SECRET_KEY, subId);
-        if (meta) {
-          userId = meta.userId;
-          tier = meta.tier;
-        }
+    if ((!userId || !tier) && stripeSubscriptionId && env.STRIPE_SECRET_KEY) {
+      const meta = await fetchStripeSubscriptionMetadata(env.STRIPE_SECRET_KEY, stripeSubscriptionId);
+      if (meta) {
+        userId = meta.userId;
+        tier = meta.tier;
       }
     }
 
@@ -697,10 +717,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     // If no userId from metadata, try to find by customer_id
     if (!userId && stripeCustomerId) {
+      console.log('[WEBHOOK] invoice.paid - Looking up user by customerId:', stripeCustomerId);
       userId = await findUserIdByStripeCustomerId(env, stripeCustomerId);
+      console.log('[WEBHOOK] invoice.paid - Found userId:', userId);
     }
 
     // Save period dates immediately if we have userId and valid dates
+    console.log('[WEBHOOK] invoice.paid - Checking save condition:', { userId, hasUserId: !!userId, stripeCurrentPeriodEnd, stripeCurrentPeriodStart });
     if (userId && (Number.isFinite(stripeCurrentPeriodEnd) || Number.isFinite(stripeCurrentPeriodStart))) {
       const datePatch: Record<string, any> = {};
       if (Number.isFinite(stripeCurrentPeriodEnd)) datePatch.stripe_current_period_end = stripeCurrentPeriodEnd;
