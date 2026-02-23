@@ -37,24 +37,24 @@ export interface BaseSpecs {
 export interface PanelSpecs extends BaseSpecs {
   wattage: number;
   cell_type:
-    | 'TOPCon'
-    | 'BC'
-    | 'HJT'
-    | 'N-type'
-    | 'P-type'
-    | 'Bifacial'
-    | 'Monofacial'
-    | 'Thin-Film'
-    | 'Standard Rigid'
-    | 'Flexible'
-    | 'BIPV'
-    | 'Shingled'
-    | 'PERC'
-    | 'Mono'
-    | 'Poly'
-    | 'IBC'
-    | 'ABC'
-    | string;
+  | 'TOPCon'
+  | 'BC'
+  | 'HJT'
+  | 'N-type'
+  | 'P-type'
+  | 'Bifacial'
+  | 'Monofacial'
+  | 'Thin-Film'
+  | 'Standard Rigid'
+  | 'Flexible'
+  | 'BIPV'
+  | 'Shingled'
+  | 'PERC'
+  | 'Mono'
+  | 'Poly'
+  | 'IBC'
+  | 'ABC'
+  | string;
   efficiency: number;
   dimensions: string;
   model?: string;
@@ -98,24 +98,24 @@ export interface BatterySpecs extends BaseSpecs {
   capacity_kwh: number;
   nominal_voltage: number;
   battery_type?:
-    | 'Rack-mounted'
-    | 'Wall-mounted'
-    | 'Portable'
-    | 'Container'
-    | 'Floor-standing'
-    | 'All-in-one'
-    | string;
+  | 'Rack-mounted'
+  | 'Wall-mounted'
+  | 'Portable'
+  | 'Container'
+  | 'Floor-standing'
+  | 'All-in-one'
+  | string;
   technology:
-    | 'LiFePO4'
-    | 'NMC'
-    | 'LTO'
-    | 'Lead-Acid'
-    | 'AGM'
-    | 'Gel'
-    | 'Sodium-Ion'
-    | 'Flow'
-    | 'Other'
-    | string;
+  | 'LiFePO4'
+  | 'NMC'
+  | 'LTO'
+  | 'Lead-Acid'
+  | 'AGM'
+  | 'Gel'
+  | 'Sodium-Ion'
+  | 'Flow'
+  | 'Other'
+  | string;
   model?: string;
   usable_capacity_kwh?: number;
   max_charge_kw?: number;
@@ -133,41 +133,41 @@ export interface BatterySpecs extends BaseSpecs {
 export interface CableSpecs extends BaseSpecs {
   current_type?: 'DC' | 'AC';
   cable_type?:
-    | 'PV1-F'
-    | 'H1Z2Z2-K'
-    | 'USE-2'
-    | 'PV Wire'
-    | 'THHN'
-    | 'H05VV-F'
-    | 'N2XH'
-    | 'Battery Cable'
-    | 'MV Cable'
-    | 'RHW-2'
-    | 'THWN-2'
-    | string;
+  | 'PV1-F'
+  | 'H1Z2Z2-K'
+  | 'USE-2'
+  | 'PV Wire'
+  | 'THHN'
+  | 'H05VV-F'
+  | 'N2XH'
+  | 'Battery Cable'
+  | 'MV Cable'
+  | 'RHW-2'
+  | 'THWN-2'
+  | string;
   voltage_rating?:
-    | '600V'
-    | '1000V'
-    | '1500V'
-    | '1800V'
-    | '2000V'
-    | '0.6/1kV'
-    | '450/750V'
-    | '1.8/3kV'
-    | '6.35/11kV'
-    | '19/33kV'
-    | string;
+  | '600V'
+  | '1000V'
+  | '1500V'
+  | '1800V'
+  | '2000V'
+  | '0.6/1kV'
+  | '450/750V'
+  | '1.8/3kV'
+  | '6.35/11kV'
+  | '19/33kV'
+  | string;
   insulation?: 'XLPE' | 'XLPO' | 'PVC' | 'Halogen-Free' | 'LSHF' | string;
   size_mm2?: number;
   cores?: number;
   length_m?: number;
   conductor?:
-    | 'Copper'
-    | 'Tinned Copper'
-    | 'Aluminum'
-    | 'Tinned Copper-Clad Aluminum (TCCA)'
-    | 'Aluminum Alloy'
-    | string;
+  | 'Copper'
+  | 'Tinned Copper'
+  | 'Aluminum'
+  | 'Tinned Copper-Clad Aluminum (TCCA)'
+  | 'Aluminum Alloy'
+  | string;
 }
 
 export interface ProtectiveSpecs extends BaseSpecs {
@@ -188,9 +188,7 @@ export interface Listing {
   seller_phone?: string; // Joined field
   seller_email?: string; // Joined field (public)
   seller_business_address?: string; // Joined field (public)
-  seller_ssm_new_no?: string; // Joined field (public)
-  seller_ssm_old_no?: string; // Joined field (public)
-  seller_ssm_no?: string; // Joined field (public)
+  seller_company_reg_no?: string; // Joined field (public)
   title: string;
   category: Category;
   brand: string;

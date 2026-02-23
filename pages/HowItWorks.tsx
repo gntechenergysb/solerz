@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Search, 
-  ShieldCheck, 
-  MessageCircle, 
+import {
+  Search,
+  ShieldCheck,
+  MessageCircle,
   CheckCircle,
   Package,
   User,
@@ -196,268 +196,302 @@ const ListingFormPreview: React.FC = () => (
 );
 
 const HowItWorks: React.FC = () => {
+  const [activeTab, setActiveTab] = React.useState<'buy' | 'sell'>('buy');
+
   return (
-    <div className="min-h-screen animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="text-center mb-16 pt-8">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+    <div className="min-h-screen animate-in fade-in duration-500 pb-16">
+      {/* Hero Header */}
+      <div className="text-center mb-10 pt-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
           How Solerz Works
         </h1>
-        <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-          Malaysia's trusted marketplace for solar equipment. 
-          Buy from verified sellers or list your inventory.
+        <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto px-4">
+          Malaysia's trusted marketplace for solar equipment.
+          Discover how easy it is to transact safely on our platform.
         </p>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-16">
-        {/* STEP 1: Browse */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-          <div className="order-2 md:order-1">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-lg">1</span>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Browse Equipment</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              Search through hundreds of solar equipment listings. Filter by category, location, 
-              price range, and specifications to find exactly what you need.
-            </p>
-            <ul className="space-y-2">
-              {[
-                'Solar panels, inverters, batteries & more',
-                'Filter by location in Malaysia',
-                'Compare prices and specifications'
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-1 md:order-2">
-            <MarketplacePreview />
-          </div>
-        </div>
-
-        {/* STEP 2: Verify */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-          <div className="order-2">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-lg">2</span>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Verify Sellers</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              Look for the verified badge on listings. We verify company registration 
-              numbers to ensure you're dealing with legitimate businesses.
-            </p>
-            <ul className="space-y-2">
-              {[
-                'Company registration verified',
-                'Business address confirmed',
-                'Safe transaction guidance'
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-1">
-            <VerificationPreview />
-          </div>
-        </div>
-
-        {/* STEP 3: Contact */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-          <div className="order-2 md:order-1">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-lg">3</span>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Contact & Deal</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              Contact sellers directly through phone or WhatsApp. Arrange viewings, 
-              negotiate prices, and complete transactions on your terms.
-            </p>
-            <ul className="space-y-2">
-              {[
-                'Direct contact with sellers',
-                'Arrange product viewing',
-                'Negotiate best prices'
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-1 md:order-2">
-            <ContactPreview />
-          </div>
-        </div>
-
-        {/* Seller Section Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-full mb-4">
-            <Building2 className="h-5 w-5 text-blue-600" />
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">For Sellers</span>
-          </div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Start Selling Today</h2>
-        </div>
-
-        {/* SELLER STEP 1: Register */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-          <div className="order-1">
-            <VerificationPreview />
-          </div>
-          <div className="order-2">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">1</span>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Register Your Company</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              Complete your company profile with registration number. 
-              Verified sellers get priority listing and buyer trust.
-            </p>
-            <ul className="space-y-2">
-              {[
-                'Submit company registration document',
-                'Get verified badge on all listings',
-                'Build buyer confidence'
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* SELLER STEP 2: List */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-          <div className="order-2 md:order-1">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">2</span>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">List Your Products</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              Create detailed listings with photos, specifications, and pricing. 
-              The more information you provide, the more inquiries you'll receive.
-            </p>
-            <ul className="space-y-2">
-              {[
-                'Upload multiple product photos',
-                'Add detailed specifications',
-                'Set competitive prices'
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-1 md:order-2">
-            <ListingFormPreview />
-          </div>
-        </div>
-
-        {/* SELLER STEP 3: Manage */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-          <div className="order-2">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">3</span>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Manage & Sell</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-              Track views, respond to inquiries, and manage your inventory 
-              through your seller dashboard. Buyers contact you directly.
-            </p>
-            <ul className="space-y-2">
-              {[
-                'Real-time view analytics',
-                'Direct buyer messages',
-                'Inventory management'
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="order-1">
-            <SellerDashboardPreview />
-          </div>
-        </div>
-
-        {/* Equipment Categories */}
-        <div className="mb-16">
-          <h2 className="text-center text-xl font-bold text-slate-900 dark:text-slate-100 mb-8">
-            Popular Equipment Categories
-          </h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            {[
-              { name: 'Solar Panels', icon: Sun, color: 'amber' },
-              { name: 'Inverters', icon: Cpu, color: 'blue' },
-              { name: 'Batteries', icon: Battery, color: 'green' },
-              { name: 'Cables', icon: Cable, color: 'orange' },
-              { name: 'Protection Devices', icon: Shield, color: 'purple' }
-            ].map((item) => (
-              <div key={item.name} className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <item.icon className={`h-5 w-5 text-${item.color}-500`} />
-                <span className="font-medium text-slate-700 dark:text-slate-300">{item.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {[
-            { icon: Zap, label: 'Smart Filters', desc: 'Find exactly what you need', color: 'amber' },
-            { icon: MapPin, label: 'Location Based', desc: 'Search nearby sellers', color: 'blue' },
-            { icon: ShieldCheck, label: 'Verified Only', desc: 'Company registration checked', color: 'emerald' },
-            { icon: Eye, label: 'Analytics', desc: 'Track listing performance', color: 'purple' }
-          ].map((f) => (
-            <div key={f.label} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
-              <div className={`w-12 h-12 bg-${f.color}-100 dark:bg-${f.color}-900/20 rounded-xl flex items-center justify-center mx-auto mb-3`}>
-                <f.icon className={`h-6 w-6 text-${f.color}-500`} />
-              </div>
-              <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-1">{f.label}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-          <Link 
-            to="/" 
-            className="inline-flex items-center justify-center gap-2 bg-emerald-500 text-white font-bold px-8 py-4 rounded-xl hover:bg-emerald-600 transition-colors shadow-lg hover:shadow-xl"
+      {/* Segmented Control / Tabs */}
+      <div className="flex justify-center mb-16">
+        <div className="bg-slate-100 dark:bg-slate-900/80 p-1.5 rounded-2xl flex relative max-w-xs w-full shadow-inner border border-slate-200/50 dark:border-slate-800">
+          <div
+            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] bg-white dark:bg-slate-800 rounded-xl shadow-sm transition-all duration-300 ease-out ${activeTab === 'buy' ? 'left-1.5' : 'left-[calc(50%+0.375rem)]'}`}
+          />
+          <button
+            onClick={() => setActiveTab('buy')}
+            className={`relative z-10 flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-colors ${activeTab === 'buy' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            Browse Listings
-            <ArrowRight className="h-5 w-5" />
-          </Link>
-          <Link 
-            to="/pricing" 
-            className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
+            <Search className="h-4 w-4" /> I want to Buy
+          </button>
+          <button
+            onClick={() => setActiveTab('sell')}
+            className={`relative z-10 flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-colors ${activeTab === 'sell' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            Start Selling
-          </Link>
+            <Building2 className="h-4 w-4" /> I want to Sell
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 relative">
+
+        {/* Dynamic Content Area */}
+        <div className="relative">
+
+          {/* BUYER JOURNEY */}
+          {activeTab === 'buy' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+              {/* Central Line for Desktop */}
+              <div className="hidden md:block absolute left-1/2 top-4 bottom-24 w-0.5 bg-gradient-to-b from-emerald-100 via-emerald-200 to-transparent dark:from-emerald-900/30 dark:via-emerald-900/10 dark:to-transparent -translate-x-1/2 z-0" />
+
+              {/* STEP 1: Browse */}
+              <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mb-24 relative z-10">
+                <div className="order-2 md:order-1 text-center md:text-right">
+                  <div className="flex flex-col md:flex-row items-center justify-end gap-3 mb-4">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">1. Browse & Filter</h2>
+                    <span className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-extrabold text-lg shadow-lg shadow-emerald-500/30 ring-4 ring-white dark:ring-slate-950 order-first md:order-last">1</span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm ml-auto mr-auto md:mr-0">
+                    Search through hundreds of solar equipment listings. Filter by category, location,
+                    price range, and specifications to find exactly what you need.
+                  </p>
+                  <ul className="space-y-3 inline-block text-left">
+                    {[
+                      'Solar panels, inverters, batteries & more',
+                      'Filter by location in Malaysia',
+                      'Compare prices and specifications'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="order-1 md:order-2">
+                  <MarketplacePreview />
+                </div>
+              </div>
+
+              {/* STEP 2: Verify */}
+              <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mb-24 relative z-10">
+                <div className="order-1">
+                  <VerificationPreview />
+                </div>
+                <div className="order-2 text-center md:text-left">
+                  <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
+                    <span className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-extrabold text-lg shadow-lg shadow-emerald-500/30 ring-4 ring-white dark:ring-slate-950">2</span>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">2. Verify Identity</h2>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto md:mx-0">
+                    Look for the verified badge on listings. We verify company registration
+                    numbers to ensure you're dealing with legitimate businesses.
+                  </p>
+                  <ul className="space-y-3 inline-block text-left">
+                    {[
+                      'Company registration verified',
+                      'Business address confirmed',
+                      'Safe transaction guidance'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* STEP 3: Contact */}
+              <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mb-16 relative z-10">
+                <div className="order-2 md:order-1 text-center md:text-right">
+                  <div className="flex flex-col md:flex-row items-center justify-end gap-3 mb-4">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">3. Deal Securely</h2>
+                    <span className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-extrabold text-lg shadow-lg shadow-emerald-500/30 ring-4 ring-white dark:ring-slate-950 order-first md:order-last">3</span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm ml-auto mr-auto md:mr-0">
+                    Contact sellers directly through phone or WhatsApp. Arrange viewings,
+                    negotiate prices, and complete transactions on your terms.
+                  </p>
+                  <ul className="space-y-3 inline-block text-left">
+                    {[
+                      'Direct contact with sellers',
+                      'Arrange product viewing',
+                      'Negotiate best prices'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="order-1 md:order-2">
+                  <ContactPreview />
+                </div>
+              </div>
+
+              <div className="flex justify-center mt-12 mb-8 relative z-10">
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center gap-2 bg-emerald-500 text-white font-bold px-8 py-4 rounded-xl hover:bg-emerald-600 hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-emerald-500/25"
+                >
+                  Start Browsing
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </div>
+
+            </div>
+          )}
+
+          {/* SELLER JOURNEY */}
+          {activeTab === 'sell' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+              {/* Central Line for Desktop */}
+              <div className="hidden md:block absolute left-1/2 top-4 bottom-24 w-0.5 bg-gradient-to-b from-blue-100 via-blue-200 to-transparent dark:from-blue-900/30 dark:via-blue-900/10 dark:to-transparent -translate-x-1/2 z-0" />
+
+              {/* SELLER STEP 1: Register */}
+              <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mb-24 relative z-10">
+                <div className="order-2 md:order-1 text-center md:text-right">
+                  <div className="flex flex-col md:flex-row items-center justify-end gap-3 mb-4">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">1. Create Profile</h2>
+                    <span className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-500/30 ring-4 ring-white dark:ring-slate-950 order-first md:order-last">1</span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm ml-auto mr-auto md:mr-0">
+                    Complete your company profile with registration number.
+                    Verified sellers get priority listing and build instant buyer trust.
+                  </p>
+                  <ul className="space-y-3 inline-block text-left">
+                    {[
+                      'Submit company registration document',
+                      'Get verified badge on all listings',
+                      'Build buyer confidence immediately'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <CheckCircle className="h-4 w-4 text-blue-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="order-1 md:order-2">
+                  <VerificationPreview />
+                </div>
+              </div>
+
+              {/* SELLER STEP 2: List */}
+              <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mb-24 relative z-10">
+                <div className="order-1">
+                  <ListingFormPreview />
+                </div>
+                <div className="order-2 text-center md:text-left">
+                  <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
+                    <span className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-500/30 ring-4 ring-white dark:ring-slate-950">2</span>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">2. Upload Inventory</h2>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm mx-auto md:mx-0">
+                    Create detailed listings with photos, accurate specifications, and competitive pricing.
+                    The richer the details, the higher the conversion.
+                  </p>
+                  <ul className="space-y-3 inline-block text-left">
+                    {[
+                      'Upload high-quality product photos',
+                      'Fill in technical data sheets',
+                      'Set clear availability and prices'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <CheckCircle className="h-4 w-4 text-blue-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* SELLER STEP 3: Manage */}
+              <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mb-16 relative z-10">
+                <div className="order-2 md:order-1 text-center md:text-right">
+                  <div className="flex flex-col md:flex-row items-center justify-end gap-3 mb-4">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">3. Track & Sell</h2>
+                    <span className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-extrabold text-lg shadow-lg shadow-blue-500/30 ring-4 ring-white dark:ring-slate-950 order-first md:order-last">3</span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-sm ml-auto mr-auto md:mr-0">
+                    Track impressions, respond to WhatsApp inquiries instantly, and manage your inventory
+                    throughput from a unified command center.
+                  </p>
+                  <ul className="space-y-3 inline-block text-left">
+                    {[
+                      'Real-time view analytics dashboard',
+                      'Field direct buyer inquiries',
+                      'Pause or rotate inventory seamlessly'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <CheckCircle className="h-4 w-4 text-blue-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="order-1 md:order-2">
+                  <SellerDashboardPreview />
+                </div>
+              </div>
+
+              <div className="flex justify-center mt-12 mb-8 relative z-10">
+                <Link
+                  to="/pricing"
+                  className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-blue-700 hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-blue-500/25"
+                >
+                  View Seller Plans
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </div>
+
+            </div>
+          )}
         </div>
 
-        {/* Safety Notice */}
-        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-4 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-amber-700 dark:text-amber-300">
-            <span className="font-semibold">Safety Notice:</span> Solerz is a listing platform. 
-            We verify company sellers through registration numbers. For individual sellers, 
-            meet in person and avoid advance payments.
-          </p>
+        {/* Universal Features Area (Applies to both) */}
+        <div className="mt-20 pt-16 border-t border-slate-200 dark:border-slate-800">
+          {/* Equipment Categories */}
+          <div className="mb-20">
+            <div className="text-center mb-10">
+              <span className="inline-block px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs rounded-full tracking-wider uppercase mb-3 text-center">Equipment coverage</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
+                Comprehensive Hardware Catalog
+              </h2>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-4 max-w-4xl mx-auto">
+              {[
+                { name: 'Solar Panels', icon: Sun, color: 'text-amber-500' },
+                { name: 'Inverters', icon: Cpu, color: 'text-blue-500' },
+                { name: 'Batteries', icon: Battery, color: 'text-green-500' },
+                { name: 'Cables', icon: Cable, color: 'text-orange-500' },
+                { name: 'Protection Devices', icon: Shield, color: 'text-purple-500' }
+              ].map((item) => (
+                <div key={item.name} className="flex items-center gap-3 px-6 py-4 bg-white dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                  <item.icon className={`h-6 w-6 ${item.color}`} />
+                  <span className="font-bold text-slate-700 dark:text-slate-200">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Safety Notice */}
+          <div className="bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 max-w-4xl mx-auto shadow-inner">
+            <div className="w-16 h-16 bg-white dark:bg-slate-950 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 dark:border-slate-800">
+              <Shield className="h-8 w-8 text-slate-700 dark:text-slate-300" />
+            </div>
+            <div className="text-center md:text-left">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Our Commitment to Safety</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Solerz operates strictly as a B2B and B2C classifieds listing platform. We do not provide transaction or escrow services. We vigorously verify corporate sellers through established registration matrices. For all interactions, we strongly advise physical inspections, direct communication with the seller, and to avoid premature digital fund transfers.
+              </p>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   );

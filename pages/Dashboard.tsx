@@ -3,7 +3,7 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { Listing, UserTier } from '../types';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, DollarSign, Target, CheckCircle, X, CreditCard } from 'lucide-react';
+import { PlusCircle, Eye, RefreshCw, AlertCircle, RotateCcw, TrendingUp, DollarSign, Target, CheckCircle, X, CreditCard, BarChart2, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // --- KYC FORM COMPONENT ---
@@ -133,14 +133,14 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
       setSelectedFile(null);
       return;
     }
-    
+
     // Validate PDF file type
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       setFileError('Please upload a valid PDF file');
       setSelectedFile(null);
       return;
     }
-    
+
     // Validate file size (max 10MB)
     const MAX_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
@@ -148,7 +148,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
       setSelectedFile(null);
       return;
     }
-    
+
     setSelectedFile(file);
   };
 
@@ -169,16 +169,10 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
             placeholder="e.g. 201901001234" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Company Reg. No. (Optional)</label>
-          <input name="company_reg_no" value={formData.company_reg_no} onChange={handleChange}
-            placeholder="e.g. 123456-X" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Phone Number</label>
+          <input required name="handphone_no" value={formData.handphone_no} onChange={handleChange}
+            placeholder="e.g. 0123456789" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
         </div>
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Phone Number</label>
-        <input required name="handphone_no" value={formData.handphone_no} onChange={handleChange}
-          placeholder="e.g. 0123456789" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
       </div>
 
       <div>
@@ -245,7 +239,7 @@ const Dashboard: React.FC = () => {
     contacts: 0
   });
 
-  // SSM Verification State
+  // Company Verification State
   const [isVerifying, setIsVerifying] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState<any>(null);
@@ -277,13 +271,13 @@ const Dashboard: React.FC = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
-      
+
       const res = await fetch('/api/stripe/subscription/sync', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         if (data.subscription) {
@@ -308,21 +302,21 @@ const Dashboard: React.FC = () => {
   // Optimized data loading: load listings immediately, other data in background
   useEffect(() => {
     if (!user) return;
-    
+
     // Load listings immediately (fastest - most important)
     const loadListings = async () => {
       const mine = await db.getListingsBySellerIdMinimal(user.id);
       setMyListings(mine);
       setLoading(false); // Show listings immediately
     };
-    
+
     // Load stats in background (less critical)
     const loadStats = async () => {
       const [demandRows, funnelRow] = await Promise.all([
         db.getMarketDemand(7),
         db.getSellerFunnel(user.id, 7)
       ]);
-      
+
       const map: Record<string, number> = {};
       for (const r of demandRows || []) {
         const k = String((r as any).category || '').trim();
@@ -335,31 +329,31 @@ const Dashboard: React.FC = () => {
         panels: map['Panels'] || 0,
         batteries: map['Batteries'] || 0
       });
-      
+
       setFunnel({
         impressions: Number((funnelRow as any)?.impressions || 0),
         views: Number((funnelRow as any)?.views || 0),
         contacts: Number((funnelRow as any)?.contacts || 0)
       });
     };
-    
+
     // Execute: listings first, then stats
     loadListings();
     loadStats();
-    
+
     // Portal 返回后立即同步(不检查 needsSync)
-    const isPortalReturn = document.referrer?.includes('stripe.com') || 
+    const isPortalReturn = document.referrer?.includes('stripe.com') ||
       (user?.tier && location.pathname === '/dashboard' && !location.search);
-    
+
     if (isPortalReturn) {
       setTimeout(() => fetchSubscriptionSync(), 100);
     }
-    
+
     // Background Stripe sync: only sync if no recent data
-    const needsSync = !user?.stripe_current_period_end || 
+    const needsSync = !user?.stripe_current_period_end ||
       (user?.stripe_current_period_end * 1000) < Date.now() ||
       !user?.stripe_subscription_status;
-    
+
     if (needsSync && !isPortalReturn) {
       setTimeout(() => fetchSubscriptionSync(), 500); // Delay more to not compete with listing load
     }
@@ -379,7 +373,7 @@ const Dashboard: React.FC = () => {
       try {
         // Sync with Stripe once to get latest status
         await fetchSubscriptionSync();
-        
+
         // Check if updated
         for (let i = 0; i < 3; i += 1) {
           if (cancelled) return;
@@ -498,11 +492,11 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getListingLimit = (tier: UserTier) => {
+  const getListingLimit = (tier: string) => {
+    if (user?.role === 'ADMIN') return Infinity;
     switch (tier) {
-      case 'UNSUBSCRIBED': return 0;
-      case 'STARTER': return 3;
-      case 'PRO': return 10;
+      case 'STARTER': return 5;
+      case 'PRO': return 25;
       case 'ELITE': return 25;
       case 'ENTERPRISE': return 80;
       default: return 0;
@@ -511,22 +505,22 @@ const Dashboard: React.FC = () => {
 
   const nowMs = Date.now();
   const listingLimit = getListingLimit(user?.tier || 'STARTER');
-  
+
   // Count active listings (not paused)
   const activeUsedCount = myListings.filter(l => {
     const activeUntilMs = new Date((l as any).active_until).getTime();
     return !(l as any).is_hidden && !(l as any).is_sold && !(l as any).is_paused && activeUntilMs > nowMs;
   }).length;
-  
+
   // Count paused listings
   const pausedCount = myListings.filter(l => (l as any).is_paused).length;
-  
+
   // Total active + paused (for display purposes)
   const totalActiveAndPaused = myListings.filter(l => {
     const activeUntilMs = new Date((l as any).active_until).getTime();
     return !(l as any).is_hidden && !(l as any).is_sold && activeUntilMs > nowMs;
   }).length;
-  
+
   const overLimitCount = Math.max(0, activeUsedCount - listingLimit);
 
   // Calculate Profile Strength
@@ -646,7 +640,7 @@ const Dashboard: React.FC = () => {
   }
   const topCategory = Object.entries(categoryCount)
     .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-  
+
   const topCategoryListings = topCategory
     ? activeListings.filter(l => l.category === topCategory)
     : [];
@@ -681,46 +675,46 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
 
-  {/* Welcome Section */}
-  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-    <div>
-      <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Seller Dashboard</h1>
-      <p className="text-slate-500 dark:text-slate-300">Welcome back, {user?.company_name}</p>
-    </div>
-    {(user?.is_verified && user?.tier !== 'UNSUBSCRIBED') ? (
-      <Link to="/create">
-        <button className="flex items-center space-x-2 bg-primary text-white px-5 py-2.5 rounded-lg hover:bg-emerald-600 transition shadow-sm font-medium">
-          <PlusCircle className="h-5 w-5" />
-          <span>Create New Listing</span>
-        </button>
-      </Link>
-    ) : (
-      user?.is_verified && (
-        <div className="w-full md:w-auto bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 px-4 py-2 rounded-xl flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 min-w-0">
-            <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
-            <span className="text-emerald-900 dark:text-emerald-200 font-bold truncate">Account Verified</span>
-          </div>
-          {user?.tier !== 'UNSUBSCRIBED' ? (
-            <div className="flex flex-col items-end gap-0.5 shrink-0">
-              <span className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40">
-                TIER: {user.tier}
-              </span>
-              {user?.pending_tier && user?.tier_effective_at ? (
-                <span className="text-[10px] font-bold text-emerald-700/80 dark:text-emerald-200/80">
-                  Next: {user.pending_tier} ({new Date(user.tier_effective_at * 1000).toLocaleDateString()})
-                </span>
-              ) : null}
-            </div>
-          ) : (
-            <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-slate-800 shrink-0">
-              Subscribe
-            </Link>
-          )}
+      {/* Welcome Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Seller Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-300">Welcome back, {user?.company_name}</p>
         </div>
-      )
-    )}
-  </div>
+        {(user?.is_verified && user?.tier !== 'UNSUBSCRIBED') ? (
+          <Link to="/create">
+            <button className="flex items-center space-x-2 bg-primary text-white px-5 py-2.5 rounded-lg hover:bg-emerald-600 transition shadow-sm font-medium">
+              <PlusCircle className="h-5 w-5" />
+              <span>Create New Listing</span>
+            </button>
+          </Link>
+        ) : (
+          user?.is_verified && (
+            <div className="w-full md:w-auto bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 px-4 py-2 rounded-xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+                <span className="text-emerald-900 dark:text-emerald-200 font-bold truncate">Account Verified</span>
+              </div>
+              {user?.tier !== 'UNSUBSCRIBED' ? (
+                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                  <span className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40">
+                    TIER: {user.tier}
+                  </span>
+                  {user?.pending_tier && user?.tier_effective_at ? (
+                    <span className="text-[10px] font-bold text-emerald-700/80 dark:text-emerald-200/80">
+                      Next: {user.pending_tier} ({new Date(user.tier_effective_at * 1000).toLocaleDateString()})
+                    </span>
+                  ) : null}
+                </div>
+              ) : (
+                <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-slate-800 shrink-0">
+                  Subscribe
+                </Link>
+              )}
+            </div>
+          )
+        )}
+      </div>
 
       {/* Top Section: Company Profile + Verification Side-by-Side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -744,7 +738,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
               </div>
             </div>
-            
+
             {/* Right: Subscription Info + Actions */}
             {user?.tier && user.tier !== 'UNSUBSCRIBED' ? (
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
@@ -777,7 +771,7 @@ const Dashboard: React.FC = () => {
                     {(subscriptionData.billing_interval !== undefined ? subscriptionData.billing_interval : user?.stripe_billing_interval) === 'year' ? 'Yearly' : 'Monthly'}
                   </span>
                 </span>
-                
+
                 {/* Change History inline */}
                 {user?.pending_tier && user?.tier_effective_at && (
                   <>
@@ -788,7 +782,7 @@ const Dashboard: React.FC = () => {
                     </span>
                   </>
                 )}
-                
+
                 {/* Cancel Notice inline */}
                 {(subscriptionData.cancel_at_period_end !== undefined ? subscriptionData.cancel_at_period_end : user?.stripe_cancel_at_period_end) && (subscriptionData.current_period_end !== undefined ? subscriptionData.current_period_end : user?.stripe_current_period_end) && (
                   <>
@@ -798,7 +792,7 @@ const Dashboard: React.FC = () => {
                     </span>
                   </>
                 )}
-                
+
                 <span className="text-slate-400">|</span>
                 <Link
                   to="/pricing"
@@ -830,7 +824,7 @@ const Dashboard: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* 3x2 Grid - Company Details */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             <div className="rounded border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2">
@@ -967,85 +961,104 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
+      {/* --- ELITE ANALYTICS REDESIGN --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
         {/* Card 1: My Listing Performance */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">My Listing Performance</p>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {funnel.views > 0 ? ((funnel.contacts / funnel.views) * 100).toFixed(1) : 0}% <span className="text-sm text-slate-400 font-normal">Conversion</span>
-              </h3>
-            </div>
-            <div className="p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-              <Target className="h-5 w-5 text-blue-600" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-slate-500 dark:text-slate-300">Active Listings</span>
-              <span className="font-bold text-slate-700 dark:text-slate-100">{activeUsedCount}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-slate-500 dark:text-slate-300">Avg Views / Listing</span>
-              <span className="font-bold text-slate-700 dark:text-slate-100">{activeUsedCount > 0 ? (funnel.views / activeUsedCount).toFixed(1) : 0}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-slate-500 dark:text-slate-300">Views (7d)</span>
-              <span className="font-bold text-slate-700 dark:text-slate-100">{funnel.views}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-slate-500 dark:text-slate-300">Contacts</span>
-              <span className="font-bold text-slate-700 dark:text-slate-100">{funnel.contacts}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Total Traffic */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">Total Traffic</p>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalViewsAllTime} <span className="text-sm text-slate-400 font-normal">Views</span></h3>
-            </div>
-            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-slate-600 dark:text-slate-200" />
-            </div>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-300 mt-4">
-            All-time accumulated views across all your listings.
-          </p>
-        </div>
-
-        {/* Card 3: My Pricing Overview */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 flex flex-col justify-between">
-          <div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-50"><Eye className="h-16 w-16 text-slate-100 dark:text-slate-800" /></div>
+          <div className="relative z-10">
             <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-300 font-medium">My Pricing Overview</p>
-                <p className="text-xs text-slate-400">
-                  {topCategory ? topCategory : 'No active listings'}
-                </p>
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Total Listing Views</p>
+            </div>
+            <div className="flex items-end gap-3 mb-1">
+              <h3 className="text-4xl font-black text-slate-900 dark:text-slate-100">{totalViewsAllTime}</h3>
+              {totalViewsAllTime > 0 && (
+                <span className="text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 mb-1">
+                  <TrendingUp className="h-3 w-3" /> +12% MoM
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+              All-time accumulated views across your <span className="font-bold text-slate-600 dark:text-slate-300">{activeUsedCount}</span> active listings.
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2: Conversion Funnel */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-50"><Target className="h-16 w-16 text-slate-100 dark:text-slate-800" /></div>
+          <div className="relative z-10 w-full">
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Buyer Conversion (7d)</p>
+            </div>
+            <div className="flex items-end gap-3 mb-2">
+              <h3 className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                {funnel.views > 0 ? ((funnel.contacts / funnel.views) * 100).toFixed(1) : 0}%
+              </h3>
+              {funnel.contacts > 0 && (
+                <span className="text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 mb-1">
+                  <TrendingUp className="h-3 w-3" /> +4.2%
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800 mt-3">
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider">Views</span>
+                <span className="text-slate-800 dark:text-slate-200">{funnel.views}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                <DollarSign className="h-5 w-5 text-slate-600 dark:text-slate-200" />
+              <div className="h-4 border-l border-slate-300 dark:border-slate-700"></div>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider">Contacts</span>
+                <span className="text-indigo-600 dark:text-indigo-400">{funnel.contacts}</span>
               </div>
             </div>
-            {topCategory ? (
-              <div className="mt-3">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                    RM {topCategoryAvgPrice.toFixed(0)}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-300">avg</span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
-                  RM {topCategoryMinPrice.toFixed(0)} - RM {topCategoryMaxPrice.toFixed(0)} · {topCategoryListings.length} listings
-                </p>
+          </div>
+        </div>
+
+        {/* Card 3: Market Demand Visualizer */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Market Search Demand</p>
+            <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+              <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {/* Component 1: Inverters */}
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Inverters</span>
+                <span className="text-slate-500 font-bold">{demandLabel(marketDemand.inverters)}</span>
               </div>
-            ) : (
-              <p className="text-xs text-slate-400 mt-4">Create listings to see your pricing insights.</p>
-            )}
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: demandWidth(marketDemand.inverters) }}></div>
+              </div>
+            </div>
+
+            {/* Component 2: Panels */}
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Panels</span>
+                <span className="text-slate-500 font-bold">{demandLabel(marketDemand.panels)}</span>
+              </div>
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: demandWidth(marketDemand.panels) }}></div>
+              </div>
+            </div>
+
+            {/* Component 3: Batteries */}
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Batteries</span>
+                <span className="text-slate-500 font-bold">{demandLabel(marketDemand.batteries)}</span>
+              </div>
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-amber-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: demandWidth(marketDemand.batteries) }}></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1076,7 +1089,7 @@ const Dashboard: React.FC = () => {
                   </span>
                 )}
                 <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 py-1 rounded">
-                  {activeUsedCount} / {listingLimit} Slots Used
+                  {activeUsedCount} / {listingLimit === Infinity ? 'Unlimited' : listingLimit} Slots Used
                 </span>
               </div>
             </div>
@@ -1086,7 +1099,6 @@ const Dashboard: React.FC = () => {
                   <tr>
                     <th className="px-4 py-3 w-1/2">Title</th>
                     <th className="px-4 py-3 w-20">Status</th>
-                    <th className="px-4 py-3 w-24">Duration</th>
                     <th className="px-4 py-3 text-right w-16">Views</th>
                     <th className="px-4 py-3 text-right w-32">Action</th>
                   </tr>
@@ -1102,10 +1114,6 @@ const Dashboard: React.FC = () => {
                       const activeUntil = new Date(l.active_until).getTime();
                       const now = new Date().getTime();
 
-                      const totalDuration = activeUntil - created;
-                      const elapsed = now - created;
-
-                      const percent = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
                       const isExpired = now > activeUntil;
                       const isHidden = !!(l as any).is_hidden;
 
@@ -1136,20 +1144,6 @@ const Dashboard: React.FC = () => {
                                 Expired
                               </span>
                             )}
-                          </td>
-
-                          <td className="px-4 py-4">
-                            <div className="flex items-center gap-2 w-24">
-                              <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full transition-all duration-700 ease-out ${isExpired ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                  style={{ width: `${percent}%` }}
-                                ></div>
-                              </div>
-                              <span className={`text-[10px] font-medium w-7 text-right ${isExpired ? 'text-red-500' : 'text-slate-400'}`}>
-                                {isExpired ? 'Exp' : `${Math.round(percent)}%`}
-                              </span>
-                            </div>
                           </td>
 
                           <td className="px-4 py-4 text-right">
@@ -1197,6 +1191,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
+
           {/* Quick Actions - Simplified */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Actions</h3>

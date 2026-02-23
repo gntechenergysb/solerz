@@ -117,7 +117,7 @@ const Marketplace: React.FC = () => {
   const [protectiveRatedVoltageV, setProtectiveRatedVoltageV] = useState('');
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  
+
   const dedupeById = (rows: Listing[]) => {
     const seen = new Set<string>();
     const out: Listing[] = [];
@@ -195,17 +195,17 @@ const Marketplace: React.FC = () => {
             marketplaceLayer: 'verified'
           });
         }
-        
+
         let data: Listing[];
         if (isDefaultQuery && !searchQuery && !selectedState && !selectedCategory && !selectedCondition) {
           // Use optimized random listings for homepage (minimal Supabase traffic)
-          data = await db.getRandomListings(20, 'verified');
-          setHasMore(false); // Random listings don't support pagination
+          data = await db.getRandomListings(12, 'verified');
+          setHasMore(true);
         } else {
           // Use full query for filtered searches
           data = await db.getMarketplaceListings({
             from: 0,
-            to: 4,
+            to: 11,
             marketplaceLayer: 'verified',
             searchQuery,
             state: selectedState,
@@ -213,18 +213,18 @@ const Marketplace: React.FC = () => {
             category: selectedCategory,
             sortBy: sortBy as any
           });
-          setHasMore(data.length > 4);
+          setHasMore(data.length > 11);
         }
-        
+
         if (fetchSeqRef.current !== mySeq) return;
-        const pageRows = data.slice(0, 20);
+        const pageRows = data.slice(0, 12);
         const next = dedupeById(pageRows);
         setListings(next);
         setPage(0);
 
         if (isDefaultQuery) {
           try {
-            sessionStorage.setItem(cacheKey, JSON.stringify({ listings: next, hasMore: false }));
+            sessionStorage.setItem(cacheKey, JSON.stringify({ listings: next, hasMore: true }));
           } catch {
             // ignore cache errors
           }
@@ -238,35 +238,29 @@ const Marketplace: React.FC = () => {
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
-    
+
     // Don't load more if we're using random listings (default query without filters)
     const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition;
     if (isDefaultQuery) {
-      // For random listings, fetch a fresh batch instead of paginating
+      // For random listings, fetch a fresh batch incrementally
       setIsLoadingMore(true);
       try {
-        const data = await db.getRandomListings(20, 'verified');
-        const next = dedupeById(data);
+        const data = await db.getRandomListings(12, 'verified');
+        const next = dedupeById([...listings, ...data]);
         setListings(next);
-        setPage(0);
-        setHasMore(false);
-        // Update cache
-        try {
-          sessionStorage.setItem(`marketplace_cache_v1_${sortBy}`, JSON.stringify({ listings: next, hasMore: false }));
-        } catch {
-          // ignore cache errors
-        }
+        setPage(page + 1);
+        setHasMore(true);
       } finally {
         setIsLoadingMore(false);
       }
       return;
     }
-    
+
     setIsLoadingMore(true);
     try {
       const nextPage = page + 1;
-      const from = nextPage * 4;
-      const to = from + 4;
+      const from = nextPage * 12;
+      const to = from + 11;
       const next = await db.getMarketplaceListings({
         from,
         to,
@@ -278,11 +272,11 @@ const Marketplace: React.FC = () => {
         sortBy: sortBy as any
       });
       if (next.length > 0) {
-        const nextSlice = next.slice(0, 4);
+        const nextSlice = next.slice(0, 12);
         setListings(prev => dedupeById([...prev, ...nextSlice]));
         setPage(nextPage);
       }
-      if (next.length <= 4) {
+      if (next.length <= 11) {
         setHasMore(false);
       }
     } finally {
@@ -852,203 +846,201 @@ const Marketplace: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      
+
       {/* Header Section */}
       <div className="space-y-6">
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Solar Equipment Hub</h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">Buy & sell new and used solar gear from verified sellers.</p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Solar Equipment Hub</h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">Buy & sell new and used solar gear from verified sellers.</p>
+          </div>
+        </div>
+
+        {/* Search & Filter Row */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-slate-400" />
             </div>
-         </div>
+            <input
+              type="text"
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-shadow shadow-sm"
+              placeholder="Search for inverters, panels, or brands..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
 
-         {/* Search & Filter Row */}
-         <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-grow">
-               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-slate-400" />
-               </div>
-               <input 
-                  type="text" 
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-shadow shadow-sm"
-                  placeholder="Search for inverters, panels, or brands..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-               />
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            {/* Location Dropdown */}
+            <div className="relative w-full sm:min-w-[160px]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MapPin className="h-4 w-4 text-slate-500" />
+              </div>
+              <select
+                className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+              >
+                <option value="">All Locations</option>
+                {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                {/* Location Dropdown */}
-                <div className="relative w-full sm:min-w-[160px]">
-                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin className="h-4 w-4 text-slate-500" />
-                   </div>
-                   <select 
-                      className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                      value={selectedState}
-                      onChange={(e) => setSelectedState(e.target.value)}
-                   >
-                      <option value="">All Locations</option>
-                      {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                   </select>
-                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
-                   </div>
-                </div>
 
-                {/* Condition Dropdown */}
-                <div className="relative w-full sm:min-w-[160px]">
-                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Tag className="h-4 w-4 text-slate-500" />
-                   </div>
-                   <select 
-                      className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                      value={selectedCondition}
-                      onChange={(e) => setSelectedCondition(e.target.value)}
-                   >
-                      <option value="">Any Condition</option>
-                      {LISTING_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                   </select>
-                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
-                   </div>
-                </div>
+            {/* Condition Dropdown */}
+            <div className="relative w-full sm:min-w-[160px]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Tag className="h-4 w-4 text-slate-500" />
+              </div>
+              <select
+                className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
+                value={selectedCondition}
+                onChange={(e) => setSelectedCondition(e.target.value)}
+              >
+                <option value="">Any Condition</option>
+                {LISTING_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </div>
+            </div>
 
-                {/* Sorting Dropdown */}
-                <div className="relative w-full sm:min-w-[160px]">
-                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <ArrowUpDown className="h-4 w-4 text-slate-500" />
-                   </div>
-                   <select 
-                      className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                   >
-                      <option value="latest">Latest Listed</option>
-                      <option value="price-low">Price: Low to High</option>
-                      <option value="price-high">Price: High to Low</option>
-                   </select>
-                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
-                   </div>
-                </div>
+            {/* Sorting Dropdown */}
+            <div className="relative w-full sm:min-w-[160px]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <ArrowUpDown className="h-4 w-4 text-slate-500" />
+              </div>
+              <select
+                className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="latest">Latest Listed</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </div>
+            </div>
 
-                {(selectedCategory !== '') && (
-                  <div className="relative flex-shrink-0 w-full sm:w-auto">
+            {(selectedCategory !== '') && (
+              <div className="relative flex-shrink-0 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedFilters(v => !v)}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:text-slate-900 dark:hover:text-slate-100 hover:border-emerald-500 shadow-sm w-full sm:w-auto"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="ml-1 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-500/20 px-2 py-0.5 rounded-full">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {showAdvancedFilters && (
+                  <>
                     <button
                       type="button"
-                      onClick={() => setShowAdvancedFilters(v => !v)}
-                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:text-slate-900 dark:hover:text-slate-100 hover:border-emerald-500 shadow-sm w-full sm:w-auto"
-                    >
-                      <SlidersHorizontal className="h-4 w-4" />
-                      Filters
-                      {activeFilterCount > 0 && (
-                        <span className="ml-1 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-200 border border-emerald-100 dark:border-emerald-500/20 px-2 py-0.5 rounded-full">
-                          {activeFilterCount}
-                        </span>
-                      )}
-                    </button>
-
-                    {showAdvancedFilters && (
-                      <>
-                        <button
-                          type="button"
-                          className="hidden sm:block fixed inset-0 z-40"
-                          onClick={() => setShowAdvancedFilters(false)}
-                          aria-label="Close advanced filters"
-                        />
-                        <div className="hidden sm:block absolute right-0 top-full mt-2 z-50 w-[min(820px,calc(100vw-2rem))] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xl">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="font-bold text-slate-900 dark:text-slate-100">Advanced filters</div>
-                            {(activeFilterCount > 0) && (
-                              <button
-                                type="button"
-                                onClick={clearAllFilters}
-                                className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
-                              >
-                                Clear
-                              </button>
-                            )}
-                          </div>
-                          {renderAdvancedFilters()}
-                        </div>
-
-                        <div className="sm:hidden fixed inset-0 z-50">
+                      className="hidden sm:block fixed inset-0 z-40"
+                      onClick={() => setShowAdvancedFilters(false)}
+                      aria-label="Close advanced filters"
+                    />
+                    <div className="hidden sm:block absolute right-0 top-full mt-2 z-50 w-[min(820px,calc(100vw-2rem))] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="font-bold text-slate-900 dark:text-slate-100">Advanced filters</div>
+                        {(activeFilterCount > 0) && (
                           <button
                             type="button"
-                            className="absolute inset-0 bg-slate-900/40"
-                            onClick={() => setShowAdvancedFilters(false)}
-                            aria-label="Close advanced filters"
-                          />
-                          <div className="absolute left-0 right-0 bottom-0 bg-white dark:bg-slate-950 rounded-t-2xl border-t border-slate-200 dark:border-slate-800 shadow-xl p-4 max-h-[80vh] overflow-auto">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="font-bold text-slate-900 dark:text-slate-100">Filters</div>
-                              <button
-                                type="button"
-                                onClick={() => setShowAdvancedFilters(false)}
-                                className="text-sm font-semibold text-slate-600 dark:text-slate-300"
-                              >
-                                Close
-                              </button>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3">
-                              {renderAdvancedFilters()}
-                            </div>
-                            {(activeFilterCount > 0) && (
-                              <div className="mt-3 grid grid-cols-2 gap-2">
-                                <button
-                                  type="button"
-                                  onClick={clearAllFilters}
-                                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-xl"
-                                >
-                                  Clear
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowAdvancedFilters(false)}
-                                  className="bg-slate-900 text-white text-sm font-bold px-4 py-3 rounded-xl dark:bg-slate-100 dark:text-slate-900"
-                                >
-                                  Apply
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-            </div>
-         </div>
+                            onClick={clearAllFilters}
+                            className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      {renderAdvancedFilters()}
+                    </div>
 
-         {/* Category Pills (Filter Chips) */}
-         <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide flex-1">
-              <button 
-               onClick={() => setSelectedCategory('')}
-               className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all border ${
-                  selectedCategory === '' 
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-md dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100' 
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:text-emerald-600'
-               }`}
+                    <div className="sm:hidden fixed inset-0 z-50">
+                      <button
+                        type="button"
+                        className="absolute inset-0 bg-slate-900/40"
+                        onClick={() => setShowAdvancedFilters(false)}
+                        aria-label="Close advanced filters"
+                      />
+                      <div className="absolute left-0 right-0 bottom-0 bg-white dark:bg-slate-950 rounded-t-2xl border-t border-slate-200 dark:border-slate-800 shadow-xl p-4 max-h-[80vh] overflow-auto">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="font-bold text-slate-900 dark:text-slate-100">Filters</div>
+                          <button
+                            type="button"
+                            onClick={() => setShowAdvancedFilters(false)}
+                            className="text-sm font-semibold text-slate-600 dark:text-slate-300"
+                          >
+                            Close
+                          </button>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-3">
+                          {renderAdvancedFilters()}
+                        </div>
+                        {(activeFilterCount > 0) && (
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={clearAllFilters}
+                              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-xl"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowAdvancedFilters(false)}
+                              className="bg-slate-900 text-white text-sm font-bold px-4 py-3 rounded-xl dark:bg-slate-100 dark:text-slate-900"
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Category Pills (Filter Chips) */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide flex-1">
+            <button
+              onClick={() => setSelectedCategory('')}
+              className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedCategory === ''
+                ? 'bg-slate-900 text-white border-slate-900 shadow-md dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:text-emerald-600'
+                }`}
             >
-               All Equipment
+              All Equipment
             </button>
             {CATEGORIES.map(cat => (
-               <button 
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all border ${
-                     selectedCategory === cat 
-                     ? 'bg-emerald-500 text-white border-emerald-500 shadow-md' 
-                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:text-emerald-600'
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all border ${selectedCategory === cat
+                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:text-emerald-600'
                   }`}
-               >
-                  {cat}
-               </button>
+              >
+                {cat}
+              </button>
             ))}
-            </div>
-         </div>
+          </div>
+        </div>
       </div>
 
       {/* Product Grid */}
@@ -1076,9 +1068,9 @@ const Marketplace: React.FC = () => {
         ) : filteredListings.length > 0 ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-               {dedupeById(filteredListings).map(listing => (
-                  <ProductCard key={listing.id} listing={listing} />
-               ))}
+              {dedupeById(filteredListings).map(listing => (
+                <ProductCard key={listing.id} listing={listing} />
+              ))}
             </div>
             {/* Only show loading/updating indicator for paginated results (not random listings) */}
             {isLoading && hasMore && (
@@ -1105,20 +1097,20 @@ const Marketplace: React.FC = () => {
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">
-             <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <SlidersHorizontal className="h-8 w-8 text-slate-400" />
-             </div>
-             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">No matches found</h3>
-             <p className="text-slate-500 dark:text-slate-300 mt-1">
-                No listings found matching your criteria.
-             </p>
-             <button 
-               onClick={() => { setSelectedState(''); setSelectedCategory(''); setSearchInput(''); setSearchQuery(''); }}
-               className="mt-6 text-emerald-600 font-medium hover:text-emerald-700 dark:hover:text-emerald-400"
-             >
-               Clear all filters
-             </button>
-           </div>
+            <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <SlidersHorizontal className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">No matches found</h3>
+            <p className="text-slate-500 dark:text-slate-300 mt-1">
+              No listings found matching your criteria.
+            </p>
+            <button
+              onClick={() => { setSelectedState(''); setSelectedCategory(''); setSearchInput(''); setSearchQuery(''); }}
+              className="mt-6 text-emerald-600 font-medium hover:text-emerald-700 dark:hover:text-emerald-400"
+            >
+              Clear all filters
+            </button>
+          </div>
         )}
       </div>
 

@@ -481,11 +481,8 @@ ALTER TABLE public.saved_listings ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.rate_limit_buckets ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Anyone can insert search events" ON public.search_events
-FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Anyone can insert contact events" ON public.listing_contact_events
-FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can insert search events" ON public.search_events;
+DROP POLICY IF EXISTS "Anyone can insert contact events" ON public.listing_contact_events;
 
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS boolean
@@ -589,8 +586,8 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, business_address, ssm_new_no, ssm_old_no, ssm_no, updated_at)
-  VALUES (NEW.id, NEW.email, NEW.company_name, NEW.is_verified, NEW.seller_type, NEW.handphone_no, NEW.business_address, NEW.ssm_new_no, NEW.ssm_old_no, NEW.ssm_no, NOW())
+  INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no, updated_at)
+  VALUES (NEW.id, NEW.email, NEW.company_name, NEW.is_verified, NEW.seller_type, NEW.handphone_no, NEW.business_address, NEW.company_reg_no, NOW())
   ON CONFLICT (id) DO UPDATE
   SET email = EXCLUDED.email,
       company_name = EXCLUDED.company_name,
@@ -598,9 +595,7 @@ BEGIN
       seller_type = EXCLUDED.seller_type,
       handphone_no = EXCLUDED.handphone_no,
       business_address = EXCLUDED.business_address,
-      ssm_new_no = EXCLUDED.ssm_new_no,
-      ssm_old_no = EXCLUDED.ssm_old_no,
-      ssm_no = EXCLUDED.ssm_no,
+      company_reg_no = EXCLUDED.company_reg_no,
       updated_at = NOW();
 
   RETURN NEW;
@@ -609,11 +604,11 @@ $$;
 
 DROP TRIGGER IF EXISTS trg_sync_profiles_public ON public.profiles;
 CREATE TRIGGER trg_sync_profiles_public
-AFTER INSERT OR UPDATE OF email, company_name, is_verified, seller_type, handphone_no, business_address, ssm_new_no, ssm_old_no, ssm_no ON public.profiles
+AFTER INSERT OR UPDATE OF email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no ON public.profiles
 FOR EACH ROW EXECUTE FUNCTION public.sync_profiles_public();
 
-INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, business_address, ssm_new_no, ssm_old_no, ssm_no, updated_at)
-SELECT id, email, company_name, is_verified, seller_type, handphone_no, business_address, ssm_new_no, ssm_old_no, ssm_no, NOW()
+INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no, updated_at)
+SELECT id, email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no, NOW()
 FROM public.profiles
 ON CONFLICT (id) DO UPDATE
 SET email = EXCLUDED.email,
@@ -622,9 +617,7 @@ SET email = EXCLUDED.email,
     seller_type = EXCLUDED.seller_type,
     handphone_no = EXCLUDED.handphone_no,
     business_address = EXCLUDED.business_address,
-    ssm_new_no = EXCLUDED.ssm_new_no,
-    ssm_old_no = EXCLUDED.ssm_old_no,
-    ssm_no = EXCLUDED.ssm_no,
+    company_reg_no = EXCLUDED.company_reg_no,
     updated_at = NOW();
 
 DO $$
@@ -650,6 +643,20 @@ CREATE POLICY "Sellers can view own listings"
 ON public.listings FOR SELECT
 USING (auth.uid() = seller_id);
 
+CREATE OR REPLACE FUNCTION public.get_user_listing_limit(p_tier TEXT)
+RETURNS INT
+LANGUAGE sql IMMUTABLE
+AS $$
+  SELECT CASE p_tier
+    WHEN 'UNSUBSCRIBED' THEN 0
+    WHEN 'STARTER' THEN 3
+    WHEN 'PRO' THEN 10
+    WHEN 'ELITE' THEN 25
+    WHEN 'ENTERPRISE' THEN 80
+    ELSE 0
+  END;
+$$;
+
 DROP POLICY IF EXISTS "Authenticated users can insert listings" ON public.listings;
 CREATE POLICY "Authenticated users can insert listings" 
 ON public.listings FOR INSERT 
@@ -662,6 +669,17 @@ WITH CHECK (
       AND p.is_verified = TRUE
       AND p.tier <> 'UNSUBSCRIBED'
   )
+  AND (
+    SELECT COUNT(*)
+    FROM public.listings l
+    WHERE l.seller_id = auth.uid()
+      AND l.is_hidden = FALSE
+      AND l.is_sold = FALSE
+      AND l.is_paused = FALSE
+      AND l.active_until > now()
+  ) < public.get_user_listing_limit((
+    SELECT p.tier FROM public.profiles p WHERE p.id = auth.uid()
+  ))
 );
 
 DROP POLICY IF EXISTS "Sellers can update own listings" ON public.listings;
@@ -714,6 +732,7 @@ BEGIN
     NEW.active_until := OLD.active_until;
     NEW.archive_until := OLD.archive_until;
     NEW.created_at := OLD.created_at;
+    NEW.is_paused := OLD.is_paused;
   END IF;
 
   NEW.updated_at := NOW();
@@ -753,36 +772,36 @@ DROP POLICY IF EXISTS "Listing images delete" ON storage.objects;
 CREATE POLICY "Listing images delete" ON storage.objects FOR DELETE
 USING ( bucket_id = 'listing-images' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
 
--- 2. SSM Documents
+-- 2. Company Documents
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('ssm-documents', 'ssm-documents', false)
+VALUES ('company-documents', 'company-documents', false)
 ON CONFLICT (id) DO NOTHING;
 
-DROP POLICY IF EXISTS "User upload SSM" ON storage.objects;
-CREATE POLICY "User upload SSM" 
+DROP POLICY IF EXISTS "User upload Company Docs" ON storage.objects;
+CREATE POLICY "User upload Company Docs" 
 ON storage.objects FOR INSERT 
-WITH CHECK ( bucket_id = 'ssm-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
+WITH CHECK ( bucket_id = 'company-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
 
-DROP POLICY IF EXISTS "User update own SSM" ON storage.objects;
-CREATE POLICY "User update own SSM" 
+DROP POLICY IF EXISTS "User update own Company Docs" ON storage.objects;
+CREATE POLICY "User update own Company Docs" 
 ON storage.objects FOR UPDATE
-USING ( bucket_id = 'ssm-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' )
-WITH CHECK ( bucket_id = 'ssm-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
+USING ( bucket_id = 'company-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' )
+WITH CHECK ( bucket_id = 'company-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
 
-DROP POLICY IF EXISTS "User delete own SSM" ON storage.objects;
-CREATE POLICY "User delete own SSM" 
+DROP POLICY IF EXISTS "User delete own Company Docs" ON storage.objects;
+CREATE POLICY "User delete own Company Docs" 
 ON storage.objects FOR DELETE
-USING ( bucket_id = 'ssm-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
+USING ( bucket_id = 'company-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
 
-DROP POLICY IF EXISTS "User read own SSM" ON storage.objects;
-CREATE POLICY "User read own SSM" 
+DROP POLICY IF EXISTS "User read own Company Docs" ON storage.objects;
+CREATE POLICY "User read own Company Docs" 
 ON storage.objects FOR SELECT 
-USING ( bucket_id = 'ssm-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
+USING ( bucket_id = 'company-documents' AND auth.uid() IS NOT NULL AND name LIKE auth.uid()::text || '/%' );
 
-DROP POLICY IF EXISTS "Admin read any SSM" ON storage.objects;
-CREATE POLICY "Admin read any SSM" 
+DROP POLICY IF EXISTS "Admin read any Company Docs" ON storage.objects;
+CREATE POLICY "Admin read any Company Docs" 
 ON storage.objects FOR SELECT 
-USING ( bucket_id = 'ssm-documents' AND public.is_admin() );
+USING ( bucket_id = 'company-documents' AND public.is_admin() );
 
 CREATE OR REPLACE FUNCTION public.admin_list_profiles(filter_status TEXT DEFAULT 'PENDING')
 RETURNS SETOF public.profiles
@@ -803,7 +822,7 @@ BEGIN
     RETURN QUERY SELECT * FROM public.profiles p ORDER BY p.created_at DESC;
   ELSE
     -- PENDING
-    RETURN QUERY SELECT * FROM public.profiles p WHERE p.is_verified = FALSE AND (p.ssm_no IS NOT NULL OR p.ssm_new_no IS NOT NULL) ORDER BY p.created_at DESC;
+    RETURN QUERY SELECT * FROM public.profiles p WHERE p.is_verified = FALSE AND (p.company_reg_no IS NOT NULL OR p.company_doc_path IS NOT NULL) ORDER BY p.created_at DESC;
   END IF;
 END;
 $$;
@@ -979,6 +998,15 @@ BEGIN
     NEW.role := OLD.role;
     NEW.tier := OLD.tier;
     NEW.seller_type := OLD.seller_type;
+    NEW.stripe_customer_id := OLD.stripe_customer_id;
+    NEW.stripe_subscription_id := OLD.stripe_subscription_id;
+    NEW.stripe_subscription_status := OLD.stripe_subscription_status;
+    NEW.stripe_current_period_end := OLD.stripe_current_period_end;
+    NEW.stripe_current_period_start := OLD.stripe_current_period_start;
+    NEW.stripe_cancel_at_period_end := OLD.stripe_cancel_at_period_end;
+    NEW.stripe_billing_interval := OLD.stripe_billing_interval;
+    NEW.pending_tier := OLD.pending_tier;
+    NEW.tier_effective_at := OLD.tier_effective_at;
   END IF;
 
   NEW.updated_at := NOW();

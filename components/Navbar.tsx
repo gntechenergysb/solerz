@@ -85,7 +85,7 @@ const Navbar: React.FC = () => {
     <nav className="sticky top-0 z-50 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-sm h-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex justify-between items-center h-full">
-          
+
           {/* Left: Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             {logoFailed ? (
@@ -112,6 +112,9 @@ const Navbar: React.FC = () => {
             <Link to="/" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-emerald-600 transition-colors">
               Listings
             </Link>
+            <Link to="/demo" className="text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors flex items-center gap-1">
+              <Sun className="h-4 w-4" /> Live Demo
+            </Link>
             <Link to="/how-it-works" className="text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-emerald-600 transition-colors">
               How It Works
             </Link>
@@ -133,44 +136,44 @@ const Navbar: React.FC = () => {
               {nextTheme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               <span className="hidden md:inline">{nextThemeLabel}</span>
             </button>
-            
+
             {user ? (
               <>
                 {/* Profile Dropdown */}
                 <div className="relative">
-                   <button 
-                      onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className="flex items-center space-x-2 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-slate-100 focus:outline-none"
-                   >
-                      <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-200 font-bold border border-emerald-200 dark:border-emerald-500/20">
-                         {user.company_name.charAt(0)}
-                      </div>
-                      <span className="text-sm font-medium hidden sm:block max-w-[100px] truncate">{user.company_name}</span>
-                      <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                   </button>
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center space-x-2 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-slate-100 focus:outline-none"
+                  >
+                    <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-700 dark:text-emerald-200 font-bold border border-emerald-200 dark:border-emerald-500/20">
+                      {user.company_name.charAt(0)}
+                    </div>
+                    <span className="text-sm font-medium hidden sm:block max-w-[100px] truncate">{user.company_name}</span>
+                    <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  </button>
 
-                   {/* Dropdown Menu */}
-                   {isProfileOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 py-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                         <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-800">
-                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{user.company_name}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                         </div>
-                         <Link 
-                            to="/dashboard" 
-                            className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-emerald-600"
-                            onClick={() => setIsProfileOpen(false)}
-                         >
-                            <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
-                         </Link>
-                         <button 
-                            onClick={handleLogout}
-                            className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                         >
-                            <LogOut className="h-4 w-4 mr-2" /> Sign Out
-                         </button>
+                  {/* Dropdown Menu */}
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 py-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-800">
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{user.company_name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
                       </div>
-                   )}
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-emerald-600"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (isLoading || isAuthenticated) ? (
@@ -205,9 +208,9 @@ const Navbar: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                 <Link to="/login" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-emerald-600">
-                    Log In
-                 </Link>
+                <Link to="/login" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-emerald-600">
+                  Log In
+                </Link>
               </div>
             )}
           </div>

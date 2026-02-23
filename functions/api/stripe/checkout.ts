@@ -95,6 +95,26 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     });
   }
 
+  // Fetch the existing profile to check for a stripe_customer_id
+  let stripeCustomerId = '';
+  try {
+    const profileRes = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=stripe_customer_id&limit=1`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      }
+    });
+    if (profileRes.ok) {
+      const profileJson = await profileRes.json().catch(() => []) as any[];
+      if (profileJson.length > 0 && profileJson[0].stripe_customer_id) {
+        stripeCustomerId = String(profileJson[0].stripe_customer_id).trim();
+      }
+    }
+  } catch (e) {
+    console.log('Failed to fetch profile for stripe_customer_id in checkout', e);
+  }
+
   const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
     STARTER: { monthly: 39, yearly: 428 },
     PRO: { monthly: 99, yearly: 1088 },
@@ -135,7 +155,12 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   sessionParams.set('metadata[tier]', tier);
   sessionParams.set('metadata[billing_cycle]', billingCycle);
 
-  if (email) sessionParams.set('customer_email', email);
+  // Use the existing customer ID to prevent duplicates
+  if (stripeCustomerId) {
+    sessionParams.set('customer', stripeCustomerId);
+  } else if (email) {
+    sessionParams.set('customer_email', email);
+  }
 
   sessionParams.set('line_items[0][quantity]', '1');
 

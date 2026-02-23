@@ -624,7 +624,7 @@ export const db = {
         console.error('Error fetching profile:', error);
         return null;
       }
-      
+
       // data is null when user not found - this is expected for new users
       return data as Profile;
     } catch (e) {
@@ -646,9 +646,8 @@ export const db = {
     // 2. Whitelist Allowed Fields (Security & Stability)
     const ALLOWED_FIELDS = [
       'company_name', 'handphone_no', 'avatar_url',
-      'ssm_new_no', 'ssm_old_no', 'business_address',
-      'incorporation_date', 'nature_of_business', 'ssm_file_path',
-      'ssm_no'
+      'business_address', 'incorporation_date',
+      'nature_of_business', 'company_reg_no', 'company_doc_path'
     ];
 
     const updates: any = {};

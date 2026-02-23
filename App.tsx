@@ -16,6 +16,7 @@ const Community = React.lazy(() => import('./pages/Community'));
 const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const HowItWorks = React.lazy(() => import('./pages/HowItWorks'));
+const Demo = React.lazy(() => import('./pages/Demo'));
 
 const App: React.FC = () => {
   return (
@@ -41,6 +42,7 @@ const App: React.FC = () => {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/demo" element={<Demo />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

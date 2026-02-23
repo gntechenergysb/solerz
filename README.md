@@ -132,7 +132,7 @@ pg_dump --format=custom --no-owner --no-privileges --file solerz.backup.dump "<Y
 
 建议做两层：
 
-1. 业务层：对 `ssm-documents` 这种关键文件，定期导出到对象存储（S3/R2）
+1. 业务层：对 `company-documents` 这种关键文件，定期导出到对象存储（S3/R2）
 2. 管理层：保留 bucket 列表 + 对象清单（便于追溯）
 
 ### Schema 版本化

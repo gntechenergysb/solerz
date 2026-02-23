@@ -908,62 +908,62 @@ async function run() {
   }
 
   // 5) Storage isolation: seller uploads a file under their folder; buyer should not list/download
-  const ssmPath = `${seller.userId}/security-test.txt`;
+  const docPath = `${seller.userId}/security-test.txt`;
   {
-    const upload = await seller.sb.storage.from('ssm-documents').upload(ssmPath, Buffer.from('test'), {
+    const upload = await seller.sb.storage.from('company-documents').upload(docPath, Buffer.from('test'), {
       upsert: true,
       contentType: 'text/plain'
     });
-    results.push({ test: 'storage:ssm_upload', actor: 'seller', pass: !upload.error, detail: upload.error?.message || 'ok' });
+    results.push({ test: 'storage:doc_upload', actor: 'seller', pass: !upload.error, detail: upload.error?.message || 'ok' });
 
     const crossUploadPath = `${buyer.userId}/security-cross-upload.txt`;
-    const crossUpload = await seller.sb.storage.from('ssm-documents').upload(crossUploadPath, Buffer.from('test'), {
+    const crossUpload = await seller.sb.storage.from('company-documents').upload(crossUploadPath, Buffer.from('test'), {
       upsert: true,
       contentType: 'text/plain'
     });
     results.push({
-      test: 'storage:ssm_cross_folder_upload_block',
+      test: 'storage:doc_cross_folder_upload_block',
       actor: 'seller',
       pass: !!crossUpload.error,
       detail: crossUpload.error?.message || 'unexpected success'
     });
 
-    const enumRoot = await buyer.sb.storage.from('ssm-documents').list('', { limit: 20 });
+    const enumRoot = await buyer.sb.storage.from('company-documents').list('', { limit: 20 });
     const enumBlocked = !!enumRoot.error || (Array.isArray(enumRoot.data) && enumRoot.data.length === 0);
     results.push({
-      test: 'storage:ssm_enum_root_block',
+      test: 'storage:doc_enum_root_block',
       actor: 'buyer',
       pass: enumBlocked,
       detail: enumRoot.error?.message || JSON.stringify(enumRoot.data)
     });
 
-    const list = await buyer.sb.storage.from('ssm-documents').list(seller.userId, { limit: 10 });
+    const list = await buyer.sb.storage.from('company-documents').list(seller.userId, { limit: 10 });
     const listBlocked = !!list.error || (Array.isArray(list.data) && list.data.length === 0);
-    results.push({ test: 'storage:ssm_list_block', actor: 'buyer', pass: listBlocked, detail: list.error?.message || JSON.stringify(list.data) });
+    results.push({ test: 'storage:doc_list_block', actor: 'buyer', pass: listBlocked, detail: list.error?.message || JSON.stringify(list.data) });
 
-    const dl = await buyer.sb.storage.from('ssm-documents').download(ssmPath);
-    results.push({ test: 'storage:ssm_download_block', actor: 'buyer', pass: !!dl.error, detail: dl.error?.message || 'unexpected success' });
+    const dl = await buyer.sb.storage.from('company-documents').download(docPath);
+    results.push({ test: 'storage:doc_download_block', actor: 'buyer', pass: !!dl.error, detail: dl.error?.message || 'unexpected success' });
 
-    const adminDl = await admin.sb.storage.from('ssm-documents').download(ssmPath);
+    const adminDl = await admin.sb.storage.from('company-documents').download(docPath);
     results.push({
-      test: 'storage:ssm_admin_download_allowed',
+      test: 'storage:doc_admin_download_allowed',
       actor: 'admin',
       pass: !adminDl.error,
       detail: adminDl.error?.message || 'ok'
     });
 
-    const cleanup = await seller.sb.storage.from('ssm-documents').remove([ssmPath]);
-    results.push({ test: 'storage:ssm_cleanup', actor: 'seller', pass: !cleanup.error, detail: cleanup.error?.message || 'ok' });
+    const cleanup = await seller.sb.storage.from('company-documents').remove([docPath]);
+    results.push({ test: 'storage:doc_cleanup', actor: 'seller', pass: !cleanup.error, detail: cleanup.error?.message || 'ok' });
   }
 
-  // 5a) Storage ssm-documents overwrite/upsert behavior
+  // 5a) Storage company-documents overwrite/upsert behavior
   {
     const anonClient = client();
     const anonUpload = await anonClient.storage
-      .from('ssm-documents')
+      .from('company-documents')
       .upload(`anon/${Date.now()}_x.txt`, Buffer.from('x'), { upsert: true, contentType: 'text/plain' });
     results.push({
-      test: 'storage:ssm_anon_upload_block',
+      test: 'storage:doc_anon_upload_block',
       actor: 'anon',
       pass: !!anonUpload.error,
       detail: anonUpload.error?.message || 'unexpected success'
@@ -971,38 +971,38 @@ async function run() {
 
     const ownerPath = `${seller.userId}/security-upsert.txt`;
     const upload1 = await seller.sb.storage
-      .from('ssm-documents')
+      .from('company-documents')
       .upload(ownerPath, Buffer.from('v1'), { upsert: true, contentType: 'text/plain' });
     results.push({
-      test: 'storage:ssm_owner_upsert_create',
+      test: 'storage:doc_owner_upsert_create',
       actor: 'seller',
       pass: !upload1.error,
       detail: upload1.error?.message || 'ok'
     });
 
     const upload2 = await seller.sb.storage
-      .from('ssm-documents')
+      .from('company-documents')
       .upload(ownerPath, Buffer.from('v2'), { upsert: true, contentType: 'text/plain' });
     results.push({
-      test: 'storage:ssm_owner_upsert_overwrite',
+      test: 'storage:doc_owner_upsert_overwrite',
       actor: 'seller',
       pass: !upload2.error,
       detail: upload2.error?.message || 'ok'
     });
 
     const crossOverwrite = await buyer.sb.storage
-      .from('ssm-documents')
+      .from('company-documents')
       .upload(ownerPath, Buffer.from('evil'), { upsert: true, contentType: 'text/plain' });
     results.push({
-      test: 'storage:ssm_cross_user_overwrite_block',
+      test: 'storage:doc_cross_user_overwrite_block',
       actor: 'buyer',
       pass: !!crossOverwrite.error,
       detail: crossOverwrite.error?.message || 'unexpected success'
     });
 
-    const cleanup = await seller.sb.storage.from('ssm-documents').remove([ownerPath]);
+    const cleanup = await seller.sb.storage.from('company-documents').remove([ownerPath]);
     results.push({
-      test: 'storage:ssm_upsert_cleanup',
+      test: 'storage:doc_upsert_cleanup',
       actor: 'seller',
       pass: !cleanup.error,
       detail: cleanup.error?.message || 'ok'

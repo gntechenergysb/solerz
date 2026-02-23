@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
-import { useNavigate, Navigate, useParams } from 'react-router-dom';
+import { useNavigate, Navigate, useParams, useLocation } from 'react-router-dom';
 import { CATEGORIES, MALAYSIAN_STATES } from '../constants';
 import { Listing } from '../types';
 import toast from 'react-hot-toast';
@@ -25,12 +25,15 @@ const CreateListing: React.FC = () => {
   const [state, setState] = useState('Selangor');
   const [condition, setCondition] = useState<'New' | 'Used' | 'Refurbished'>('Used');
   const [images, setImages] = useState<File[]>([]);
-  
+
   // Dynamic Specs State
   const [specs, setSpecs] = useState<any>({});
 
-  if (!isAuthenticated) return <Navigate to="/login" />;
-  if (user && user.tier === 'UNSUBSCRIBED') {
+  const location = useLocation();
+  const isDemo = editId?.startsWith('demo') || location.search.includes('demo=true');
+
+  if (!isDemo && !isAuthenticated) return <Navigate to="/login" />;
+  if (!isDemo && user && user.tier === 'UNSUBSCRIBED') {
     toast.error("Please subscribe to a plan before posting.");
     return <Navigate to="/pricing" />;
   }
@@ -49,7 +52,7 @@ const CreateListing: React.FC = () => {
   const [slotBlocked, setSlotBlocked] = useState(false);
 
   useEffect(() => {
-    if (isEditMode) return;
+    if (isEditMode || isDemo) return;
     if (!user) return;
 
     let cancelled = false;
@@ -85,6 +88,18 @@ const CreateListing: React.FC = () => {
 
   useEffect(() => {
     if (!isEditMode || !editId) return;
+    if (isDemo) {
+      if (editId === 'demo-1') {
+        setExistingListing({
+          id: editId, seller_id: 'demo-seller', title: 'Demo Solar Panel 550W', brand: 'Jinko',
+          category: 'Panels', price_rm: 650, location_state: 'Selangor', condition: 'New',
+          specs: { wattage: '550' }, images_url: []
+        } as any);
+        setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko');
+        setPrice('650'); setState('Selangor'); setCondition('New'); setSpecs({ wattage: '550' });
+      }
+      return;
+    }
     if (!user) return;
 
     let cancelled = false;
@@ -158,14 +173,19 @@ const CreateListing: React.FC = () => {
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
-      if (val.length <= 80) {
-          setTitle(val);
-      }
+    const val = e.target.value;
+    if (val.length <= 80) {
+      setTitle(val);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDemo) {
+      toast.success("Demo environment: Changes saved locally!");
+      navigate('/demo');
+      return;
+    }
     if (slotBlocked) {
       toast.error('You have reached your plan limit.');
       return;
@@ -173,79 +193,57 @@ const CreateListing: React.FC = () => {
     setLoading(true);
 
     try {
-        const uploadListingImages = async (files: File[]): Promise<string[]> => {
-          const urls: string[] = [];
-          if (!files.length) return urls;
+      const uploadListingImages = async (files: File[]): Promise<string[]> => {
+        const urls: string[] = [];
+        if (!files.length) return urls;
 
-          // Validate file types and sizes
-          const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-          const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-          
-          for (const file of files) {
-            if (!ALLOWED_TYPES.includes(file.type)) {
-              throw new Error(`Invalid file type: ${file.name}. Only JPG, PNG, WebP, GIF allowed.`);
-            }
-            if (file.size > MAX_FILE_SIZE) {
-              throw new Error(`File too large: ${file.name}. Max size is 10MB.`);
-            }
+        // Validate file types and sizes
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+        for (const file of files) {
+          if (!ALLOWED_TYPES.includes(file.type)) {
+            throw new Error(`Invalid file type: ${file.name}. Only JPG, PNG, WebP, GIF allowed.`);
           }
-
-          toast.loading('Uploading images...', { id: 'upload_listing_images' });
-
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const fileExt = (file.name.split('.').pop() || 'webp').toLowerCase();
-            const filePath = `${user!.id}/listing_${Date.now()}_${i}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage
-              .from('listing-images')
-              .upload(filePath, file);
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-              .from('listing-images')
-              .getPublicUrl(filePath);
-
-            if (!data?.publicUrl) throw new Error('image_public_url_missing');
-            urls.push(data.publicUrl);
+          if (file.size > MAX_FILE_SIZE) {
+            throw new Error(`File too large: ${file.name}. Max size is 10MB.`);
           }
-
-          toast.success('Images uploaded', { id: 'upload_listing_images' });
-          return urls;
-        };
-
-        const hasNewImages = images.length > 0;
-        const uploadedImageUrls = hasNewImages ? await uploadListingImages(images) : [];
-
-        if (isEditMode) {
-          if (!existingListing) {
-            throw new Error('edit_missing_listing');
-          }
-
-          const updated: Listing = {
-            ...existingListing,
-            title,
-            category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
-            brand,
-            condition,
-            specs,
-            price_rm: parseFloat(price),
-            location_state: state,
-            images_url: hasNewImages ? (uploadedImageUrls.length ? uploadedImageUrls : existingListing.images_url) : existingListing.images_url,
-          };
-
-          await db.updateListing(updated);
-          toast.success('Listing updated!');
-          navigate('/dashboard');
-          return;
         }
 
-        const imageUrls = uploadedImageUrls.length
-          ? uploadedImageUrls
-          : ['data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="800" height="600" fill="%23f1f5f9"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="32" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E'];
+        toast.loading('Uploading images...', { id: 'upload_listing_images' });
 
-        const listingData = {
-          seller_id: user!.id,
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileExt = (file.name.split('.').pop() || 'webp').toLowerCase();
+          const filePath = `${user!.id}/listing_${Date.now()}_${i}.${fileExt}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('listing-images')
+            .upload(filePath, file);
+          if (uploadError) throw uploadError;
+
+          const { data } = supabase.storage
+            .from('listing-images')
+            .getPublicUrl(filePath);
+
+          if (!data?.publicUrl) throw new Error('image_public_url_missing');
+          urls.push(data.publicUrl);
+        }
+
+        toast.success('Images uploaded', { id: 'upload_listing_images' });
+        return urls;
+      };
+
+      const hasNewImages = images.length > 0;
+      const uploadedImageUrls = hasNewImages ? await uploadListingImages(images) : [];
+
+      if (isEditMode) {
+        if (!existingListing) {
+          throw new Error('edit_missing_listing');
+        }
+
+        const updated: Listing = {
+          ...existingListing,
           title,
           category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
           brand,
@@ -253,23 +251,45 @@ const CreateListing: React.FC = () => {
           specs,
           price_rm: parseFloat(price),
           location_state: state,
-          images_url: imageUrls,
-          is_sold: false,
-          is_hidden: false,
-          is_paused: false
+          images_url: hasNewImages ? (uploadedImageUrls.length ? uploadedImageUrls : existingListing.images_url) : existingListing.images_url,
         };
 
-        const ok = await db.createListing(listingData);
-        if (!ok) {
-          throw new Error('createListing_failed');
-        }
-        toast.success("Listing published successfully!");
+        await db.updateListing(updated);
+        toast.success('Listing updated!');
         navigate('/dashboard');
+        return;
+      }
+
+      const imageUrls = uploadedImageUrls.length
+        ? uploadedImageUrls
+        : ['data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="800" height="600" fill="%23f1f5f9"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="32" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E'];
+
+      const listingData = {
+        seller_id: user!.id,
+        title,
+        category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
+        brand,
+        condition,
+        specs,
+        price_rm: parseFloat(price),
+        location_state: state,
+        images_url: imageUrls,
+        is_sold: false,
+        is_hidden: false,
+        is_paused: false
+      };
+
+      const ok = await db.createListing(listingData);
+      if (!ok) {
+        throw new Error('createListing_failed');
+      }
+      toast.success("Listing published successfully!");
+      navigate('/dashboard');
     } catch (error) {
-        toast.error(isEditMode ? 'Failed to update listing.' : "Failed to create listing.");
-        console.error(error);
+      toast.error(isEditMode ? 'Failed to update listing.' : "Failed to create listing.");
+      console.error(error);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -292,13 +312,13 @@ const CreateListing: React.FC = () => {
               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <MultiSelect 
-                 label="Cell Type (多选)" 
-                 options={['Monocrystalline', 'Polycrystalline', 'N-type', 'P-type', 'IBC', 'ABC', 'TOPCon', 'HJT', 'PERC', 'Bifacial', 'Monofacial', 'Thin-Film', 'Standard Rigid', 'Flexible', 'BIPV', 'Shingled']}
-                 value={String((specs as any).cell_type || '')}
-                 onChange={(v) => handleSpecChange('cell_type', v)}
-               />
-               <Input label="Dimensions (mm)" placeholder="e.g. 2278x1134x30" onChange={(v) => handleSpecChange('dimensions', v)} required />
+              <MultiSelect
+                label="Cell Type (Multiple)"
+                options={['Monocrystalline', 'Polycrystalline', 'N-type', 'P-type', 'IBC', 'ABC', 'TOPCon', 'HJT', 'PERC', 'Bifacial', 'Monofacial', 'Thin-Film', 'Standard Rigid', 'Flexible', 'BIPV', 'Shingled']}
+                value={String((specs as any).cell_type || '')}
+                onChange={(v) => handleSpecChange('cell_type', v)}
+              />
+              <Input label="Dimensions (mm)" placeholder="e.g. 2278x1134x30" onChange={(v) => handleSpecChange('dimensions', v)} required />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -322,82 +342,82 @@ const CreateListing: React.FC = () => {
       case 'Inverters':
         return (
           <>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Model" placeholder="e.g. SUN2000" onChange={(v) => handleSpecChange('model', v)} />
-               <MultiSelect 
-                 label="Inverter Type (多选)" 
-                 options={['String', 'Micro', 'Microinverter', 'Hybrid', 'Off-Grid', 'Grid-Tied', 'Central']}
-                 value={String((specs as any).inverter_type || '')}
-                 onChange={(v) => handleSpecChange('inverter_type', v)}
-               />
-               <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
-                  <select onChange={(e) => handleSpecChange('phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                    <option value="Single">Single Phase</option>
-                    <option value="Three">Three Phase</option>
-                  </select>
-               </div>
-               <Input label="Max Input Voltage (V)" type="number" onChange={(v) => handleSpecChange('max_input_voltage', Number(v))} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Efficiency (%)" type="number" onChange={(v) => handleSpecChange('efficiency', Number(v))} />
-               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Model" placeholder="e.g. SUN2000" onChange={(v) => handleSpecChange('model', v)} />
+              <MultiSelect
+                label="Inverter Type (Multiple)"
+                options={['String', 'Micro', 'Microinverter', 'Hybrid', 'Off-Grid', 'Grid-Tied', 'Central']}
+                value={String((specs as any).inverter_type || '')}
+                onChange={(v) => handleSpecChange('inverter_type', v)}
+              />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
+                <select onChange={(e) => handleSpecChange('phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+                  <option value="Single">Single Phase</option>
+                  <option value="Three">Three Phase</option>
+                </select>
+              </div>
+              <Input label="Max Input Voltage (V)" type="number" onChange={(v) => handleSpecChange('max_input_voltage', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Efficiency (%)" type="number" onChange={(v) => handleSpecChange('efficiency', Number(v))} />
+              <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+            </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Rated AC Power (kW)" type="number" onChange={(v) => handleSpecChange('rated_ac_power_kw', Number(v))} />
-               <Input label="Max AC Power (kW)" type="number" onChange={(v) => handleSpecChange('max_ac_power_kw', Number(v))} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="MPPT Count" type="number" onChange={(v) => handleSpecChange('mppt_count', Number(v))} />
-               <Input label="Max DC Power (kW)" type="number" onChange={(v) => handleSpecChange('max_dc_power_kw', Number(v))} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Protection Rating" placeholder="e.g. IP65" onChange={(v) => handleSpecChange('protection_rating', v)} />
-               <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Rated AC Power (kW)" type="number" onChange={(v) => handleSpecChange('rated_ac_power_kw', Number(v))} />
+              <Input label="Max AC Power (kW)" type="number" onChange={(v) => handleSpecChange('max_ac_power_kw', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="MPPT Count" type="number" onChange={(v) => handleSpecChange('mppt_count', Number(v))} />
+              <Input label="Max DC Power (kW)" type="number" onChange={(v) => handleSpecChange('max_dc_power_kw', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Protection Rating" placeholder="e.g. IP65" onChange={(v) => handleSpecChange('protection_rating', v)} />
+              <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
+            </div>
           </>
         );
       case 'Batteries':
         return (
           <>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Model" placeholder="e.g. LFP-10kWh" onChange={(v) => handleSpecChange('model', v)} />
-               <Input label="Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('capacity_kwh', Number(v))} />
-               <Input label="Nominal Voltage (V)" type="number" onChange={(v) => handleSpecChange('nominal_voltage', Number(v))} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Cycle Life" type="number" onChange={(v) => handleSpecChange('cycle_life', Number(v))} />
-               <MultiSelect 
-                 label="Type (多选)" 
-                 options={['Rack-mounted', 'Wall-mounted', 'Portable', 'Container', 'Floor-standing', 'All-in-one']}
-                 value={String((specs as any).battery_type || '')}
-                 onChange={(v) => handleSpecChange('battery_type', v)}
-               />
-               <MultiSelect 
-                 label="Technology (多选)" 
-                 options={['LiFePO4', 'NMC', 'LTO', 'Lead-Acid', 'AGM', 'Gel', 'Sodium-Ion', 'Flow', 'Other']}
-                 value={String((specs as any).technology || '')}
-                 onChange={(v) => handleSpecChange('technology', v)}
-               />
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Model" placeholder="e.g. LFP-10kWh" onChange={(v) => handleSpecChange('model', v)} />
+              <Input label="Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('capacity_kwh', Number(v))} />
+              <Input label="Nominal Voltage (V)" type="number" onChange={(v) => handleSpecChange('nominal_voltage', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Cycle Life" type="number" onChange={(v) => handleSpecChange('cycle_life', Number(v))} />
+              <MultiSelect
+                label="Type (Multiple)"
+                options={['Rack-mounted', 'Wall-mounted', 'Portable', 'Container', 'Floor-standing', 'All-in-one']}
+                value={String((specs as any).battery_type || '')}
+                onChange={(v) => handleSpecChange('battery_type', v)}
+              />
+              <MultiSelect
+                label="Technology (Multiple)"
+                options={['LiFePO4', 'NMC', 'LTO', 'Lead-Acid', 'AGM', 'Gel', 'Sodium-Ion', 'Flow', 'Other']}
+                value={String((specs as any).technology || '')}
+                onChange={(v) => handleSpecChange('technology', v)}
+              />
+            </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Usable Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('usable_capacity_kwh', Number(v))} />
-               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Max Charge (kW)" type="number" onChange={(v) => handleSpecChange('max_charge_kw', Number(v))} />
-               <Input label="Max Discharge (kW)" type="number" onChange={(v) => handleSpecChange('max_discharge_kw', Number(v))} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Depth of Discharge (%)" type="number" onChange={(v) => handleSpecChange('depth_of_discharge_pct', Number(v))} />
-               <Input label="Protection Rating" placeholder="e.g. IP55" onChange={(v) => handleSpecChange('protection_rating', v)} />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Input label="Dimensions (mm)" placeholder="e.g. 500x650x200" onChange={(v) => handleSpecChange('dimensions', v)} />
-               <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Usable Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('usable_capacity_kwh', Number(v))} />
+              <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Max Charge (kW)" type="number" onChange={(v) => handleSpecChange('max_charge_kw', Number(v))} />
+              <Input label="Max Discharge (kW)" type="number" onChange={(v) => handleSpecChange('max_discharge_kw', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Depth of Discharge (%)" type="number" onChange={(v) => handleSpecChange('depth_of_discharge_pct', Number(v))} />
+              <Input label="Protection Rating" placeholder="e.g. IP55" onChange={(v) => handleSpecChange('protection_rating', v)} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Dimensions (mm)" placeholder="e.g. 500x650x200" onChange={(v) => handleSpecChange('dimensions', v)} />
+              <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
+            </div>
           </>
         );
       case 'Cable':
@@ -535,12 +555,12 @@ const CreateListing: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
       <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">{isEditMode ? 'Edit Listing' : 'List New Equipment'}</h1>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Core Info */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Basic Information</h2>
-          
+
           {/* Important Notice */}
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-lg p-4">
             <div className="flex items-start gap-3">
@@ -550,120 +570,120 @@ const CreateListing: React.FC = () => {
               <div>
                 <h4 className="font-semibold text-amber-800 dark:text-amber-200 text-sm mb-1">Important Listing Rule</h4>
                 <p className="text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
-                  Each listing must contain only <strong>one product type</strong> (e.g., only panels, only inverters, or only batteries). 
+                  Each listing must contain only <strong>one product type</strong> (e.g., only panels, only inverters, or only batteries).
                   Do not combine different product types in a single listing. Violations will result in listing removal.
                 </p>
               </div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
-                <select 
-                  value={category} 
-                  onChange={(e) => { setCategory(e.target.value); setSpecs({}); }} 
-                  className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-                >
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-             </div>
-             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location (State)</label>
-                <select 
-                  value={state} 
-                  onChange={(e) => setState(e.target.value)} 
-                  className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-                >
-                  {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-             </div>
-             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Condition</label>
-                <select 
-                  value={condition}
-                  onChange={(e) => setCondition(e.target.value as any)}
-                  className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-                >
-                  <option value="New">New</option>
-                  <option value="Used">Used</option>
-                  <option value="Refurbished">Refurbished</option>
-                </select>
-             </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+              <select
+                value={category}
+                onChange={(e) => { setCategory(e.target.value); setSpecs({}); }}
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location (State)</label>
+              <select
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Condition</label>
+              <select
+                value={condition}
+                onChange={(e) => setCondition(e.target.value as any)}
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="New">New</option>
+                <option value="Used">Used</option>
+                <option value="Refurbished">Refurbished</option>
+              </select>
+            </div>
           </div>
 
           <div>
-             <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Listing Title</label>
-                <span className={`text-xs ${title.length >= 70 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
-                   {title.length}/80
-                </span>
-             </div>
-             <input 
-               type="text" 
-               className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-               placeholder="e.g. JA Solar 550W Panel (Used)"
-               required
-               value={title}
-               onChange={handleTitleChange}
-             />
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Listing Title</label>
+              <span className={`text-xs ${title.length >= 70 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                {title.length}/80
+              </span>
+            </div>
+            <input
+              type="text"
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              placeholder="e.g. JA Solar 550W Panel (Used)"
+              required
+              value={title}
+              onChange={handleTitleChange}
+            />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Brand" placeholder="e.g. Huawei, Jinko" value={brand} onChange={setBrand} required />
             <div>
-                <Input label="Price (RM)" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
-                {showPricePerWatt && (
-                    <p className="text-xs text-emerald-600 font-bold mt-1 text-right">
-                       ≈ RM {pricePerWatt}/Watt
-                    </p>
-                )}
+              <Input label="Price (RM)" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
+              {showPricePerWatt && (
+                <p className="text-xs text-emerald-600 font-bold mt-1 text-right">
+                  ≈ RM {pricePerWatt}/Watt
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Dynamic Specs */}
         <div className="space-y-4">
-           <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Technical Specifications</h2>
-           <div className="bg-slate-50 dark:bg-slate-950/40 p-6 rounded-lg border border-slate-200 dark:border-slate-800 space-y-4">
-              {renderSpecFields()}
-           </div>
+          <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Technical Specifications</h2>
+          <div className="bg-slate-50 dark:bg-slate-950/40 p-6 rounded-lg border border-slate-200 dark:border-slate-800 space-y-4">
+            {renderSpecFields()}
+          </div>
         </div>
 
         {/* Images */}
         <div className="space-y-4">
-           <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Images</h2>
-           <p className="text-xs text-slate-500 dark:text-slate-400">
-             <span className="font-medium text-emerald-600">💡 Tip:</span> Upload photos from all angles (top, bottom, left, right, front, back) to build buyer confidence. Including the original product datasheet also helps showcase your professionalism.
-           </p>
-           <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-950/40 transition-colors cursor-pointer relative">
-              <input 
-                type="file" 
-                multiple 
-                accept="image/*" 
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div className="text-slate-500 dark:text-slate-400">
-                <span className="text-primary font-medium">Click to upload</span> or drag and drop<br/>
-                <span className="text-xs">Max 10 images. Formats: JPG, PNG.</span>
-              </div>
-           </div>
-           {images.length > 0 && (
-             <div className="text-sm text-slate-600 dark:text-slate-300">
-               {images.length} file(s) selected
-             </div>
-           )}
+          <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">Images</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="font-medium text-emerald-600">💡 Tip:</span> Upload photos from all angles (top, bottom, left, right, front, back) to build buyer confidence. Including the original product datasheet also helps showcase your professionalism.
+          </p>
+          <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-950/40 transition-colors cursor-pointer relative">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div className="text-slate-500 dark:text-slate-400">
+              <span className="text-primary font-medium">Click to upload</span> or drag and drop<br />
+              <span className="text-xs">Max 10 images. Formats: JPG, PNG.</span>
+            </div>
+          </div>
+          {images.length > 0 && (
+            <div className="text-sm text-slate-600 dark:text-slate-300">
+              {images.length} file(s) selected
+            </div>
+          )}
         </div>
 
         <div className="pt-4">
-           <button 
-             type="submit" 
-             disabled={loading}
-             className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 disabled:opacity-70"
-           >
-             {loading ? 'Publishing...' : 'Publish Listing'}
-           </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 disabled:opacity-70"
+          >
+            {loading ? 'Publishing...' : 'Publish Listing'}
+          </button>
         </div>
       </form>
     </div>
@@ -678,7 +698,7 @@ const MultiSelect: React.FC<{
   onChange: (val: string) => void;
 }> = ({ label, options, value, onChange }) => {
   const selected = value ? value.split(',').filter(Boolean) : [];
-  
+
   const toggleOption = (opt: string) => {
     if (selected.includes(opt)) {
       onChange(selected.filter(s => s !== opt).join(','));
@@ -696,11 +716,10 @@ const MultiSelect: React.FC<{
             key={opt}
             type="button"
             onClick={() => toggleOption(opt)}
-            className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-              selected.includes(opt)
-                ? 'bg-emerald-500 text-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
+            className={`px-3 py-1.5 text-xs rounded-full transition-colors ${selected.includes(opt)
+              ? 'bg-emerald-500 text-white'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
           >
             {opt}
           </button>
@@ -712,9 +731,9 @@ const MultiSelect: React.FC<{
 
 // Helper Input Component
 const Input: React.FC<{
-  label: string; 
-  type?: string; 
-  placeholder?: string; 
+  label: string;
+  type?: string;
+  placeholder?: string;
   required?: boolean;
   value?: string | number;
   step?: string | number;
@@ -724,8 +743,8 @@ const Input: React.FC<{
 }> = ({ label, type = "text", placeholder, required, value, step, min, max, onChange }) => (
   <div>
     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
-    <input 
-      type={type} 
+    <input
+      type={type}
       className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
       placeholder={placeholder}
       required={required}
