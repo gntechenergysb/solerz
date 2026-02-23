@@ -718,7 +718,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     if (interval === 'month' || interval === 'year') {
       stripeBillingInterval = interval;
     }
-  } else if (type === 'customer.subscription.updated') {
+  } else if (type === 'customer.subscription.updated' || type === 'customer.subscription.created') {
     const sub = event?.data?.object;
     await bestEffortPatchPendingFromSubscription(env, sub);
 
