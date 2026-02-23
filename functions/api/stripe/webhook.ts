@@ -717,6 +717,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       
       await bestEffortPatchStripeFields(env, userId, datePatch);
     }
+
+    // Record event processed and return early for invoice.paid/payment_succeeded
+    await recordEventProcessed(env, eventId, type);
+    return new Response('ok', { status: 200 });
   } else if (type === 'invoice.payment_failed') {
     const invoice = event?.data?.object;
     stripeCustomerId = String(invoice?.customer || '').trim();
