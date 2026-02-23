@@ -7,10 +7,10 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
-  STARTER: { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
-  PRO: { monthly: 'price_1T0enHAEbTWGL4T0Mbvhwiho', yearly: 'price_1T0ennAEbTWGL4T0Dfs6JlmN' },
-  ELITE: { monthly: 'price_1T0eoRAEbTWGL4T0qsynUwGm', yearly: 'price_1T0er5AEbTWGL4T0hKoOVsjN' },
-  ENTERPRISE: { monthly: 'price_1T0etMAEbTWGL4T0C14VVNLk', yearly: 'price_1T0etmAEbTWGL4T0j1Chp7ri' }
+  STARTER: { monthly: 'price_1T3oM93xgQicLevm5unduRER', yearly: 'price_1T3oN73xgQicLevmh57zk37g' },
+  PRO: { monthly: 'price_1T3oNh3xgQicLevmZ3y0bXMb', yearly: 'price_1T3oO13xgQicLevmkwg05p9H' },
+  ELITE: { monthly: 'price_1T3oOQ3xgQicLevmlhKBgHWM', yearly: 'price_1T3oOp3xgQicLevm7nliGKen' },
+  ENTERPRISE: { monthly: 'price_1T3oPE3xgQicLevmIdeQ2zyf', yearly: 'price_1T3oPg3xgQicLevmcHKfBU4O' }
 };
 
 const normalizeTier = (t: string) => {
