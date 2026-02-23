@@ -112,25 +112,46 @@ const Pricing: React.FC = () => {
       const isSubscribed = user.tier !== 'UNSUBSCRIBED';
 
       if (isSubscribed) {
-        // 已订阅用户跳转到 Stripe Portal 管理
-        const res = await fetch('/api/stripe/portal', {
+        // 已订阅用户 → 调用 change API 来更换配套
+        const currentTier = user.tier?.toUpperCase();
+        const selectedTier = selectedPlan.id.toUpperCase();
+
+        if (selectedTier === currentTier && billingCycle === (user.stripe_billing_interval === 'year' ? 'yearly' : 'monthly')) {
+          toast('You are already on this plan.', { icon: 'ℹ️' });
+          setIsProcessing(false);
+          return;
+        }
+
+        const res = await fetch('/api/stripe/subscription/change', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`
           },
-          body: JSON.stringify({ returnPath: '/dashboard' })
+          body: JSON.stringify({
+            planId: selectedPlan.id,
+            billingCycle
+          })
         });
 
         const json = (await res.json().catch(() => null)) as any;
         if (!res.ok) {
-          throw new Error(String(json?.error || 'portal_failed'));
+          throw new Error(String(json?.error || 'change_failed'));
         }
 
-        const url = String(json?.url || '').trim();
-        if (!url) throw new Error('missing_portal_url');
+        if (json?.mode === 'upgrade') {
+          toast.success('Plan upgraded successfully!');
+        } else if (json?.mode === 'downgrade_scheduled') {
+          const effectiveDate = json?.effectiveAt
+            ? new Date(json.effectiveAt * 1000).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+            : '';
+          toast.success(`Plan change scheduled${effectiveDate ? ` for ${effectiveDate}` : ''}.`);
+        }
 
-        window.location.href = url;
+        await refreshUser();
+        setSelectedPlan(null);
+        setIsProcessing(false);
+        navigate('/dashboard');
         return;
       }
 

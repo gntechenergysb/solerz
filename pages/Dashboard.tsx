@@ -343,6 +343,7 @@ const Dashboard: React.FC = () => {
 
     // Portal 返回后立即同步(不检查 needsSync)
     const isPortalReturn = document.referrer?.includes('stripe.com') ||
+      document.referrer?.includes('billing.stripe.com') ||
       (user?.tier && location.pathname === '/dashboard' && !location.search);
 
     if (isPortalReturn) {

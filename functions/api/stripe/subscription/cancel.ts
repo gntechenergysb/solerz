@@ -173,13 +173,14 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     const sub = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}?expand[]=items.data.price`);
     const scheduleId = String(sub?.schedule || '').trim() || null;
-    const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
-    const currentPeriodStart = Number(sub?.current_period_start ?? NaN);
-    
+
     // Extract billing interval from subscription
     const items = sub?.items?.data || [];
     const firstItem = items[0];
     const billingInterval = firstItem?.price?.recurring?.interval || 'month';
+
+    const currentPeriodEnd = Number(sub?.current_period_end ?? firstItem?.current_period_end ?? NaN);
+    const currentPeriodStart = Number(sub?.current_period_start ?? firstItem?.current_period_start ?? NaN);
 
     await releaseScheduleIfAny(env, scheduleId);
 

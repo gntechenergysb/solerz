@@ -154,7 +154,7 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
   if (!supabaseUrl || !serviceKey) return;
 
   const limit = getListingLimit(newTier);
-  
+
   // Get paused listings for this user
   const res = await fetch(
     `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_paused=eq.true&order=created_at.desc&select=*`,
@@ -173,7 +173,7 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
   }
 
   const pausedListings = (await res.json().catch(() => [])) as any[];
-  
+
   // Get current active (non-paused) count
   const activeRes = await fetch(
     `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?seller_id=eq.${encodeURIComponent(userId)}&is_sold=eq.false&is_hidden=eq.false&is_paused=eq.false&active_until=gte.${encodeURIComponent(new Date().toISOString())}&select=id`,
@@ -185,14 +185,14 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
       }
     }
   );
-  
+
   const activeListings = activeRes.ok ? (await activeRes.json().catch(() => [])) : [];
   const currentActiveCount = activeListings.length;
   const availableSlots = limit - currentActiveCount;
-  
+
   // Resume up to available slots
   const listingsToResume = pausedListings.slice(0, availableSlots);
-  
+
   for (const listing of listingsToResume) {
     const resumeRes = await fetch(
       `${supabaseUrl.replace(/\/$/, '')}/rest/v1/listings?id=eq.${encodeURIComponent(listing.id)}`,
@@ -207,14 +207,14 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
         body: JSON.stringify({ is_paused: false, updated_at: new Date().toISOString() })
       }
     );
-    
+
     if (!resumeRes.ok) {
       console.log('Failed to resume listing', listing.id, resumeRes.status);
     } else {
       console.log('Resumed listing due to tier upgrade', listing.id, listing.title);
     }
   }
-  
+
   if (listingsToResume.length > 0) {
     console.log(`Resumed ${listingsToResume.length} listings due to tier upgrade to ${newTier}`);
   }
@@ -341,7 +341,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const currentItem = Array.isArray(sub?.items?.data) && sub.items.data.length ? sub.items.data[0] : null;
     const itemId = String(currentItem?.id || '').trim();
     const currentPrice = currentItem?.price;
-    const currentPeriodEnd = Number(sub?.current_period_end ?? NaN);
+    const currentPeriodEnd = Number(sub?.current_period_end ?? currentItem?.current_period_end ?? NaN);
 
     if (!itemId || !currentPrice || !Number.isFinite(currentPeriodEnd)) {
       return new Response(JSON.stringify({ error: 'Invalid subscription state.' }), {
@@ -377,8 +377,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
       // Fetch updated subscription to get new period dates
       const updatedSub = await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`);
-      const newPeriodEnd = Number(updatedSub?.current_period_end ?? NaN);
-      const newPeriodStart = Number(updatedSub?.current_period_start ?? NaN);
+      const updatedFirstItem = updatedSub?.items?.data?.[0];
+      const newPeriodEnd = Number(updatedSub?.current_period_end ?? updatedFirstItem?.current_period_end ?? NaN);
+      const newPeriodStart = Number(updatedSub?.current_period_start ?? updatedFirstItem?.current_period_start ?? NaN);
 
       const patch: any = {
         tier,
@@ -390,10 +391,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         stripe_billing_interval: billingCycle === 'yearly' ? 'year' : 'month',
         ...(customerId ? { stripe_customer_id: customerId } : {})
       };
-      
+
       if (Number.isFinite(newPeriodEnd)) patch.stripe_current_period_end = newPeriodEnd;
       if (Number.isFinite(newPeriodStart)) patch.stripe_current_period_start = newPeriodStart;
-      
+
       await supabaseServicePatchProfile(env, userId, patch);
 
       // Immediately resume paused listings due to tier upgrade
@@ -452,7 +453,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       stripe_subscription_id: subscriptionId,
       stripe_billing_interval: billingCycle === 'yearly' ? 'year' : 'month',
       stripe_current_period_end: currentPeriodEnd || null,
-      stripe_current_period_start: Number(sub?.current_period_start ?? NaN) || null,
+      stripe_current_period_start: Number(sub?.current_period_start ?? currentItem?.current_period_start ?? NaN) || null,
       ...(customerId ? { stripe_customer_id: customerId } : {})
     });
 
