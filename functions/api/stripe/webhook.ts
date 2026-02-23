@@ -595,11 +595,22 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     stripeCustomerId = String(session?.customer || '').trim();
     stripeSubscriptionId = String(session?.subscription || '').trim();
 
+    console.log('[WEBHOOK] Processing checkout.session.completed:', {
+      userId,
+      stripeCustomerId,
+      stripeSubscriptionId,
+      hasStripeSecretKey: !!env.STRIPE_SECRET_KEY
+    });
+
     // For checkout.session.completed, we need to fetch subscription details to get status and period end
     if (stripeSubscriptionId && env.STRIPE_SECRET_KEY) {
       try {
         const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(stripeSubscriptionId)}`, {
           headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` }
+        });
+        console.log('[WEBHOOK] Stripe subscription fetch response:', {
+          status: subRes.status,
+          ok: subRes.ok
         });
         if (subRes.ok) {
           const sub = await subRes.json();
