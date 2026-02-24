@@ -23,7 +23,7 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-     if (hp.trim()) {
+    if (hp.trim()) {
       toast.error('Login failed.');
       setLoading(false);
       return;
@@ -104,10 +104,6 @@ const AdminLogin: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onPaste={(e) => {
-                const pasted = e.clipboardData.getData('text');
-                setPassword(pasted);
-              }}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all bg-white text-slate-900"
               placeholder="••••••••"
               autoComplete="current-password"
