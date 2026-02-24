@@ -13,10 +13,15 @@ declare
   -- Every Nth listing is sold (0 = none sold)
   v_sold_every int := 0;
   -- =======================================
+  v_seller_is_verified boolean;
 begin
   if v_seller_id is null then
     raise exception 'Please set v_seller_id to a valid UUID';
   end if;
+
+  select coalesce(is_verified, false) into v_seller_is_verified 
+  from public.profiles 
+  where id = v_seller_id;
 
   insert into public.listings (
     seller_id,
@@ -29,7 +34,8 @@ begin
     location_state,
     images_url,
     is_sold,
-    is_hidden
+    is_hidden,
+    is_verified_listing
   )
   with
   gs as (
@@ -302,7 +308,8 @@ begin
     ]::text[] as images_url,
 
     case when v_sold_every > 0 and (i % v_sold_every = 0) then true else false end as is_sold,
-    case when v_hidden_every > 0 and (i % v_hidden_every = 0) then true else false end as is_hidden
+    case when v_hidden_every > 0 and (i % v_hidden_every = 0) then true else false end as is_hidden,
+    v_seller_is_verified as is_verified_listing
 
   from derived;
 end $$;
