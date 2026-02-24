@@ -414,7 +414,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
       const updateParams = new URLSearchParams();
       updateParams.set('cancel_at_period_end', 'false');
-      updateParams.set('proration_behavior', 'create_prorations');
+      updateParams.set('proration_behavior', 'always_invoice');
       // 同周期升级才设置 billing_cycle_anchor，跨周期改变 interval 时不设置
       const isSameInterval = currentPrice?.recurring?.interval === (billingCycle === 'yearly' ? 'year' : 'month');
       if (isSameInterval) {
