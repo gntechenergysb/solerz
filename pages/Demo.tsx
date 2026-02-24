@@ -125,7 +125,7 @@ const Demo: React.FC = () => {
                                 onClick={() => triggerModal('save')}
                                 className="relative z-10 inline-flex items-center justify-center bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors shadow-sm"
                             >
-                                Browse Marketplace
+                                Browse Listings
                             </button>
                         </div>
 
@@ -493,7 +493,7 @@ const Demo: React.FC = () => {
                                             Create Listing
                                         </Link>
                                         <button onClick={() => triggerModal('save')} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center">
-                                            Browse Marketplace
+                                            Browse Listings
                                         </button>
                                     </div>
                                 </div>

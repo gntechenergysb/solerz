@@ -48,7 +48,7 @@ const BuyerDashboard: React.FC = () => {
     };
 
     run();
-  }, [user]);
+  }, [user?.id]);
 
   const [activeTab, setActiveTab] = useState<'saved' | 'recent' | 'inquiries' | 'profile'>('saved');
 
@@ -84,7 +84,7 @@ const BuyerDashboard: React.FC = () => {
           to="/"
           className="relative z-10 inline-flex items-center justify-center bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors shadow-sm"
         >
-          Browse Marketplace
+          Browse Listings
         </Link>
       </div>
 
@@ -171,7 +171,7 @@ const BuyerDashboard: React.FC = () => {
                     <p className="text-slate-500 dark:text-slate-400 mb-2">No saved listings found.</p>
                     <p className="text-sm text-slate-400 mb-6">Click the bookmark icon on any listing to save it here for later.</p>
                     <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700">
-                      <Search className="h-4 w-4" /> Explore Marketplace
+                      <Search className="h-4 w-4" /> Explore Listings
                     </Link>
                   </div>
                 ) : (

@@ -13,7 +13,7 @@ const TermsOfService: React.FC = () => {
             Solerz is Malaysia's trusted platform connecting solar equipment buyers with verified sellers. Our mission is to create a transparent, safe environment where quality solar products can be discovered and businesses can grow.
           </p>
           <p>
-            By using Solerz, you agree to these Terms of Service. We encourage you to read them carefully as they outline your rights, responsibilities, and how we work together to maintain a trustworthy marketplace.
+            By using Solerz, you agree to these Terms of Service. We encourage you to read them carefully as they outline your rights, responsibilities, and how we work together to maintain a trustworthy platform.
           </p>
         </section>
 

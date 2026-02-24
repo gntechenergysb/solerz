@@ -39,7 +39,7 @@ const ProductDetails: React.FC = () => {
       setIsSaved(saved);
     };
     run();
-  }, [id, user]);
+  }, [id, user?.id]);
 
   if (loading) return <div className="h-96 flex items-center justify-center text-slate-700 dark:text-slate-300">Loading asset details...</div>;
   if (!listing) return <div className="h-96 flex items-center justify-center text-stone-500">Asset not found.</div>;

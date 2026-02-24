@@ -363,63 +363,63 @@ const Pricing: React.FC = () => {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
-          {/* FAQ 1 */}
+          {/* FAQ 1 — Zero Commission */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-500" /> What counts as an "Active Listing"?
+              <Check className="h-5 w-5 text-emerald-500" /> Zero commission — really?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              An active listing is any inventory item currently visible to buyers on the marketplace. You can have unlimited Draft or Paused listings without them counting against your tier quota.
+              Yes. You only pay a flat subscription fee. We never take a cut from your sales. All transactions happen directly between you and your buyer.
             </p>
           </div>
 
-          {/* FAQ 2 */}
+          {/* FAQ 2 — Active Listing */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-emerald-500" /> What is an "Active Listing"?
+            </h4>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+              Any listing currently visible to buyers. Paused or draft listings don't count against your quota.
+            </p>
+          </div>
+
+          {/* FAQ 3 — Upgrades */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
               <Zap className="h-5 w-5 text-emerald-500" /> How do upgrades work?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              Upgrades take effect immediately. You'll only pay the prorated difference for the remainder of your current billing cycle, then the full new price from the next cycle. Switching from monthly to yearly billing also takes effect immediately.
+              Instant effect. You pay only the prorated difference for the rest of your cycle.
             </p>
           </div>
 
-          {/* FAQ 3 */}
+          {/* FAQ 4 — Downgrades */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-blue-500" /> How do downgrades work?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              Downgrades are scheduled to take effect at the end of your current billing period. You'll continue to enjoy your current plan's benefits until then. No partial refunds are issued for the remaining period. Switching from yearly to monthly billing follows the same policy.
+              Takes effect at the end of your billing period. You keep current benefits until then. No partial refunds.
             </p>
           </div>
 
-          {/* FAQ 4 */}
+          {/* FAQ 5 — Cancellations */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
-              <X className="h-5 w-5 text-rose-500" /> How do cancellations work?
+              <X className="h-5 w-5 text-rose-500" /> What happens if I cancel?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              If you cancel, you retain your current plan's privileges until the end of your billing cycle. After that, your listings are safely paused — never deleted. You can resubscribe at any time to resume them. No refunds are provided for unused time.
+              Your listings stay active until the billing period ends, then they're paused — never deleted. Resubscribe anytime to resume.
             </p>
           </div>
 
-          {/* FAQ 5 */}
+          {/* FAQ 6 — Refund Policy */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
-              <Check className="h-5 w-5 text-emerald-500" /> Are there transaction fees?
+              <ShieldCheck className="h-5 w-5 text-emerald-500" /> Refund policy?
             </h4>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              No! We are a zero-commission classifieds platform. Our flat monthly/annual fee is the only cost you pay. You handle 100% of the financial transaction and shipping with buyers directly.
-            </p>
-          </div>
-
-          {/* FAQ 6 */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-3 text-lg flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-500" /> What is the refund policy?
-            </h4>
-            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-              All subscription fees are non-refundable. When you upgrade, you only pay the prorated difference — no overpayment occurs. Downgrades and cancellations let you keep your current benefits until the billing period ends. We recommend starting with a monthly plan if you'd like to try the platform first.
+              All fees are non-refundable. We recommend starting monthly to try the platform risk-free.
             </p>
           </div>
         </div>

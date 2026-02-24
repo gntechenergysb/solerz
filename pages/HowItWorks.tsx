@@ -206,7 +206,7 @@ const HowItWorks: React.FC = () => {
           How Solerz Works
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto px-4">
-          Malaysia's trusted marketplace for solar equipment.
+          Malaysia's trusted platform for solar equipment listings.
           Discover how easy it is to transact safely on our platform.
         </p>
       </div>

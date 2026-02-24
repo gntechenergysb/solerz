@@ -84,7 +84,7 @@ const CreateListing: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [isEditMode, navigate, user]);
+  }, [isEditMode, navigate, user?.id]);
 
   useEffect(() => {
     if (!isEditMode || !editId) return;
@@ -139,7 +139,7 @@ const CreateListing: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [editId, isEditMode, navigate, user]);
+  }, [editId, isEditMode, navigate, user?.id]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;

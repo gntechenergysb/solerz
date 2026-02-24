@@ -226,6 +226,7 @@ const Dashboard: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const paymentHandledRef = useRef(false);
+  const syncDoneRef = useRef(false);
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [marketDemand, setMarketDemand] = useState<{ inverters: number; panels: number; batteries: number }>({
@@ -342,24 +343,25 @@ const Dashboard: React.FC = () => {
     loadListings();
     loadStats();
 
-    // Portal 返回后立即同步(不检查 needsSync)
+    // Portal 返回后立即同步 — only check referrer, not generic dashboard conditions
     const isPortalReturn = document.referrer?.includes('stripe.com') ||
-      document.referrer?.includes('billing.stripe.com') ||
-      (user?.tier && location.pathname === '/dashboard' && !location.search);
+      document.referrer?.includes('billing.stripe.com');
 
-    if (isPortalReturn) {
+    if (isPortalReturn && !syncDoneRef.current) {
+      syncDoneRef.current = true;
       setTimeout(() => fetchSubscriptionSync(), 100);
     }
 
-    // Background Stripe sync: only sync if no recent data
+    // Background Stripe sync: only sync once if no recent data
     const needsSync = !user?.stripe_current_period_end ||
       (user?.stripe_current_period_end * 1000) < Date.now() ||
       !user?.stripe_subscription_status;
 
-    if (needsSync && !isPortalReturn) {
-      setTimeout(() => fetchSubscriptionSync(), 500); // Delay more to not compete with listing load
+    if (needsSync && !isPortalReturn && !syncDoneRef.current) {
+      syncDoneRef.current = true;
+      setTimeout(() => fetchSubscriptionSync(), 500);
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
