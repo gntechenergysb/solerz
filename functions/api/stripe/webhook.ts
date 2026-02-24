@@ -266,8 +266,12 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
     patch.pending_tier = 'UNSUBSCRIBED';
     if (Number.isFinite(currentPeriodEnd)) patch.tier_effective_at = currentPeriodEnd;
   } else if (cancelAtPeriodEnd === false) {
-    patch.pending_tier = null;
-    patch.tier_effective_at = null;
+    // Only clear pending_tier if there's no active subscription schedule.
+    // A schedule means a downgrade is pending — don't overwrite it.
+    if (!sub?.schedule) {
+      patch.pending_tier = null;
+      patch.tier_effective_at = null;
+    }
   }
 
   await bestEffortPatchStripeFields(env, userId, patch);

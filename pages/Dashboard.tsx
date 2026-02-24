@@ -859,7 +859,7 @@ const Dashboard: React.FC = () => {
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 010 10H9" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 14l-4-4 4-4" /></svg>
                     {isSubActionProcessing ? 'Processing...' : 'Undo Cancellation'}
                   </button>
-                ) : !user?.pending_tier && (
+                ) : (
                   <button
                     onClick={handleCancelSubscriptionAtPeriodEnd}
                     disabled={isSubActionProcessing}
