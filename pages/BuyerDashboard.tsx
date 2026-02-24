@@ -119,13 +119,6 @@ const BuyerDashboard: React.FC = () => {
               Profile Settings
             </span>
           </button>
-
-          <div className="mt-8 bg-amber-50 dark:bg-amber-950/20 rounded-xl p-4 border border-amber-100 dark:border-amber-900/30">
-            <h4 className="text-xs font-bold text-amber-800 dark:text-amber-500 uppercase tracking-wider mb-2">Coming Soon</h4>
-            <p className="text-xs text-amber-700 dark:text-amber-400/80 leading-relaxed mb-3">
-              Price drop alerts for your saved categories will be available in the next platform update.
-            </p>
-          </div>
         </div>
 
         {/* Main Content Area */}
