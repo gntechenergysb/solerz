@@ -342,6 +342,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const itemId = String(currentItem?.id || '').trim();
     const currentPrice = currentItem?.price;
     const currentPeriodEnd = Number(sub?.current_period_end ?? currentItem?.current_period_end ?? NaN);
+    const currentPeriodStart = Number(sub?.current_period_start ?? currentItem?.current_period_start ?? NaN);
 
     if (!itemId || !currentPrice || !Number.isFinite(currentPeriodEnd)) {
       return new Response(JSON.stringify({ error: 'Invalid subscription state.' }), {
@@ -493,8 +494,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     const scheduleParams = new URLSearchParams();
     scheduleParams.set('end_behavior', 'release');
 
-    // Do NOT set phases[0][start_date] — Stripe does not allow modifying
-    // the start date of the current phase when created from a subscription.
+    // Stripe API 2026-01-28+ requires start_date on at least one phase
+    scheduleParams.set('phases[0][start_date]', String(Number.isFinite(currentPeriodStart) ? currentPeriodStart : sub?.start_date || sub?.billing_cycle_anchor || ''));
     scheduleParams.set('phases[0][end_date]', String(currentPeriodEnd));
     scheduleParams.set('phases[0][items][0][price]', String(currentPrice?.id || ''));
     scheduleParams.set('phases[0][items][0][quantity]', '1');
