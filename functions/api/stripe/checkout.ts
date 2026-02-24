@@ -11,10 +11,10 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
-  STARTER: { monthly: 'price_1T3oM93xgQicLevm5unduRER', yearly: 'price_1T3oN73xgQicLevmh57zk37g' },
-  PRO: { monthly: 'price_1T3oNh3xgQicLevmZ3y0bXMb', yearly: 'price_1T3oO13xgQicLevmkwg05p9H' },
-  ELITE: { monthly: 'price_1T3oOQ3xgQicLevmlhKBgHWM', yearly: 'price_1T3oOp3xgQicLevm7nliGKen' },
-  ENTERPRISE: { monthly: 'price_1T3oPE3xgQicLevmIdeQ2zyf', yearly: 'price_1T3oPg3xgQicLevmcHKfBU4O' }
+  STARTER: { monthly: 'price_1T4BtJ3k3Z28WqJKINJ9Efd0', yearly: 'price_1T4BtJ3k3Z28WqJKqhbXBvex' },
+  PRO: { monthly: 'price_1T4BtQ3k3Z28WqJKZZ4Xh2cP', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
+  ELITE: { monthly: 'price_1T4BtS3k3Z28WqJK59BkDgNI', yearly: 'price_1T4BtS3k3Z28WqJKJwLzoags' },
+  ENTERPRISE: { monthly: 'price_1T4BtV3k3Z28WqJK3QYvTdHr', yearly: 'price_1T4BtV3k3Z28WqJKdOmXM9Zt' }
 };
 
 const normalizeTier = (planId: string) => {

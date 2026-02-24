@@ -75,7 +75,7 @@ const ProductDetails: React.FC = () => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
 
         {/* Left Column: Images */}
         <div className="lg:col-span-6 space-y-4">

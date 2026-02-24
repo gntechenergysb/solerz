@@ -141,13 +141,6 @@ const Demo: React.FC = () => {
                                     <span className="text-xs bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full">12</span>
                                 </button>
                                 <div className="my-4 border-t border-slate-200 dark:border-slate-800" />
-                                <button onClick={() => setBuyerTab('history')} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${buyerTab === 'history' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}>
-                                    <span className="flex items-center gap-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                        Contact History
-                                    </span>
-                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">New</span>
-                                </button>
                                 <button onClick={() => setBuyerTab('profile')} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${buyerTab === 'profile' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}>
                                     <span className="flex items-center gap-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -250,15 +243,7 @@ const Demo: React.FC = () => {
                                     </div>
                                 )}
 
-                                {buyerTab === 'history' && (
-                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300 p-12 flex flex-col items-center justify-center min-h-[400px]">
-                                        <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                        </div>
-                                        <h2 className="font-bold text-xl text-slate-900 dark:text-slate-100 mb-2">Contact History</h2>
-                                        <p className="text-slate-500 text-center max-w-sm">This is a demo preview area. Your past inquiries, messages, and contact requests with sellers will be logged here.</p>
-                                    </div>
-                                )}
+
 
                                 {buyerTab === 'profile' && (
                                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300 p-12 flex flex-col items-center justify-center min-h-[400px]">
