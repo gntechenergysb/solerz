@@ -544,6 +544,81 @@ const CreateListing: React.FC = () => {
             </div>
           </>
         );
+      case 'Mounting':
+        return (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mounting Type</label>
+                <select
+                  value={String((specs as any).mounting_type || '')}
+                  onChange={(e) => handleSpecChange('mounting_type', e.target.value)}
+                  className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="">Select Type</option>
+                  <option value="Roof Mount">Roof Mount</option>
+                  <option value="Ground Mount">Ground Mount</option>
+                  <option value="Carport">Carport</option>
+                  <option value="Tracking System">Tracking System</option>
+                  <option value="Wall Mount">Wall Mount</option>
+                  <option value="Pole Mount">Pole Mount</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Material</label>
+                <select
+                  value={String((specs as any).material || '')}
+                  onChange={(e) => handleSpecChange('material', e.target.value)}
+                  className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="">Select Material</option>
+                  <option value="Aluminum">Aluminum</option>
+                  <option value="Galvanized Steel">Galvanized Steel</option>
+                  <option value="Stainless Steel">Stainless Steel</option>
+                  <option value="Plastic">Plastic</option>
+                  <option value="Mixed">Mixed</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Roof Type Compatibility</label>
+                <select
+                  value={String((specs as any).roof_type || '')}
+                  onChange={(e) => handleSpecChange('roof_type', e.target.value)}
+                  className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="">Select Roof Type</option>
+                  <option value="Corrugated">Corrugated</option>
+                  <option value="Trapezoidal">Trapezoidal</option>
+                  <option value="Tile">Tile</option>
+                  <option value="Standing Seam">Standing Seam</option>
+                  <option value="Flat Roof">Flat Roof</option>
+                  <option value="Any">Any / Not Applicable</option>
+                </select>
+              </div>
+              <Input label="Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Wind Load (m/s)" type="number" onChange={(v) => handleSpecChange('wind_load_ms', Number(v))} />
+              <Input label="Snow Load (kN/m²)" type="number" onChange={(v) => handleSpecChange('snow_load_knm2', Number(v))} />
+            </div>
+          </>
+        );
+      case 'Accessories':
+        return (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Accessory Type" placeholder="e.g. Optimizer, Smart Meter, MC4 Connector" onChange={(v) => handleSpecChange('type', v)} />
+              <Input label="Compatible Brand(s)" placeholder="e.g. Huawei, SolarEdge, Universal" onChange={(v) => handleSpecChange('compatibility', v)} />
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              <Input label="Key Specification" placeholder="e.g. 600W Max DC Input, 100A Range" onChange={(v) => handleSpecChange('key_spec', v)} />
+            </div>
+          </>
+        );
       case 'Miscellaneous':
       default:
         return <p className="text-sm text-slate-500 dark:text-slate-400 italic">No specific fields for this category.</p>;
@@ -680,7 +755,7 @@ const CreateListing: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 disabled:opacity-70"
+            className="w-full bg-emerald-600 dark:bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 dark:shadow-none disabled:opacity-70"
           >
             {loading ? 'Publishing...' : 'Publish Listing'}
           </button>
@@ -697,7 +772,19 @@ const MultiSelect: React.FC<{
   value: string;
   onChange: (val: string) => void;
 }> = ({ label, options, value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
   const selected = value ? value.split(',').filter(Boolean) : [];
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const toggleOption = (opt: string) => {
     if (selected.includes(opt)) {
@@ -708,23 +795,39 @@ const MultiSelect: React.FC<{
   };
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{label}</label>
-      <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-slate-300 dark:border-slate-700 rounded-md bg-white dark:bg-slate-950">
-        {options.map(opt => (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => toggleOption(opt)}
-            className={`px-3 py-1.5 text-xs rounded-full transition-colors ${selected.includes(opt)
-              ? 'bg-emerald-500 text-white'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+    <div ref={dropdownRef} className="relative">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-left cursor-default hover:border-emerald-500 dark:hover:border-emerald-500"
+      >
+        <span className="truncate pr-4">
+          {selected.length === 0 ? 'Select options...' : selected.join(', ')}
+        </span>
+        <svg
+          className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl shadow-slate-200/50 dark:shadow-none max-h-60 overflow-y-auto">
+          {options.map(opt => (
+            <label key={opt} className="flex items-center px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-100 dark:border-slate-800/50 last:border-0">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggleOption(opt)}
+                className="w-4 h-4 text-emerald-500 rounded border-slate-300 dark:border-slate-600 focus:ring-emerald-500 dark:bg-slate-800"
+              />
+              <span className="ml-3 text-sm text-slate-700 dark:text-slate-200">{opt}</span>
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

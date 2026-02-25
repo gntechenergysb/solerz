@@ -598,7 +598,7 @@ const Marketplace: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Power (kW)</label>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min kW</label>
             <input
               type="number"
               value={inverterMinPowerKw}
@@ -608,7 +608,7 @@ const Marketplace: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max Power (kW)</label>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max kW</label>
             <input
               type="number"
               value={inverterMaxPowerKw}
@@ -628,7 +628,7 @@ const Marketplace: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Vin (V)</label>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Volts</label>
             <input
               type="number"
               value={inverterMinInputVoltage}
@@ -671,7 +671,7 @@ const Marketplace: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Capacity (kWh)</label>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min kWh</label>
             <input
               type="number"
               value={batteryMinCapacityKwh}
@@ -681,7 +681,7 @@ const Marketplace: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max Capacity (kWh)</label>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max kWh</label>
             <input
               type="number"
               value={batteryMaxCapacityKwh}
@@ -691,7 +691,7 @@ const Marketplace: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Nominal V</label>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Volts</label>
             <select
               value={batteryNominalVoltage}
               onChange={(e) => setBatteryNominalVoltage(e.target.value)}

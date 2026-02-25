@@ -26,7 +26,7 @@ export interface Profile {
   avatar_url?: string;
 }
 
-export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Cable' | 'Protective' | 'Miscellaneous' | 'Accessories';
+export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Miscellaneous';
 
 export type ListingCondition = 'New' | 'Used' | 'Refurbished' | string;
 
@@ -130,6 +130,15 @@ export interface BatterySpecs extends BaseSpecs {
   operating_temperature_range_c?: string;
 }
 
+export interface MountingSpecs extends BaseSpecs {
+  mounting_type?: 'Roof Mount' | 'Ground Mount' | 'Carport' | 'Tracking System' | 'Wall Mount' | 'Pole Mount' | 'Other';
+  material?: 'Aluminum' | 'Galvanized Steel' | 'Stainless Steel' | 'Plastic' | 'Mixed' | string;
+  roof_type?: 'Corrugated' | 'Trapezoidal' | 'Tile' | 'Standing Seam' | 'Flat Roof' | 'Other';
+  wind_load_ms?: number;
+  snow_load_knm2?: number;
+  warranty_years?: number;
+}
+
 export interface CableSpecs extends BaseSpecs {
   current_type?: 'DC' | 'AC';
   cable_type?:
@@ -177,7 +186,7 @@ export interface ProtectiveSpecs extends BaseSpecs {
   poles?: number;
 }
 
-export type ProductSpecs = PanelSpecs | InverterSpecs | BatterySpecs | CableSpecs | ProtectiveSpecs | BaseSpecs;
+export type ProductSpecs = PanelSpecs | InverterSpecs | BatterySpecs | MountingSpecs | CableSpecs | ProtectiveSpecs | BaseSpecs;
 
 export interface Listing {
   id: string;

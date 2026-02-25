@@ -31,10 +31,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
     if (listing.category === 'Panels' && specs.wattage) tags.push(`⚡ ${specs.wattage}W`);
     if (listing.category === 'Inverters' && specs.phase) tags.push(`🔌 ${specs.phase} Phase`);
     if (listing.category === 'Batteries' && specs.capacity_kwh) tags.push(`🔋 ${specs.capacity_kwh}kWh`);
+    if (listing.category === 'Mounting' && specs.mounting_type) tags.push(`🏗️ ${specs.mounting_type}`);
     if (categoryLabel === 'Cable' && specs.size_mm2) tags.push(`🧵 ${specs.size_mm2}mm²`);
     if (categoryLabel === 'Cable' && specs.current_type) tags.push(`⚡ ${specs.current_type}`);
     if (categoryLabel === 'Protective' && specs.device_type) tags.push(`🛡️ ${specs.device_type}`);
     if (categoryLabel === 'Protective' && specs.rated_current_a) tags.push(`🔧 ${specs.rated_current_a}A`);
+    if (listing.category === 'Accessories' && specs.type) tags.push(`🔌 ${specs.type}`);
 
     // Brand is always good
     tags.push(`🏷️ ${listing.brand}`);
