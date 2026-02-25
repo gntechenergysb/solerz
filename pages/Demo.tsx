@@ -17,7 +17,7 @@ const DUMMY_LISTINGS = [
         location: 'Kuala Lumpur',
         images: ['https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80'],
         seller: {
-            company_name: 'SolarTech Solutions Sdn Bhd',
+            company_name: 'Example Solar Test Sdn Bhd',
             is_verified: true,
             tier: 'PRO'
         }
@@ -260,7 +260,7 @@ const Demo: React.FC = () => {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div>
                                 <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Seller Dashboard</h1>
-                                <p className="text-slate-500 dark:text-slate-300">Welcome back, SolarTech Solutions (Demo)</p>
+                                <p className="text-slate-500 dark:text-slate-300">Welcome back, Example Solar Test (Demo)</p>
                             </div>
                             <Link to="/create?demo=true" className="flex items-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-lg hover:bg-emerald-700 transition shadow-sm font-medium">
                                 <PlusCircle className="h-5 w-5" />
@@ -278,7 +278,7 @@ const Demo: React.FC = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2">
-                                                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">SolarTech Solutions Sdn Bhd</h2>
+                                                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Example Solar Test Sdn Bhd</h2>
                                                 <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                                     <CheckCircle className="h-3 w-3" />
                                                     Verified
