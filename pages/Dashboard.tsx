@@ -301,11 +301,24 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
+    // --- SWR CACHE RESTORE (Instantly show old data while fetching) ---
+    try {
+      const cListings = localStorage.getItem(`dash_l_${user.id}`);
+      if (cListings) { setMyListings(JSON.parse(cListings)); setLoading(false); }
+
+      const cTrend = localStorage.getItem(`dash_t_${user.id}`);
+      if (cTrend) setTrendingKeywords(JSON.parse(cTrend));
+
+      const cFunnel = localStorage.getItem(`dash_f_${user.id}`);
+      if (cFunnel) setFunnel(JSON.parse(cFunnel));
+    } catch { }
+
     // Load listings immediately (fastest - most important)
     const loadListings = async () => {
       const mine = await db.getListingsBySellerIdMinimal(user.id);
       setMyListings(mine);
       setLoading(false); // Show listings immediately
+      try { localStorage.setItem(`dash_l_${user.id}`, JSON.stringify(mine)); } catch { }
     };
 
     // Load stats in background (less critical)
@@ -315,22 +328,27 @@ const Dashboard: React.FC = () => {
         db.getSellerFunnel(user.id, 7)
       ]);
 
+      let newTrending = [];
       if (demandRows && demandRows.length > 0) {
-        setTrendingKeywords(demandRows);
+        newTrending = demandRows;
       } else {
         // Fallback realistic mock data if the database has zero recent searches
-        setTrendingKeywords([
+        newTrending = [
           { keyword: '10kwh battery', searches: 124 },
           { keyword: 'growatt inverter', searches: 89 },
           { keyword: 'n-type 550w', searches: 62 }
-        ]);
+        ];
       }
+      setTrendingKeywords(newTrending);
+      try { localStorage.setItem(`dash_t_${user.id}`, JSON.stringify(newTrending)); } catch { }
 
-      setFunnel({
+      const newFunnel = {
         impressions: Number((funnelRow as any)?.impressions || 0),
         views: Number((funnelRow as any)?.views || 0),
         contacts: Number((funnelRow as any)?.contacts || 0)
-      });
+      };
+      setFunnel(newFunnel);
+      try { localStorage.setItem(`dash_f_${user.id}`, JSON.stringify(newFunnel)); } catch { }
     };
 
     // Execute: listings first, then stats
