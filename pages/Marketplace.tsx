@@ -68,6 +68,10 @@ const CABLE_INSULATIONS = ['XLPE', 'XLPO', 'PVC', 'Halogen-Free', 'LSHF'];
 
 const LISTING_CONDITIONS = ['New', 'Used', 'Refurbished'];
 
+const MOUNTING_TYPES = ['Roof Mount', 'Ground Mount', 'Carport', 'Tracking System', 'Wall Mount', 'Pole Mount', 'Other'];
+const MOUNTING_MATERIALS = ['Aluminum', 'Galvanized Steel', 'Stainless Steel', 'Plastic', 'Mixed', 'Other'];
+const MOUNTING_ROOF_TYPES = ['Corrugated', 'Trapezoidal', 'Tile', 'Standing Seam', 'Flat Roof', 'Any'];
+
 const Marketplace: React.FC = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
@@ -115,6 +119,10 @@ const Marketplace: React.FC = () => {
   const [protectiveDeviceType, setProtectiveDeviceType] = useState('');
   const [protectiveRatedCurrentA, setProtectiveRatedCurrentA] = useState('');
   const [protectiveRatedVoltageV, setProtectiveRatedVoltageV] = useState('');
+
+  const [mountingType, setMountingType] = useState('');
+  const [mountingMaterial, setMountingMaterial] = useState('');
+  const [mountingRoofType, setMountingRoofType] = useState('');
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
@@ -420,6 +428,24 @@ const Marketplace: React.FC = () => {
       });
     }
 
+    // 4g. Mounting Specs Filters
+    const shouldApplyMountingFilters = selectedCategory === '' || selectedCategory === 'Mounting';
+    if (shouldApplyMountingFilters) {
+      result = result.filter(l => {
+        if (l.category !== 'Mounting') return true;
+        const s = (l.specs || {}) as any;
+        const type = typeof s.mounting_type === 'string' ? s.mounting_type : '';
+        const mat = typeof s.material === 'string' ? s.material : '';
+        const roof = typeof s.roof_type === 'string' ? s.roof_type : '';
+
+        if (mountingType && type !== mountingType) return false;
+        if (mountingMaterial && mat !== mountingMaterial) return false;
+        if (mountingRoofType && roof !== mountingRoofType) return false;
+
+        return true;
+      });
+    }
+
     setFilteredListings(result);
   }, [
     listings,
@@ -448,7 +474,10 @@ const Marketplace: React.FC = () => {
     cableCores,
     protectiveDeviceType,
     protectiveRatedCurrentA,
-    protectiveRatedVoltageV
+    protectiveRatedVoltageV,
+    mountingType,
+    mountingMaterial,
+    mountingRoofType
   ]);
 
   const activeFilterCount = [
@@ -476,7 +505,10 @@ const Marketplace: React.FC = () => {
     cableCores,
     protectiveDeviceType,
     protectiveRatedCurrentA,
-    protectiveRatedVoltageV
+    protectiveRatedVoltageV,
+    mountingType,
+    mountingMaterial,
+    mountingRoofType
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
@@ -509,6 +541,10 @@ const Marketplace: React.FC = () => {
     setProtectiveDeviceType('');
     setProtectiveRatedCurrentA('');
     setProtectiveRatedVoltageV('');
+
+    setMountingType('');
+    setMountingMaterial('');
+    setMountingRoofType('');
   };
 
   useEffect(() => {
@@ -839,8 +875,54 @@ const Marketplace: React.FC = () => {
       );
     }
 
+    if (selectedCategory === 'Mounting') {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Mounting Type</label>
+            <select
+              value={mountingType}
+              onChange={(e) => setMountingType(e.target.value)}
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+            >
+              <option value="">Any</option>
+              {MOUNTING_TYPES.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Material</label>
+            <select
+              value={mountingMaterial}
+              onChange={(e) => setMountingMaterial(e.target.value)}
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+            >
+              <option value="">Any</option>
+              {MOUNTING_MATERIALS.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Roof Type Compatibility</label>
+            <select
+              value={mountingRoofType}
+              onChange={(e) => setMountingRoofType(e.target.value)}
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+            >
+              <option value="">Any</option>
+              {MOUNTING_ROOF_TYPES.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="text-sm text-slate-500 dark:text-slate-400">No advanced filters for this category.</div>
+      <div className="text-sm text-slate-500 dark:text-slate-400 py-2">No advanced filters for this category.</div>
     );
   };
 
