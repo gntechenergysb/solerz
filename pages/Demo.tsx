@@ -371,42 +371,30 @@ const Demo: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Card 3: Market Demand Visualizer */}
+                            {/* Card 3: Trending Keywords Visualizer */}
                             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between">
                                 <div className="flex justify-between items-start mb-4">
-                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Market Search Demand</p>
+                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Trending Keywords</p>
                                     <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30">
                                         <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="font-semibold text-slate-700 dark:text-slate-300">Inverters</span>
-                                            <span className="text-slate-500 font-bold">High Demand</span>
+                                    {[
+                                        { keyword: '10kwh battery', searches: 124, width: '90%', label: 'High Demand', colorClass: 'bg-indigo-500' },
+                                        { keyword: 'growatt inverter', searches: 89, width: '65%', label: 'Med Demand', colorClass: 'bg-emerald-500' },
+                                        { keyword: 'n-type 550w', searches: 62, width: '45%', label: 'Low Demand', colorClass: 'bg-amber-500' }
+                                    ].map((item, index) => (
+                                        <div key={index}>
+                                            <div className="flex justify-between text-xs mb-1">
+                                                <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">{item.keyword}</span>
+                                                <span className="text-slate-500 font-bold">{item.label}</span>
+                                            </div>
+                                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                <div className={`${item.colorClass} h-1.5 rounded-full`} style={{ width: item.width }}></div>
+                                            </div>
                                         </div>
-                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                            <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '85%' }}></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="font-semibold text-slate-700 dark:text-slate-300">Panels</span>
-                                            <span className="text-slate-500 font-bold">Med Demand</span>
-                                        </div>
-                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                            <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '60%' }}></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="font-semibold text-slate-700 dark:text-slate-300">Batteries</span>
-                                            <span className="text-slate-500 font-bold">Low Demand</span>
-                                        </div>
-                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                            <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '30%' }}></div>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>

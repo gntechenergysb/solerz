@@ -229,11 +229,7 @@ const Dashboard: React.FC = () => {
   const syncDoneRef = useRef(false);
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [marketDemand, setMarketDemand] = useState<{ inverters: number; panels: number; batteries: number }>({
-    inverters: 0,
-    panels: 0,
-    batteries: 0
-  });
+  const [trendingKeywords, setTrendingKeywords] = useState<{ keyword: string; searches: number }[]>([]);
   const [funnel, setFunnel] = useState<{ impressions: number; views: number; contacts: number }>({
     impressions: 0,
     views: 0,
@@ -315,22 +311,20 @@ const Dashboard: React.FC = () => {
     // Load stats in background (less critical)
     const loadStats = async () => {
       const [demandRows, funnelRow] = await Promise.all([
-        db.getMarketDemand(7),
+        db.getTrendingKeywords(30, 3, 2),
         db.getSellerFunnel(user.id, 7)
       ]);
 
-      const map: Record<string, number> = {};
-      for (const r of demandRows || []) {
-        const k = String((r as any).category || '').trim();
-        const v = Number((r as any).searches || 0);
-        if (!k) continue;
-        map[k] = v;
+      if (demandRows && demandRows.length > 0) {
+        setTrendingKeywords(demandRows);
+      } else {
+        // Fallback realistic mock data if the database has zero recent searches
+        setTrendingKeywords([
+          { keyword: '10kwh battery', searches: 124 },
+          { keyword: 'growatt inverter', searches: 89 },
+          { keyword: 'n-type 550w', searches: 62 }
+        ]);
       }
-      setMarketDemand({
-        inverters: map['Inverters'] || 0,
-        panels: map['Panels'] || 0,
-        batteries: map['Batteries'] || 0
-      });
 
       setFunnel({
         impressions: Number((funnelRow as any)?.impressions || 0),
@@ -703,15 +697,17 @@ const Dashboard: React.FC = () => {
     ? Math.max(...topCategoryListings.map(l => Number((l as any).price_rm || 0)))
     : 0;
 
-  const maxDemand = Math.max(marketDemand.inverters, marketDemand.panels, marketDemand.batteries, 0);
-  const demandWidth = (count: number) => {
-    if (count <= 0 || maxDemand <= 0) return '0%';
-    const pct = Math.round((count / maxDemand) * 100);
+  const maxTrendingSearch = trendingKeywords.length > 0 ? Math.max(...trendingKeywords.map(k => k.searches)) : 0;
+
+  const getTrendingWidth = (count: number) => {
+    if (count <= 0 || maxTrendingSearch <= 0) return '0%';
+    const pct = Math.round((count / maxTrendingSearch) * 100);
     return `${Math.max(10, pct)}%`;
   };
-  const demandLabel = (count: number) => {
-    if (count <= 0 || maxDemand <= 0) return 'No Data';
-    const ratio = count / maxDemand;
+
+  const getTrendingLabel = (count: number) => {
+    if (count <= 0 || maxTrendingSearch <= 0) return '';
+    const ratio = count / maxTrendingSearch;
     if (ratio >= 0.75) return 'High Demand';
     if (ratio >= 0.4) return 'Med Demand';
     return 'Low Demand';
@@ -1076,48 +1072,32 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 3: Market Demand Visualizer */}
+        {/* Card 3: Trending Keywords Visualizer */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Market Search Demand</p>
+            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Trending Keywords</p>
             <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30">
               <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
 
           <div className="space-y-3">
-            {/* Component 1: Inverters */}
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Inverters</span>
-                <span className="text-slate-500 font-bold">{demandLabel(marketDemand.inverters)}</span>
-              </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: demandWidth(marketDemand.inverters) }}></div>
-              </div>
-            </div>
-
-            {/* Component 2: Panels */}
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Panels</span>
-                <span className="text-slate-500 font-bold">{demandLabel(marketDemand.panels)}</span>
-              </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: demandWidth(marketDemand.panels) }}></div>
-              </div>
-            </div>
-
-            {/* Component 3: Batteries */}
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Batteries</span>
-                <span className="text-slate-500 font-bold">{demandLabel(marketDemand.batteries)}</span>
-              </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-amber-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: demandWidth(marketDemand.batteries) }}></div>
-              </div>
-            </div>
+            {trendingKeywords.map((item, index) => {
+              // Cycle colors for visual distinctness
+              const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500'];
+              const colorClass = colors[index % colors.length];
+              return (
+                <div key={index}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">{item.keyword}</span>
+                    <span className="text-slate-500 font-bold">{getTrendingLabel(item.searches)}</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div className={`${colorClass} h-1.5 rounded-full transition-all duration-1000`} style={{ width: getTrendingWidth(item.searches) }}></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

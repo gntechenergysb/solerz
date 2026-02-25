@@ -532,6 +532,19 @@ export const db = {
     return (data || []) as any;
   },
 
+  getTrendingKeywords: async (days: number = 7, limit: number = 3, minCount: number = 2): Promise<Array<{ keyword: string; searches: number }>> => {
+    const { data, error } = await supabase.rpc('get_trending_keywords', {
+      p_days: days,
+      p_limit: limit,
+      p_min_count: minCount
+    });
+    if (error) {
+      console.error('Error fetching trending keywords:', error);
+      return [];
+    }
+    return (data || []) as any;
+  },
+
   getSellerFunnel: async (sellerId: string, days: number = 7): Promise<{ impressions: number; views: number; contacts: number } | null> => {
     const { data, error } = await supabase.rpc('get_seller_funnel', { p_seller_id: sellerId, p_days: days });
     if (error) {
