@@ -54,7 +54,7 @@ const getToken = (req: http.IncomingMessage): string | null => {
 const handleCheckout = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   const body = await parseBody(req) as { planId?: string; billingCycle?: string };
   const token = getToken(req);
-  
+
   if (!token) {
     res.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders });
     res.end(JSON.stringify({ error: 'Missing auth token' }));
@@ -62,7 +62,7 @@ const handleCheckout = async (req: http.IncomingMessage, res: http.ServerRespons
   }
 
   const { planId, billingCycle } = body;
-  
+
   // Map plan to Stripe Price IDs
   const priceMap: Record<string, { monthly: string; yearly: string }> = {
     'starter': { monthly: 'price_1T0elRAEbTWGL4T05z2wcOXW', yearly: 'price_1T0em9AEbTWGL4T0ZyhhLU1P' },
@@ -72,7 +72,7 @@ const handleCheckout = async (req: http.IncomingMessage, res: http.ServerRespons
   };
 
   const priceId = planId ? priceMap[planId]?.[billingCycle as 'monthly' | 'yearly'] : undefined;
-  
+
   if (!priceId) {
     res.writeHead(400, { 'Content-Type': 'application/json', ...corsHeaders });
     res.end(JSON.stringify({ error: 'Invalid plan' }));
@@ -97,7 +97,7 @@ const handleCheckout = async (req: http.IncomingMessage, res: http.ServerRespons
     });
 
     const stripeData = await stripeRes.json() as any;
-    
+
     if (!stripeRes.ok) {
       res.writeHead(502, { 'Content-Type': 'application/json', ...corsHeaders });
       res.end(JSON.stringify({ error: stripeData.error?.message || 'Stripe error' }));
@@ -118,7 +118,7 @@ const handleCheckout = async (req: http.IncomingMessage, res: http.ServerRespons
 // ============================================================================
 const handlePortal = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   const token = getToken(req);
-  
+
   if (!token) {
     res.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders });
     res.end(JSON.stringify({ error: 'Missing auth token' }));
@@ -128,7 +128,7 @@ const handlePortal = async (req: http.IncomingMessage, res: http.ServerResponse)
   // CLOUDFLARE ONLY: This endpoint requires a real Stripe customer
   // Localhost returns a mock URL for UI testing
   res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
-  res.end(JSON.stringify({ 
+  res.end(JSON.stringify({
     url: 'https://dashboard.stripe.com/test/billing',
     _note: 'Portal requires Cloudflare deployment with Stripe customer'
   }));
@@ -140,7 +140,7 @@ const handlePortal = async (req: http.IncomingMessage, res: http.ServerResponse)
 // ============================================================================
 const handleSubscriptionChange = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   const token = getToken(req);
-  
+
   if (!token) {
     res.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders });
     res.end(JSON.stringify({ error: 'Missing auth token' }));
@@ -150,7 +150,7 @@ const handleSubscriptionChange = async (req: http.IncomingMessage, res: http.Ser
   // CLOUDFLARE ONLY: This endpoint requires a real Stripe subscription
   // Localhost returns mock response for UI testing
   res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
-  res.end(JSON.stringify({ 
+  res.end(JSON.stringify({
     mode: 'upgrade',
     subscriptionId: 'sub_test_local',
     _note: 'Change requires Cloudflare deployment with active subscription'
@@ -163,7 +163,7 @@ const handleSubscriptionChange = async (req: http.IncomingMessage, res: http.Ser
 // ============================================================================
 const handleSubscriptionCancel = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   const token = getToken(req);
-  
+
   if (!token) {
     res.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders });
     res.end(JSON.stringify({ error: 'Missing auth token' }));
@@ -175,7 +175,7 @@ const handleSubscriptionCancel = async (req: http.IncomingMessage, res: http.Ser
   // CLOUDFLARE ONLY: This endpoint requires a real Stripe subscription
   // Localhost returns mock response for UI testing
   res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
-  res.end(JSON.stringify({ 
+  res.end(JSON.stringify({
     success: true,
     mode: body.atPeriodEnd ? 'at_period_end' : 'immediate',
     subscriptionId: 'sub_test_local',
@@ -189,7 +189,7 @@ const handleSubscriptionCancel = async (req: http.IncomingMessage, res: http.Ser
 // ============================================================================
 const handleSubscriptionSync = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   const token = getToken(req);
-  
+
   if (!token) {
     res.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders });
     res.end(JSON.stringify({ error: 'Missing auth token' }));
@@ -199,7 +199,7 @@ const handleSubscriptionSync = async (req: http.IncomingMessage, res: http.Serve
   // CLOUDFLARE ONLY: This endpoint fetches real Stripe data
   // Localhost returns empty response (Dashboard will use Supabase user data instead)
   res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
-  res.end(JSON.stringify({ 
+  res.end(JSON.stringify({
     subscription: null,
     profile: null,
     pending_tier: null,
@@ -211,7 +211,7 @@ const handleSubscriptionSync = async (req: http.IncomingMessage, res: http.Serve
 // Server
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
-  
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, corsHeaders);

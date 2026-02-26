@@ -26,7 +26,7 @@ export interface Profile {
   avatar_url?: string;
 }
 
-export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Miscellaneous';
+export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Miscellaneous' | 'Full System';
 
 export type ListingCondition = 'New' | 'Used' | 'Refurbished' | string;
 
@@ -186,7 +186,48 @@ export interface ProtectiveSpecs extends BaseSpecs {
   poles?: number;
 }
 
-export type ProductSpecs = PanelSpecs | InverterSpecs | BatterySpecs | MountingSpecs | CableSpecs | ProtectiveSpecs | BaseSpecs;
+export interface FullSystemSpecs extends BaseSpecs {
+  system_type?: 'On-Grid' | 'Off-Grid' | 'Hybrid' | 'Other' | string;
+  total_capacity_kwp?: number;
+  battery_storage_kwh?: number;
+
+  panel_brand?: string;
+  panel_wattage_w?: number;
+  panel_cell_type?: string;
+
+  inverter_brand?: string;
+  inverter_rated_power_kw?: number;
+  inverter_phase?: string;
+  inverter_type?: string;
+
+  battery_brand?: string;
+  battery_capacity_kwh?: number;
+  battery_technology?: string;
+
+  mounting_brand?: string;
+  mounting_type?: string;
+  mounting_material?: string;
+
+  cable_brand?: string;
+  cable_type?: string;
+  cable_size_mm2?: number;
+
+  protective_breaker_brand?: string;
+  protective_breaker_rated_current_a?: number;
+  protective_spd_brand?: string;
+  protective_spd_rated_current_a?: number;
+  protective_fuse_brand?: string;
+  protective_fuse_rated_current_a?: number;
+  protective_others_brand?: string;
+  protective_others_rated_current_a?: number;
+
+  workmanship_warranty_years?: number;
+  panel_power_warranty_years?: number;
+  panel_performance_warranty_years?: number;
+  other_warranty?: string;
+}
+
+export type ProductSpecs = PanelSpecs | InverterSpecs | BatterySpecs | MountingSpecs | CableSpecs | ProtectiveSpecs | FullSystemSpecs | BaseSpecs;
 
 export interface Listing {
   id: string;

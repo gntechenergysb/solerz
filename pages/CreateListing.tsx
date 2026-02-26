@@ -246,7 +246,7 @@ const CreateListing: React.FC = () => {
           ...existingListing,
           title,
           category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
-          brand,
+          brand: category === 'Full System' ? 'Full System Package' : brand,
           condition,
           specs,
           price_rm: parseFloat(price),
@@ -268,7 +268,7 @@ const CreateListing: React.FC = () => {
         seller_id: user!.id,
         title,
         category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
-        brand,
+        brand: category === 'Full System' ? 'Full System Package' : brand,
         condition,
         specs,
         price_rm: parseFloat(price),
@@ -619,6 +619,155 @@ const CreateListing: React.FC = () => {
             </div>
           </>
         );
+      case 'Full System':
+        return (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">System Type</label>
+                <select
+                  value={String((specs as any).system_type || '')}
+                  onChange={(e) => handleSpecChange('system_type', e.target.value)}
+                  className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="">Select Type</option>
+                  <option value="On-Grid">On-Grid</option>
+                  <option value="Off-Grid">Off-Grid</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <Input label="Total System Capacity (kWp)" type="number" onChange={(v) => handleSpecChange('total_capacity_kwp', Number(v))} />
+            </div>
+
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-6 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">Components Included (Required)</h3>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Solar Panels</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input label="Brand & Model" placeholder="e.g. Trina Vertex" onChange={(v) => handleSpecChange('panel_brand', v)} required />
+                  <Input label="Individual Wattage (W)" type="number" onChange={(v) => handleSpecChange('panel_wattage_w', Number(v))} required />
+                  <MultiSelect
+                    label="Cell Type"
+                    options={['Monocrystalline', 'Polycrystalline', 'N-type', 'P-type', 'IBC', 'ABC', 'TOPCon', 'HJT', 'PERC', 'Bifacial', 'Monofacial', 'Thin-Film', 'Standard Rigid', 'Flexible', 'BIPV', 'Shingled']}
+                    value={String((specs as any).panel_cell_type || '')}
+                    onChange={(v) => handleSpecChange('panel_cell_type', v)}
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Inverter</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Input label="Brand & Model" placeholder="e.g. Huawei SUN2000" onChange={(v) => handleSpecChange('inverter_brand', v)} required />
+                  <Input label="Rated Power (kW)" type="number" onChange={(v) => handleSpecChange('inverter_rated_power_kw', Number(v))} required />
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
+                    <select value={String((specs as any).inverter_phase || '')} onChange={(e) => handleSpecChange('inverter_phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" required>
+                      <option value="">Select Phase</option>
+                      <option value="Single">Single Phase</option>
+                      <option value="Three">Three Phase</option>
+                    </select>
+                  </div>
+                  <MultiSelect
+                    label="Type"
+                    options={['String', 'Micro', 'Microinverter', 'Hybrid', 'Off-Grid', 'Grid-Tied', 'Central']}
+                    value={String((specs as any).inverter_type || '')}
+                    onChange={(v) => handleSpecChange('inverter_type', v)}
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Battery Storage</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input label="Brand & Model" placeholder="e.g. BYD B-Box" onChange={(v) => handleSpecChange('battery_brand', v)} />
+                  <Input label="Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('battery_capacity_kwh', Number(v))} />
+                  <MultiSelect
+                    label="Technology"
+                    options={['LiFePO4', 'NMC', 'LTO', 'Lead-Acid', 'AGM', 'Gel', 'Sodium-Ion', 'Flow', 'Other']}
+                    value={String((specs as any).battery_technology || '')}
+                    onChange={(v) => handleSpecChange('battery_technology', v)}
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Mounting</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input label="Brand" placeholder="e.g. Clenergy" onChange={(v) => handleSpecChange('mounting_brand', v)} required />
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mounting Type</label>
+                    <select value={String((specs as any).mounting_type || '')} onChange={(e) => handleSpecChange('mounting_type', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" required>
+                      <option value="">Select Type</option>
+                      <option value="Roof Mount">Roof Mount</option>
+                      <option value="Ground Mount">Ground Mount</option>
+                      <option value="Carport">Carport</option>
+                    </select>
+                  </div>
+                  <MultiSelect
+                    label="Material"
+                    options={['Aluminum', 'Galvanized Steel', 'Stainless Steel', 'Plastic', 'Mixed', 'Other']}
+                    value={String((specs as any).mounting_material || '')}
+                    onChange={(v) => handleSpecChange('mounting_material', v)}
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">DC Cable & Protective</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input label="Cable Brand" placeholder="e.g. Prysmian" onChange={(v) => handleSpecChange('cable_brand', v)} required />
+                  <Input label="Cable Size (mm²)" type="number" onChange={(v) => handleSpecChange('cable_size_mm2', Number(v))} required />
+                  <MultiSelect
+                    label="Cable Type"
+                    options={['PV1-F', 'H1Z2Z2-K', 'USE-2', 'PV Wire']}
+                    value={String((specs as any).cable_type || '')}
+                    onChange={(v) => handleSpecChange('cable_type', v)}
+                  />
+                </div>
+                <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <h5 className="text-xs font-semibold text-slate-500 mb-2">Protective Devices</h5>
+
+                  {/* Breaker */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <Input label="Breaker Brand" placeholder="e.g. Schneider" onChange={(v) => handleSpecChange('protective_breaker_brand', v)} />
+                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_breaker_rated_current_a', Number(v))} />
+                  </div>
+
+                  {/* SPD */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <Input label="SPD Brand" placeholder="e.g. Dehn" onChange={(v) => handleSpecChange('protective_spd_brand', v)} />
+                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_spd_rated_current_a', Number(v))} />
+                  </div>
+
+                  {/* Fuse */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <Input label="Fuse Brand" placeholder="e.g. Bussmann" onChange={(v) => handleSpecChange('protective_fuse_brand', v)} />
+                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_fuse_rated_current_a', Number(v))} />
+                  </div>
+
+                  {/* Others */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <Input label="Others Brand / Component" placeholder="e.g. Box/Enclosure Brand" onChange={(v) => handleSpecChange('protective_others_brand', v)} />
+                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_others_rated_current_a', Number(v))} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-6 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">Warranties (Years)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Workmanship" type="number" onChange={(v) => handleSpecChange('workmanship_warranty_years', Number(v))} />
+              <Input label="Panel Product" type="number" onChange={(v) => handleSpecChange('panel_power_warranty_years', Number(v))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <Input label="Panel Performance" type="number" onChange={(v) => handleSpecChange('panel_performance_warranty_years', Number(v))} />
+              <Input label="Other" placeholder="e.g. 10 years Inverter cover" onChange={(v) => handleSpecChange('other_warranty', v)} />
+            </div>
+          </>
+        );
       case 'Miscellaneous':
       default:
         return <p className="text-sm text-slate-500 dark:text-slate-400 italic">No specific fields for this category.</p>;
@@ -705,7 +854,9 @@ const CreateListing: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Brand" placeholder="e.g. Huawei, Jinko" value={brand} onChange={setBrand} required />
+            {category !== 'Full System' && (
+              <Input label="Brand" placeholder="e.g. Huawei, Jinko" value={brand} onChange={setBrand} required={category !== 'Full System'} />
+            )}
             <div>
               <Input label="Price (RM)" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
               {showPricePerWatt && (

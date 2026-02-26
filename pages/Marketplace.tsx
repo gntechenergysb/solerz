@@ -124,6 +124,11 @@ const Marketplace: React.FC = () => {
   const [mountingMaterial, setMountingMaterial] = useState('');
   const [mountingRoofType, setMountingRoofType] = useState('');
 
+  const [fsSystemType, setFsSystemType] = useState('');
+  const [fsMinCapacityKwp, setFsMinCapacityKwp] = useState('');
+  const [fsMaxCapacityKwp, setFsMaxCapacityKwp] = useState('');
+  const [fsMinBatteryStorage, setFsMinBatteryStorage] = useState('');
+
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const dedupeById = (rows: Listing[]) => {
@@ -168,6 +173,7 @@ const Marketplace: React.FC = () => {
       if (s.includes('inverter')) return 'Inverters';
       if (s.includes('battery')) return 'Batteries';
       if (s.includes('panel')) return 'Panels';
+      if (s.includes('system') || s.includes('kit')) return 'Full System';
       return '';
     };
 
@@ -446,6 +452,29 @@ const Marketplace: React.FC = () => {
       });
     }
 
+    // 4h. Full System Specs Filters
+    const shouldApplyFullSystemFilters = selectedCategory === '' || selectedCategory === 'Full System';
+    if (shouldApplyFullSystemFilters) {
+      const minCap = fsMinCapacityKwp ? Number(fsMinCapacityKwp) : null;
+      const maxCap = fsMaxCapacityKwp ? Number(fsMaxCapacityKwp) : null;
+      const minBatt = fsMinBatteryStorage ? Number(fsMinBatteryStorage) : null;
+
+      result = result.filter(l => {
+        if (l.category !== 'Full System') return true;
+        const s = (l.specs || {}) as any;
+        const type = typeof s.system_type === 'string' ? s.system_type : '';
+        const cap = toNumber(s.total_capacity_kwp);
+        const batt = toNumber(s.battery_storage_kwh);
+
+        if (fsSystemType && type !== fsSystemType) return false;
+        if (minCap !== null && (cap === null || cap < minCap)) return false;
+        if (maxCap !== null && (cap === null || cap > maxCap)) return false;
+        if (minBatt !== null && (batt === null || batt < minBatt)) return false;
+
+        return true;
+      });
+    }
+
     setFilteredListings(result);
   }, [
     listings,
@@ -508,7 +537,11 @@ const Marketplace: React.FC = () => {
     protectiveRatedVoltageV,
     mountingType,
     mountingMaterial,
-    mountingRoofType
+    mountingRoofType,
+    fsSystemType,
+    fsMinCapacityKwp,
+    fsMaxCapacityKwp,
+    fsMinBatteryStorage
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
@@ -545,6 +578,11 @@ const Marketplace: React.FC = () => {
     setMountingType('');
     setMountingMaterial('');
     setMountingRoofType('');
+
+    setFsSystemType('');
+    setFsMinCapacityKwp('');
+    setFsMaxCapacityKwp('');
+    setFsMinBatteryStorage('');
   };
 
   useEffect(() => {
@@ -916,6 +954,57 @@ const Marketplace: React.FC = () => {
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedCategory === 'Full System') {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">System Type</label>
+            <select
+              value={fsSystemType}
+              onChange={(e) => setFsSystemType(e.target.value)}
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+            >
+              <option value="">Any</option>
+              <option value="On-Grid">On-Grid</option>
+              <option value="Off-Grid">Off-Grid</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Capacity (kWp)</label>
+            <input
+              type="number"
+              value={fsMinCapacityKwp}
+              onChange={(e) => setFsMinCapacityKwp(e.target.value)}
+              placeholder="5"
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max Capacity (kWp)</label>
+            <input
+              type="number"
+              value={fsMaxCapacityKwp}
+              onChange={(e) => setFsMaxCapacityKwp(e.target.value)}
+              placeholder="50"
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Batt Storage (kWh)</label>
+            <input
+              type="number"
+              value={fsMinBatteryStorage}
+              onChange={(e) => setFsMinBatteryStorage(e.target.value)}
+              placeholder="10"
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            />
           </div>
         </div>
       );

@@ -56,9 +56,10 @@ begin
         when b.r < 0.20 then 'Panels'
         when b.r < 0.35 then 'Inverters'
         when b.r < 0.50 then 'Batteries'
-        when b.r < 0.65 then 'Mounting'
-        when b.r < 0.75 then 'Cable'
-        when b.r < 0.85 then 'Protective'
+        when b.r < 0.65 then 'Full System'
+        when b.r < 0.75 then 'Mounting'
+        when b.r < 0.82 then 'Cable'
+        when b.r < 0.89 then 'Protective'
         when b.r < 0.95 then 'Accessories'
         else 'Miscellaneous'
       end as category
@@ -71,6 +72,7 @@ begin
         when c.category = 'Panels' then (array['JA Solar','Jinko','Trina','LONGi'])[1 + floor(random()*4)::int]
         when c.category = 'Inverters' then (array['Huawei','Sungrow','Growatt','SMA','GoodWe'])[1 + floor(random()*5)::int]
         when c.category = 'Batteries' then (array['BYD','Pylontech','Dyness','Generic'])[1 + floor(random()*4)::int]
+        when c.category = 'Full System' then (array['Custom','SunPower','SolarEdge','Generic'])[1 + floor(random()*4)::int]
         when c.category = 'Mounting' then (array['Clenergy','K2 Systems','Schletter','Unirac','IronRidge','Generic'])[1 + floor(random()*6)::int]
         when c.category = 'Cable' then (array['Prysmian','Nexans','LS Cable','Helukabel','Generic'])[1 + floor(random()*5)::int]
         when c.category = 'Protective' then (array['Schneider','ABB','Eaton','Siemens','Hager','Generic'])[1 + floor(random()*6)::int]
@@ -141,7 +143,44 @@ begin
 
       -- Accessories fields
       (array['Optimizer','Monitoring','Smart Meter','Connectors','Sensors'])[1 + floor(random()*5)::int] as acc_type,
-      (array['Compatible with SolarEdge','Compatible with Tigo','Universal Compatibility','Huawei Compatible'])[1 + floor(random()*4)::int] as acc_brands
+      (array['Compatible with SolarEdge','Compatible with Tigo','Universal Compatibility','Huawei Compatible'])[1 + floor(random()*4)::int] as acc_brands,
+
+      -- Full System fields
+      (array['On-Grid','Off-Grid','Hybrid'])[1 + floor(random()*3)::int] as fs_system_type,
+      (array[3,5,10,12,15,20,50])[1 + floor(random()*7)::int] as fs_total_capacity_kwp,
+      (array[0,0,10,15,20,30])[1 + floor(random()*6)::int] as fs_battery_storage_kwh,
+      (array['Trina','Jinko','LONGi','JA Solar'])[1 + floor(random()*4)::int] as fs_panel_brand,
+      (array[450,550,600])[1+floor(random()*3)::int] as fs_panel_wattage_w,
+      (array['Monocrystalline','Polycrystalline','N-type','TOPCon'])[1+floor(random()*4)::int] as fs_panel_cell_type,
+
+      (array['Huawei','Growatt','GoodWe','SMA'])[1 + floor(random()*4)::int] as fs_inverter_brand,
+      (array[5,10,15])[1+floor(random()*3)::int] as fs_inverter_rated_power_kw,
+      (array['Single','Three'])[1+floor(random()*2)::int] as fs_inverter_phase,
+      (array['String','Hybrid','Micro'])[1+floor(random()*3)::int] as fs_inverter_type,
+
+      (array['BYD','Pylontech','Dyness'])[1 + floor(random()*3)::int] as fs_battery_brand,
+      (array['LiFePO4','NMC'])[1 + floor(random()*2)::int] as fs_battery_technology,
+
+      (array['Clenergy','K2 Systems'])[1 + floor(random()*2)::int] as fs_mounting_brand,
+      (array['Roof Mount','Ground Mount'])[1 + floor(random()*2)::int] as fs_mounting_type,
+      (array['Aluminum','Galvanized Steel'])[1 + floor(random()*2)::int] as fs_mounting_material,
+
+      (array['Prysmian','Nexans'])[1 + floor(random()*2)::int] as fs_cable_brand,
+      (array['PV1-F','H1Z2Z2-K'])[1 + floor(random()*2)::int] as fs_cable_type,
+      (array[4,6,10])[1 + floor(random()*3)::int] as fs_cable_size_mm2,
+
+      (array['Schneider','ABB'])[1 + floor(random()*2)::int] as fs_protective_breaker_brand,
+      (array[16,20,32])[1 + floor(random()*3)::int] as fs_protective_breaker_rated_current_a,
+      (array['Finder','Dehn'])[1 + floor(random()*2)::int] as fs_protective_spd_brand,
+      (array[20,40])[1 + floor(random()*2)::int] as fs_protective_spd_rated_current_a,
+      (array['Bussmann','Littlefuse'])[1 + floor(random()*2)::int] as fs_protective_fuse_brand,
+      (array[10,15,20])[1 + floor(random()*3)::int] as fs_protective_fuse_rated_current_a,
+      'OtherBrand' as fs_protective_others_brand,
+      10 as fs_protective_others_rated_current_a,
+
+      (array[5,10,15])[1 + floor(random()*3)::int] as fs_w_workmanship,
+      (array[10,12,15])[1 + floor(random()*3)::int] as fs_w_panel_power,
+      (array[25,30])[1 + floor(random()*2)::int] as fs_w_panel_perf
     from category_assignment c
   )
   select
@@ -162,6 +201,8 @@ begin
           brand || ' ' || cab_type || ' ' || cab_voltage || ' ' || cab_size_mm2::text || 'mm² ' || cab_cores::text || 'C Cable (' || cab_length_m::text || 'm)'
         when category = 'Protective' then
           brand || ' ' || prot_device_type || ' ' || prot_rated_current_a::text || 'A ' || prot_rated_voltage_v::text || 'V (' || prot_poles::text || 'P)'
+        when category = 'Full System' then
+          brand || ' ' || fs_total_capacity_kwp::text || 'kWp ' || fs_system_type || ' Package (' || cond || ')'
         when category = 'Mounting' then
           brand || ' ' || mount_material || ' ' || mount_type || ' (' || cond || ')'
         when category = 'Accessories' then
@@ -231,6 +272,45 @@ begin
           'rated_voltage_v', prot_rated_voltage_v,
           'poles', prot_poles
         )
+      when category = 'Full System' then
+        jsonb_build_object(
+          'system_type', fs_system_type,
+          'total_capacity_kwp', fs_total_capacity_kwp,
+          
+          'panel_brand', fs_panel_brand,
+          'panel_wattage_w', fs_panel_wattage_w,
+          'panel_cell_type', fs_panel_cell_type,
+          
+          'inverter_brand', fs_inverter_brand,
+          'inverter_rated_power_kw', fs_inverter_rated_power_kw,
+          'inverter_phase', fs_inverter_phase,
+          'inverter_type', fs_inverter_type,
+          
+          'battery_brand', fs_battery_brand,
+          'battery_capacity_kwh', fs_battery_storage_kwh,
+          'battery_technology', fs_battery_technology,
+          
+          'mounting_brand', fs_mounting_brand,
+          'mounting_type', fs_mounting_type,
+          'mounting_material', fs_mounting_material,
+          
+          'cable_brand', fs_cable_brand,
+          'cable_type', fs_cable_type,
+          'cable_size_mm2', fs_cable_size_mm2,
+          
+          'protective_breaker_brand', fs_protective_breaker_brand,
+          'protective_breaker_rated_current_a', fs_protective_breaker_rated_current_a,
+          'protective_spd_brand', fs_protective_spd_brand,
+          'protective_spd_rated_current_a', fs_protective_spd_rated_current_a,
+          'protective_fuse_brand', fs_protective_fuse_brand,
+          'protective_fuse_rated_current_a', fs_protective_fuse_rated_current_a,
+          'protective_others_brand', fs_protective_others_brand,
+          'protective_others_rated_current_a', fs_protective_others_rated_current_a,
+
+          'workmanship_warranty_years', fs_w_workmanship,
+          'panel_power_warranty_years', fs_w_panel_power,
+          'panel_performance_warranty_years', fs_w_panel_perf
+        )
       when category = 'Mounting' then
         jsonb_build_object(
           'mounting_type', mount_type,
@@ -258,6 +338,7 @@ begin
           when category = 'Batteries' then (array[3500,5200,7500,9800])[1 + floor(random()*4)::int]
           when category = 'Cable' then (cab_size_mm2 * cab_length_m * (array[0.6,0.8,1.1])[1 + floor(random()*3)::int])
           when category = 'Protective' then (prot_rated_current_a * (array[12,16,20])[1 + floor(random()*3)::int])
+          when category = 'Full System' then (fs_total_capacity_kwp * (array[3500,4500,5500])[1 + floor(random()*3)::int])
           when category = 'Mounting' then (array[100,200,500,1000,2500])[1 + floor(random()*5)::int]
           when category = 'Accessories' then (array[50,150,300,500,1000])[1 + floor(random()*5)::int]
           else (array[120,250,480,850])[1 + floor(random()*4)::int]
@@ -275,6 +356,7 @@ begin
         when category = 'Batteries' then format('https://images.unsplash.com/photo-1617783756017-38d7c1b32402?w=800&h=600&fit=crop&random=%s', img_seed)
         when category = 'Cable' then format('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&random=%s', img_seed)
         when category = 'Protective' then format('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=600&fit=crop&random=%s', img_seed)
+        when category = 'Full System' then format('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop&random=%s', img_seed)
         when category = 'Mounting' then format('https://images.unsplash.com/photo-1504917595217-d4ce5eb3e212?w=800&h=600&fit=crop&random=%s', img_seed)
         when category = 'Accessories' then format('https://images.unsplash.com/photo-1548613053-220e7558185a?w=800&h=600&fit=crop&random=%s', img_seed)
         else format('https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=800&h=600&fit=crop&random=%s', img_seed)

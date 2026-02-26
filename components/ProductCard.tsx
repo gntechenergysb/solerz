@@ -37,6 +37,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
     if (categoryLabel === 'Protective' && specs.device_type) tags.push(`🛡️ ${specs.device_type}`);
     if (categoryLabel === 'Protective' && specs.rated_current_a) tags.push(`🔧 ${specs.rated_current_a}A`);
     if (listing.category === 'Accessories' && specs.type) tags.push(`🔌 ${specs.type}`);
+    if (listing.category === 'Full System' && specs.total_capacity_kwp) tags.push(`⚡ ${specs.total_capacity_kwp}kWp`);
+    if (listing.category === 'Full System' && specs.system_type) tags.push(`⚙️ ${specs.system_type}`);
 
     // Brand is always good
     tags.push(`🏷️ ${listing.brand}`);
