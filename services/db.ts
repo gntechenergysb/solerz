@@ -129,8 +129,8 @@ export const db = {
       }
 
       if (category) {
-        if (category === 'Miscellaneous') {
-          q = q.in('category', ['Miscellaneous', 'Accessories']);
+        if (category === 'Misc' || (category as unknown) === 'Miscellaneous') {
+          q = q.in('category', ['Misc', 'Miscellaneous', 'Accessories']);
         } else {
           q = q.eq('category', category);
         }

@@ -26,7 +26,7 @@ export interface Profile {
   avatar_url?: string;
 }
 
-export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Miscellaneous' | 'Full System';
+export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Misc' | 'Full System';
 
 export type ListingCondition = 'New' | 'Used' | 'Refurbished' | string;
 

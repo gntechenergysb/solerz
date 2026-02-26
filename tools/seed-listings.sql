@@ -61,7 +61,7 @@ begin
         when b.r < 0.82 then 'Cable'
         when b.r < 0.89 then 'Protective'
         when b.r < 0.95 then 'Accessories'
-        else 'Miscellaneous'
+        else 'Misc'
       end as category
     from base b
   ),
@@ -208,7 +208,7 @@ begin
         when category = 'Accessories' then
           brand || ' ' || acc_type || ' (' || cond || ')' 
         else
-          brand || ' Miscellaneous Item (' || cond || ')'
+          brand || ' Misc Item (' || cond || ')'
       end
     , 80) as title,
 

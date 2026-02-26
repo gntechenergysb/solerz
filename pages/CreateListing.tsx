@@ -120,7 +120,7 @@ const CreateListing: React.FC = () => {
         }
 
         setExistingListing(row);
-        setCategory(row.category === 'Accessories' ? 'Miscellaneous' : row.category);
+        setCategory(row.category === 'Accessories' ? 'Misc' : (row.category as any) === 'Miscellaneous' ? 'Misc' : row.category);
         setTitle(row.title);
         setBrand(row.brand || '');
         setPrice(String(row.price_rm ?? ''));
@@ -245,7 +245,7 @@ const CreateListing: React.FC = () => {
         const updated: Listing = {
           ...existingListing,
           title,
-          category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
+          category: (category === 'Misc' ? 'Misc' : category) as any,
           brand: category === 'Full System' ? 'Full System Package' : brand,
           condition,
           specs,
@@ -267,7 +267,7 @@ const CreateListing: React.FC = () => {
       const listingData = {
         seller_id: user!.id,
         title,
-        category: (category === 'Miscellaneous' ? 'Miscellaneous' : category) as any,
+        category: (category === 'Misc' ? 'Misc' : category) as any,
         brand: category === 'Full System' ? 'Full System Package' : brand,
         condition,
         specs,
@@ -768,7 +768,7 @@ const CreateListing: React.FC = () => {
             </div>
           </>
         );
-      case 'Miscellaneous':
+      case 'Misc':
       default:
         return <p className="text-sm text-slate-500 dark:text-slate-400 italic">No specific fields for this category.</p>;
     }
