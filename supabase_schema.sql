@@ -1174,7 +1174,10 @@ CREATE TABLE IF NOT EXISTS stripe_webhook_events (
   processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 添加索引便于查询
+-- 启用 RLS 行级约束保护，不赋予任何 public 策略 (仅后端 Service Role Key 可访)
+ALTER TABLE public.stripe_webhook_events ENABLE ROW LEVEL SECURITY;
+
+-- 添加索引便于查询x
 CREATE INDEX IF NOT EXISTS idx_stripe_webhook_events_processed_at 
   ON stripe_webhook_events(processed_at);
 
@@ -1204,7 +1207,7 @@ RETURNS TABLE(keyword TEXT, searches BIGINT)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public
-AS e:\GitHub\solerz
+AS $$
   SELECT
     LOWER(TRIM(se.search_query)) AS keyword,
     COUNT(*)::BIGINT AS searches
@@ -1216,7 +1219,7 @@ AS e:\GitHub\solerz
   HAVING COUNT(*) >= p_min_count
   ORDER BY searches DESC
   LIMIT p_limit;
-e:\GitHub\solerz;
+$$;
 
 REVOKE ALL ON FUNCTION public.get_trending_keywords(INT, INT, INT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_trending_keywords(INT, INT, INT) TO anon, authenticated;
