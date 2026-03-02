@@ -100,6 +100,7 @@ export const db = {
     to?: number;
     marketplaceLayer?: 'verified' | 'community';
     searchQuery?: string;
+    country?: string;
     state?: string;
     category?: string;
     condition?: string;
@@ -109,6 +110,7 @@ export const db = {
     const to = params?.to ?? 3;
     const marketplaceLayer = params?.marketplaceLayer ?? 'verified';
     const searchQuery = (params?.searchQuery ?? '').trim();
+    const country = params?.country ?? '';
     const state = params?.state ?? '';
     const category = params?.category ?? '';
     const condition = (params?.condition ?? '').trim();
@@ -124,6 +126,9 @@ export const db = {
         .eq('is_verified_listing', isVerifiedListing)
         .gt('active_until', nowIso);
 
+      if (country) {
+        q = q.eq('location_country', country);
+      }
       if (state) {
         q = q.eq('location_state', state);
       }
@@ -148,9 +153,9 @@ export const db = {
       }
 
       if (sortBy === 'price-low') {
-        q = q.order('price_rm', { ascending: true }).order('id', { ascending: false });
+        q = q.order('price', { ascending: true }).order('id', { ascending: false });
       } else if (sortBy === 'price-high') {
-        q = q.order('price_rm', { ascending: false }).order('id', { ascending: false });
+        q = q.order('price', { ascending: false }).order('id', { ascending: false });
       } else {
         q = q.order('created_at', { ascending: false }).order('id', { ascending: false });
       }
@@ -404,7 +409,7 @@ export const db = {
         category: listing.category,
         brand: listing.brand,
         condition: listing.condition,
-        price_rm: listing.price_rm,
+        price: listing.price,
         location_state: listing.location_state,
         specs: listing.specs,
         images_url: listing.images_url,
@@ -498,9 +503,34 @@ export const db = {
     return (data || []).map((r: any) => r.listing_id).filter(Boolean);
   },
 
+  getPublicProfile: async (id: string): Promise<any | null> => {
+    let { data, error } = await supabase
+      .from('profiles_public')
+      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, country, company_reg_no')
+      .eq('id', id)
+      .single();
+
+    if (error && isMissingHandphoneNoError(error)) {
+      const retry = await supabase
+        .from('profiles_public')
+        .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no')
+        .eq('id', id)
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
+
+    if (error) {
+      console.error('Error fetching public profile:', error);
+      return null;
+    }
+    return data;
+  },
+
   trackSearchEvent: async (payload: {
     searchQuery?: string;
     category?: string;
+    country?: string;
     state?: string;
     condition?: string;
     marketplaceLayer?: 'verified' | 'community' | string;
@@ -508,6 +538,7 @@ export const db = {
     const { error } = await supabase.rpc('track_search_event', {
       p_search_query: payload.searchQuery || null,
       p_category: payload.category || null,
+      p_country: payload.country || null,
       p_state: payload.state || null,
       p_condition: payload.condition || null,
       p_marketplace_layer: payload.marketplaceLayer || null

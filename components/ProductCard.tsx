@@ -100,7 +100,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
               </span>
             ))}
             <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 text-[11px] font-medium px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
-              <MapPin className="h-3 w-3 flex-shrink-0" /> {listing.location_state}
+              <MapPin className="h-3 w-3 flex-shrink-0" /> {listing.location_country || 'United States'}
             </span>
           </div>
 
@@ -109,9 +109,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
             <div className="flex items-end justify-between mb-3">
               <div>
                 <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Asking Price</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  RM {listing.price_rm.toLocaleString()}
-                </p>
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold text-amber-600 dark:text-amber-500 truncate mt-1 sm:mt-0 flex-shrink-0">
+                    {listing.currency || 'USD'} {listing.price ? listing.price.toLocaleString() : '0'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                    Min Order: {listing.moq || 1}
+                  </span>
+                </div>
               </div>
             </div>
 

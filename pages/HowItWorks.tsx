@@ -61,8 +61,8 @@ const MarketplacePreview: React.FC = () => (
               <span className="font-semibold text-sm text-slate-700 dark:text-slate-300">550W Solar Panel</span>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] rounded-full font-bold">VERIFIED</span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Jinko Solar • KL, Malaysia</p>
-            <p className="text-sm font-bold text-emerald-600">RM 850</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Jinko Solar • Global Supplier</p>
+            <p className="text-sm font-bold text-emerald-600">USD 85</p>
           </div>
         </div>
       </div>
@@ -99,7 +99,7 @@ const VerificationPreview: React.FC = () => (
       <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-slate-400" />
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Example Solar Trading Sdn Bhd</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Acme Solar Trading Corp</span>
         </div>
       </div>
     </div>
@@ -178,7 +178,7 @@ const ListingFormPreview: React.FC = () => (
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Price (RM)</label>
+            <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Price (USD)</label>
             <div className="bg-slate-100 dark:bg-slate-700 rounded-lg p-2 text-sm text-slate-700 dark:text-slate-300">850</div>
           </div>
           <div>
@@ -206,7 +206,7 @@ const HowItWorks: React.FC = () => {
           How Solerz Works
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto px-4">
-          Malaysia's trusted platform for solar equipment listings.
+          The world's trusted platform for global solar equipment trades (B2B, B2C, & C2C).
           Discover how easy it is to transact safely on our platform.
         </p>
       </div>
@@ -258,7 +258,7 @@ const HowItWorks: React.FC = () => {
                   <ul className="space-y-3 inline-block text-left">
                     {[
                       'Solar panels, inverters, batteries & more',
-                      'Filter by location in Malaysia',
+                      'Filter by global seller locations',
                       'Compare prices and specifications'
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
@@ -486,7 +486,7 @@ const HowItWorks: React.FC = () => {
             <div className="text-center md:text-left">
               <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Our Commitment to Safety</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Solerz operates strictly as a B2B and B2C classifieds listing platform. We do not provide transaction or escrow services. We vigorously verify corporate sellers through established registration matrices. For all interactions, we strongly advise physical inspections, direct communication with the seller, and to avoid premature digital fund transfers.
+                Solerz operates strictly as a classifieds listing platform facilitating B2B, B2C, and C2C connections. We do not provide transaction or escrow services. While we vigorously verify corporate sellers through established registration matrices, community (C2C) sellers remain unverified and carry higher risk. For all interactions, we strongly advise physical inspections, direct communication with the seller, and to completely avoid premature digital fund transfers.
               </p>
             </div>
           </div>

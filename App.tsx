@@ -17,6 +17,7 @@ const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const HowItWorks = React.lazy(() => import('./pages/HowItWorks'));
 const Demo = React.lazy(() => import('./pages/Demo'));
+const SupplierProfile = React.lazy(() => import('./pages/SupplierProfile'));
 
 const App: React.FC = () => {
   return (
@@ -32,6 +33,7 @@ const App: React.FC = () => {
               <Routes>
                 <Route path="/" element={<Marketplace />} />
                 <Route path="/listing/:id" element={<ProductDetails />} />
+                <Route path="/supplier/:id" element={<SupplierProfile />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/dashboard" element={<DashboardRouter />} />
                 <Route path="/create" element={<CreateListing />} />

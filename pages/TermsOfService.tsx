@@ -10,7 +10,7 @@ const TermsOfService: React.FC = () => {
         <section className="space-y-2">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">1. Welcome to Solerz</h2>
           <p>
-            Solerz is Malaysia's trusted platform connecting solar equipment buyers with verified sellers. Our mission is to create a transparent, safe environment where quality solar products can be discovered and businesses can grow.
+            Solerz is a trusted global marketplace connecting solar equipment buyers with verified wholesale and community sellers across B2B, B2C, and C2C trades. Our mission is to create a transparent, safe environment where quality solar products can be discovered and individuals and businesses can grow worldwide.
           </p>
           <p>
             By using Solerz, you agree to these Terms of Service. We encourage you to read them carefully as they outline your rights, responsibilities, and how we work together to maintain a trustworthy platform.

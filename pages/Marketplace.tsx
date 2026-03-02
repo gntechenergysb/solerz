@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
+import { GLOBAL_LOCATIONS } from '../utils/countries';
+import { detectUserLocation } from '../utils/geo';
 import ProductCard from '../components/ProductCard';
 import { Search, SlidersHorizontal, MapPin, ChevronDown, ArrowUpDown, Tag, AlertTriangle } from 'lucide-react';
 
@@ -85,6 +87,7 @@ const Marketplace: React.FC = () => {
   // Filters
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('United States');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -165,6 +168,12 @@ const Marketplace: React.FC = () => {
   }, [searchInput]);
 
   useEffect(() => {
+    detectUserLocation().then(geo => {
+      if (geo) setSelectedCountry(geo.country_name);
+    });
+  }, []);
+
+  useEffect(() => {
     const cacheKey = `marketplace_cache_v1_${sortBy}`;
     const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition;
 
@@ -204,6 +213,7 @@ const Marketplace: React.FC = () => {
           db.trackSearchEvent({
             searchQuery,
             category: cat,
+            country: selectedCountry,
             state: selectedState,
             condition: selectedCondition,
             marketplaceLayer: 'verified'
@@ -222,6 +232,7 @@ const Marketplace: React.FC = () => {
             to: 11,
             marketplaceLayer: 'verified',
             searchQuery,
+            country: selectedCountry,
             state: selectedState,
             condition: selectedCondition,
             category: selectedCategory,
@@ -248,7 +259,7 @@ const Marketplace: React.FC = () => {
       }
     };
     fetchListings();
-  }, [sortBy, searchQuery, selectedState, selectedCategory, selectedCondition]);
+  }, [sortBy, searchQuery, selectedCountry, selectedState, selectedCategory, selectedCondition]);
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
@@ -280,6 +291,7 @@ const Marketplace: React.FC = () => {
         to,
         marketplaceLayer: 'verified',
         searchQuery,
+        country: selectedCountry,
         state: selectedState,
         condition: selectedCondition,
         category: selectedCategory,
@@ -1042,24 +1054,51 @@ const Marketplace: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            {/* Location Dropdown */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto overflow-hidden">
+            {/* Country Dropdown */}
             <div className="relative w-full sm:min-w-[160px]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MapPin className="h-4 w-4 text-slate-500" />
               </div>
               <select
                 className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                value={selectedState}
-                onChange={(e) => setSelectedState(e.target.value)}
+                value={selectedCountry}
+                onChange={(e) => {
+                  setSelectedCountry(e.target.value);
+                  if (e.target.value !== 'United States') setSelectedState('');
+                }}
               >
-                <option value="">All Locations</option>
-                {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="">All Countries</option>
+                {GLOBAL_LOCATIONS.map(group => (
+                  <optgroup key={group.region} label={group.region}>
+                    {group.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                  </optgroup>
+                ))}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </div>
             </div>
+
+            {/* State Dropdown (Only show if US) */}
+            {selectedCountry === 'United States' && (
+              <div className="relative w-full sm:min-w-[160px]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MapPin className="h-4 w-4 text-slate-500" />
+                </div>
+                <select
+                  className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
+                  value={selectedState}
+                  onChange={(e) => setSelectedState(e.target.value)}
+                >
+                  <option value="">All States</option>
+                  {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                </div>
+              </div>
+            )}
 
             {/* Condition Dropdown */}
             <div className="relative w-full sm:min-w-[160px]">

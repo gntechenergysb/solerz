@@ -26,7 +26,7 @@ Best regards,<br><br>
 
 ## 2. Short Invitation Email Template (English)
 
-**Subject Idea 1:** Join Solerz: Malaysia's Dedicated B2B Solar Equipment Hub
+**Subject Idea 1:** Join Solerz: The World's Dedicated B2B Solar Equipment Hub
 **Subject Idea 2:** Expand your solar business with Solerz – Free to join!
 **Subject Idea 3:** Invitation to showcase your solar equipment on Solerz
 
@@ -36,12 +36,12 @@ Hi [Name/Company Name],
 
 I hope this email finds you well. 
 
-I’m reaching out from **[Solerz](https://www.solerz.com)**, a dedicated B2B marketplace built exclusively for the solar energy industry. We connect trusted suppliers of panels, inverters, batteries, and mounting systems with serious buyers and installers across the region.
+I’m reaching out from **[Solerz](https://www.solerz.com)**, a dedicated marketplace built exclusively for the solar energy industry. We connect trusted suppliers of panels, inverters, batteries, and mounting systems with serious buyers spanning B2B, B2C, and C2C sectors across the region.
 
 We noticed your strong presence in the market and would love to invite you to join our platform as an early seller. 
 
 **Why join Solerz?**
-*   **Targeted Audience:** Your products will be seen directly by solar installers, EPCs, and serious B2B buyers—no retail noise.
+*   **Targeted Audience:** Your products will be seen directly by solar installers, EPCs, hobbyists, and serious buyers.
 *   **Zero Commission:** Keep 100% of your profits. We don't take a cut of your sales. You deal directly with the buyers via WhatsApp or Email.
 *   **Easy Setup:** Create an account and list your inventory in minutes. 
 

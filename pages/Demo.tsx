@@ -14,10 +14,10 @@ const DUMMY_LISTINGS = [
         condition: 'New',
         brand: 'Jinko Solar',
         wattage: 415,
-        location: 'Kuala Lumpur',
+        location: 'California, US',
         images: ['https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80'],
         seller: {
-            company_name: 'Example Solar Test Sdn Bhd',
+            company_name: 'Acme Solar Demo Corp',
             is_verified: true,
             tier: 'PRO'
         }
@@ -30,10 +30,10 @@ const DUMMY_LISTINGS = [
         condition: 'New',
         brand: 'Growatt',
         wattage: 5000,
-        location: 'Selangor',
+        location: 'Berlin, DE',
         images: ['https://images.unsplash.com/photo-1582218414457-3f33de8eecdf?w=800&q=80'],
         seller: {
-            company_name: 'Green Energy Hub',
+            company_name: 'Fictional Energy Logistics',
             is_verified: true,
             tier: 'STARTER'
         }
@@ -45,10 +45,10 @@ const DUMMY_LISTINGS = [
         price: 12500,
         condition: 'New',
         brand: 'Huawei',
-        location: 'Penang',
+        location: 'Shenzhen, CN',
         images: ['https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?w=800&q=80'],
         seller: {
-            company_name: 'PowerHouse Electronics',
+            company_name: 'Demo Powerhouse Systems',
             is_verified: false,
             tier: 'STARTER'
         }
@@ -193,7 +193,7 @@ const Demo: React.FC = () => {
                                                             </div>
                                                             <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-2 line-clamp-1">{listing.title}</h3>
                                                             <div className="flex items-baseline gap-1 mb-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                                                                <span className="text-sm font-semibold text-slate-500">RM</span>
+                                                                <span className="text-sm font-semibold text-slate-500">USD</span>
                                                                 <span className="text-2xl font-black text-slate-900 dark:text-slate-100">{listing.price.toLocaleString()}</span>
                                                             </div>
 
@@ -278,7 +278,7 @@ const Demo: React.FC = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2">
-                                                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Example Solar Test Sdn Bhd</h2>
+                                                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Acme Solar Demo Corp</h2>
                                                 <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                                     <CheckCircle className="h-3 w-3" />
                                                     Verified

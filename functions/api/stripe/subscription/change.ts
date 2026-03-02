@@ -9,9 +9,9 @@ type StripeCatalogProductIds = Partial<
   Record<'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
 >;
 
-const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
+const DEFAULT_STRIPE_CATALOG_IDS: Record<string, { monthly: string; yearly: string }> = {
   STARTER: { monthly: 'price_1T4BtJ3k3Z28WqJKINJ9Efd0', yearly: 'price_1T4BtJ3k3Z28WqJKqhbXBvex' },
-  PRO: { monthly: 'price_1T4BtQ3k3Z28WqJKZZ4Xh2cP', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
+  PRO: { monthly: 'price_1T5GBu3k3Z28WqJKdaRJnAsE', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
   ELITE: { monthly: 'price_1T4BtS3k3Z28WqJK59BkDgNI', yearly: 'price_1T4BtS3k3Z28WqJKJwLzoags' },
   ENTERPRISE: { monthly: 'price_1T4BtV3k3Z28WqJK3QYvTdHr', yearly: 'price_1T4BtV3k3Z28WqJKdOmXM9Zt' }
 };
@@ -117,15 +117,16 @@ const getCatalogId = (env: Env, tier: string, billingCycle: 'monthly' | 'yearly'
 };
 
 const getUnitAmount = (tier: string, billingCycle: 'monthly' | 'yearly') => {
-  const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
-    STARTER: { monthly: 39, yearly: 428 },
-    PRO: { monthly: 99, yearly: 1088 },
-    ELITE: { monthly: 199, yearly: 2188 },
-    ENTERPRISE: { monthly: 499, yearly: 5488 }
+  const amountMapUsd: Record<string, { monthly: number; yearly: number }> = {
+    STARTER: { monthly: 9, yearly: 99 },
+    PRO: { monthly: 29, yearly: 319 },
+    ELITE: { monthly: 49, yearly: 539 },
+    ENTERPRISE: { monthly: 129, yearly: 1419 }
   };
-  const planAmounts = amountMapMyr[tier];
-  const myrAmount = billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly;
-  return Math.round(myrAmount * 100);
+
+  const planAmounts = amountMapUsd[tier];
+  const usdAmount = billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly;
+  return Math.round(usdAmount * 100);
 };
 
 const tierRank = (tier: string) => {
@@ -221,24 +222,22 @@ const resumePausedListings = async (env: Env, userId: string, newTier: string) =
 };
 
 const buildPriceParams = (env: Env, tier: string, billingCycle: 'monthly' | 'yearly', prefix: string) => {
-  const unitAmount = getUnitAmount(tier, billingCycle);
-  const interval = billingCycle === 'yearly' ? 'year' : 'month';
   const catalogId = getCatalogId(env, tier, billingCycle);
-
   const params = new URLSearchParams();
 
   if (catalogId && catalogId.startsWith('price_')) {
     params.set(`${prefix}[price]`, catalogId);
-    return params;
-  }
-
-  params.set(`${prefix}[price_data][currency]`, 'myr');
-  params.set(`${prefix}[price_data][unit_amount]`, String(unitAmount));
-  params.set(`${prefix}[price_data][recurring][interval]`, interval);
-  if (catalogId && catalogId.startsWith('prod_')) {
-    params.set(`${prefix}[price_data][product]`, catalogId);
   } else {
-    params.set(`${prefix}[price_data][product_data][name]`, `Solerz ${tier} (${billingCycle})`);
+    const unitAmount = getUnitAmount(tier, billingCycle);
+    const interval = billingCycle === 'monthly' ? 'month' : 'year';
+    params.set(`${prefix}[price_data][currency]`, 'usd');
+    params.set(`${prefix}[price_data][unit_amount]`, String(unitAmount));
+    params.set(`${prefix}[price_data][recurring][interval]`, interval);
+    if (catalogId && catalogId.startsWith('prod_')) {
+      params.set(`${prefix}[price_data][product]`, catalogId);
+    } else {
+      params.set(`${prefix}[price_data][product_data][name]`, `Solerz ${tier} (${billingCycle})`);
+    }
   }
 
   return params;

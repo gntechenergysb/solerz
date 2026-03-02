@@ -23,6 +23,7 @@ export interface Profile {
   // KYC Fields - International company registration number
   company_reg_no?: string;  // Company/Business Registration Number
   company_doc_path?: string;  // Path to company registration document
+  country?: string;
   avatar_url?: string;
 }
 
@@ -244,9 +245,13 @@ export interface Listing {
   brand: string;
   condition?: ListingCondition;
   specs: ProductSpecs;
-  price_rm: number;
+  price: number;
+  moq?: number;
+  currency: string;
+  location_country: string;
   location_state: string;
   images_url: string[];
+  datasheet_url?: string;
   active_until: string;
   archive_until: string;
   is_verified_listing: boolean; // New persistent field

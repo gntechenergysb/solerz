@@ -22,8 +22,8 @@ const PLANS: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 39,
-    yearlyPrice: 428,
+    monthlyPrice: 19,
+    yearlyPrice: 209,
     listingLimit: 3,
     features: [
       '3 Active Listings (30 days each)',
@@ -36,8 +36,8 @@ const PLANS: Plan[] = [
   {
     id: 'pro',
     name: 'Pro',
-    monthlyPrice: 99,
-    yearlyPrice: 1088,
+    monthlyPrice: 59,
+    yearlyPrice: 649,
     listingLimit: 10,
     features: [
       '10 Active Listings (30 days each)',
@@ -51,8 +51,8 @@ const PLANS: Plan[] = [
   {
     id: 'elite',
     name: 'Elite',
-    monthlyPrice: 199,
-    yearlyPrice: 2188,
+    monthlyPrice: 119,
+    yearlyPrice: 1309,
     listingLimit: 25,
     features: [
       '25 Active Listings (30 days each)',
@@ -66,8 +66,8 @@ const PLANS: Plan[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    monthlyPrice: 499,
-    yearlyPrice: 5488,
+    monthlyPrice: 299,
+    yearlyPrice: 3289,
     listingLimit: 80,
     features: [
       '80 Active Listings (30 days each)',
@@ -270,7 +270,7 @@ const Pricing: React.FC = () => {
               <div className="mb-8">
                 <h3 className={`text-xl font-extrabold tracking-tight mb-2 ${isEmerald ? 'text-emerald-900 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-200'}`}>{plan.name}</h3>
                 <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-sm font-bold text-slate-500 dark:text-slate-400">RM</span>
+                  <span className="text-sm font-bold text-slate-500 dark:text-slate-400">USD</span>
                   <span className="text-5xl font-black tracking-tighter text-slate-900 dark:text-slate-50">{price.toLocaleString()}</span>
                   <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                 </div>

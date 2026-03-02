@@ -7,7 +7,8 @@ type Listing = {
   brand?: string;
   category?: string;
   condition?: string;
-  price_rm?: number;
+  price?: number;
+  currency?: string;
   location_state?: string;
   images_url?: string[];
 };
@@ -24,7 +25,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   if (id) {
     const { data } = await supabaseRestGet<Listing[]>(
       env,
-      `listings?id=eq.${encodeURIComponent(id)}&select=id,title,brand,category,condition,price_rm,location_state,images_url&limit=1`
+      `listings?id=eq.${encodeURIComponent(id)}&select=id,title,brand,category,condition,price,currency,location_state,images_url&limit=1`
     );
     listing = (data && data[0]) || null;
   }
@@ -37,12 +38,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   if (listing?.brand) descParts.push(listing.brand);
   if (listing?.category) descParts.push(listing.category);
   if (listing?.condition) descParts.push(listing.condition);
-  if (typeof listing?.price_rm === 'number') descParts.push(`RM ${listing.price_rm}`);
+  if (typeof listing?.price === 'number') descParts.push(`${listing.currency || 'USD'} ${listing.price}`);
   if (listing?.location_state) descParts.push(listing.location_state);
 
+  const finalDesc = descParts.length > 0
+    ? descParts.join(' • ')
+    : 'Browse global solar equipment listings.';
   const description = descParts.length
-    ? `Solar listing on Solerz: ${descParts.join(' • ')}`
-    : 'Browse solar equipment listings in Malaysia.';
+    ? `Solar listing on Solerz: ${finalDesc}`
+    : finalDesc;
 
   const canonical = `${origin}/listing/${encodeURIComponent(id)}`;
   const ogImage = listing?.images_url?.[0] || `${origin}/icon.png`;

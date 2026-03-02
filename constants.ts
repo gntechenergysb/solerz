@@ -24,7 +24,7 @@ export const MOCK_USERS = [
   {
     id: 'user-1',
     email: 'solar.king@example.com',
-    company_name: 'Solar King Sdn Bhd',
+    company_name: 'Solar King Corp',
     company_reg_no: '202301001234',
     is_verified: true,
     whatsapp_no: '60123456789',
@@ -65,8 +65,12 @@ export const MOCK_LISTINGS = [
       efficiency: 21.5,
       dimensions: '2279x1134x35mm'
     },
-    price_rm: 450.00,
-    location_state: 'Selangor',
+    price: 350,
+    currency: 'USD',
+    location_country: 'United States',
+    location_state: 'California',
+    condition: 'New',
+    verified: true,
     images_url: ['https://picsum.photos/800/600?random=1', 'https://picsum.photos/800/600?random=2'],
     active_until: daysFromNow(20), // Active
     archive_until: daysFromNow(20), // Same as active
@@ -88,8 +92,12 @@ export const MOCK_LISTINGS = [
       efficiency: 98.6,
       warranty_years: 5
     },
-    price_rm: 12000.00,
-    location_state: 'Johor',
+    price: 1200,
+    currency: 'EUR',
+    location_country: 'Germany',
+    location_state: 'Berlin',
+    condition: 'Used',
+    verified: false,
     images_url: ['https://picsum.photos/800/600?random=3'],
     active_until: daysFromNow(-5), // Expired
     archive_until: daysFromNow(-5), // Expired
@@ -111,8 +119,12 @@ export const MOCK_LISTINGS = [
       nominal_voltage: 48,
       technology: 'LiFePO4'
     },
-    price_rm: 5500.00,
-    location_state: 'Penang',
+    price: 4500,
+    currency: 'USD',
+    location_country: 'China',
+    location_state: 'Shenzhen',
+    condition: 'New',
+    verified: true,
     images_url: ['https://picsum.photos/800/600?random=4'],
     active_until: daysFromNow(28),
     archive_until: daysFromNow(28),

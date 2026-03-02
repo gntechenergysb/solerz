@@ -124,7 +124,9 @@ const AdminDashboard: React.FC = () => {
         title: string;
         category: string;
         brand: string | null;
-        price_rm: number;
+        price: number;
+        currency: string;
+        location_country: string;
         location_state: string;
         is_hidden: boolean;
         is_sold: boolean;
@@ -413,7 +415,7 @@ const AdminDashboard: React.FC = () => {
                                                             <span className="truncate max-w-[420px]">{r.title}</span>
                                                         </div>
                                                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                            {r.category} · {(r.brand || '—')} · RM {Number(r.price_rm).toLocaleString()} · {r.location_state}
+                                                            {r.category} · {(r.brand || '—')} · {r.currency || 'USD'} {Number(r.price).toLocaleString()} · {r.location_country || r.location_state}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">

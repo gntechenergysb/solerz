@@ -133,7 +133,7 @@ const ProductDetails: React.FC = () => {
 
             <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4" /> {listing.location_state}
+                <MapPin className="h-4 w-4" /> {listing.location_country || 'United States'}
               </div>
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-4 w-4" /> Listed {new Date(listing.created_at).toLocaleDateString()}
@@ -142,7 +142,25 @@ const ProductDetails: React.FC = () => {
 
             <div className="mb-8">
               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Asking Price</p>
-              <p className="text-4xl font-bold text-amber-600 dark:text-amber-400">RM {listing.price_rm.toLocaleString()}</p>
+              <div className="flex flex-col">
+                <p className="text-4xl font-bold text-amber-600 dark:text-amber-400">{listing.currency || 'USD'} {listing.price.toLocaleString()}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
+                  Minimum Order Quantity: <span className="text-slate-900 dark:text-slate-100 font-bold">{listing.moq || 1} Unit(s)</span>
+                </p>
+                {listing.datasheet_url && (
+                  <div className="mt-4">
+                    <a
+                      href={listing.datasheet_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-bold text-sm rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                      View Official Datasheet (PDF)
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-3 mb-4">
@@ -242,6 +260,31 @@ const ProductDetails: React.FC = () => {
                 )}
               </button>
             )}
+          </div>
+
+          {/* Supplier Info Snippet */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-wide uppercase">About the Supplier</h3>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 font-bold text-slate-500 dark:text-slate-300">
+                {listing.seller_name?.[0]?.toUpperCase() || 'S'}
+              </div>
+              <div className="flex-grow">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-lg">{listing.seller_name || 'Verified Supplier'}</h4>
+                  {listing.is_verified_seller && (
+                    <span className="text-emerald-500" title="Verified Seller">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+                    </span>
+                  )}
+                </div>
+                {/* Use <a> tag to force a full reload or use React Router Link if passed, but typically we want a clean navigation */}
+                <a href={`/supplier/${listing.seller_id}`} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                  View Full Supplier Profile
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Specs Card */}

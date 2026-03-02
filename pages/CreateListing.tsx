@@ -3,6 +3,8 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { useNavigate, Navigate, useParams, useLocation } from 'react-router-dom';
 import { CATEGORIES, MALAYSIAN_STATES } from '../constants';
+import { GLOBAL_LOCATIONS, CURRENCIES } from '../utils/countries';
+import { detectUserLocation } from '../utils/geo';
 import { Listing } from '../types';
 import toast from 'react-hot-toast';
 import { compressImages } from '../services/imageCompression';
@@ -21,8 +23,11 @@ const CreateListing: React.FC = () => {
   const [category, setCategory] = useState<string>('Panels');
   const [title, setTitle] = useState('');
   const [brand, setBrand] = useState('');
+  const [datasheetUrl, setDatasheetUrl] = useState('');
   const [price, setPrice] = useState('');
-  const [state, setState] = useState('Selangor');
+  const [moq, setMoq] = useState('1');
+  const [currency, setCurrency] = useState('USD');
+  const [locationCountry, setLocationCountry] = useState('United States');
   const [condition, setCondition] = useState<'New' | 'Used' | 'Refurbished'>('Used');
   const [images, setImages] = useState<File[]>([]);
 
@@ -92,11 +97,11 @@ const CreateListing: React.FC = () => {
       if (editId === 'demo-1') {
         setExistingListing({
           id: editId, seller_id: 'demo-seller', title: 'Demo Solar Panel 550W', brand: 'Jinko',
-          category: 'Panels', price_rm: 650, location_state: 'Selangor', condition: 'New',
+          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'United States', location_state: 'California', condition: 'New',
           specs: { wattage: '550' }, images_url: []
         } as any);
-        setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko');
-        setPrice('650'); setState('Selangor'); setCondition('New'); setSpecs({ wattage: '550' });
+        setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
+        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('United States'); setCondition('New'); setSpecs({ wattage: '550' });
       }
       return;
     }
@@ -123,8 +128,11 @@ const CreateListing: React.FC = () => {
         setCategory(row.category === 'Accessories' ? 'Misc' : (row.category as any) === 'Miscellaneous' ? 'Misc' : row.category);
         setTitle(row.title);
         setBrand(row.brand || '');
-        setPrice(String(row.price_rm ?? ''));
-        setState(row.location_state || 'Selangor');
+        setDatasheetUrl(row.datasheet_url || '');
+        setPrice(String(row.price ?? ''));
+        setMoq(String(row.moq ?? '1'));
+        setCurrency(row.currency || 'USD');
+        setLocationCountry(row.location_country || 'United States');
         setCondition(((row as any).condition as any) || 'Used');
         setSpecs((row.specs || {}) as any);
       } catch (e) {
@@ -140,6 +148,19 @@ const CreateListing: React.FC = () => {
       cancelled = true;
     };
   }, [editId, isEditMode, navigate, user?.id]);
+
+  useEffect(() => {
+    if (isEditMode || isDemo || locationCountry !== 'United States') return;
+    detectUserLocation().then(geo => {
+      if (geo) {
+        setLocationCountry(geo.country_name);
+        if (CURRENCIES.includes(geo.currency)) {
+          setCurrency(geo.currency);
+        }
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -249,8 +270,12 @@ const CreateListing: React.FC = () => {
           brand: category === 'Full System' ? 'Full System Package' : brand,
           condition,
           specs,
-          price_rm: parseFloat(price),
-          location_state: state,
+          price: parseFloat(price),
+          moq: parseInt(moq) || 1,
+          currency,
+          location_country: locationCountry,
+          location_state: locationCountry, // Backwards compatibility for DB
+          datasheet_url: datasheetUrl,
           images_url: hasNewImages ? (uploadedImageUrls.length ? uploadedImageUrls : existingListing.images_url) : existingListing.images_url,
         };
 
@@ -271,8 +296,12 @@ const CreateListing: React.FC = () => {
         brand: category === 'Full System' ? 'Full System Package' : brand,
         condition,
         specs,
-        price_rm: parseFloat(price),
-        location_state: state,
+        price: parseFloat(price),
+        moq: parseInt(moq) || 1,
+        currency,
+        location_country: locationCountry,
+        location_state: locationCountry, // Backwards compatibility for DB
+        datasheet_url: datasheetUrl,
         images_url: imageUrls,
         is_sold: false,
         is_hidden: false,
@@ -350,6 +379,31 @@ const CreateListing: React.FC = () => {
                 value={String((specs as any).inverter_type || '')}
                 onChange={(v) => handleSpecChange('inverter_type', v)}
               />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Price</label>
+                <div className="flex">
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="w-24 border border-r-0 border-slate-300 dark:border-slate-700 rounded-l-lg p-2.5 focus:ring-primary focus:border-primary bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                  >
+                    {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    required
+                    className="w-full border border-slate-300 dark:border-slate-700 rounded-r-lg p-2.5 focus:ring-primary focus:border-primary outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+                  />
+                </div>
+                {showPricePerWatt && (
+                  <p className="text-xs text-emerald-600 font-bold mt-1 text-right">
+                    ≈ {currency} {pricePerWatt}/Watt
+                  </p>
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
                 <select onChange={(e) => handleSpecChange('phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -813,13 +867,18 @@ const CreateListing: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location (State)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
               <select
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+                value={locationCountry}
+                onChange={(e) => setLocationCountry(e.target.value)}
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 mb-3"
               >
-                {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                {GLOBAL_LOCATIONS.map(group => (
+                  <optgroup key={group.region} label={group.region}>
+                    {group.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                  </optgroup>
+                ))}
+                <option value="Other Location">Other Location</option>
               </select>
             </div>
             <div>
@@ -857,14 +916,23 @@ const CreateListing: React.FC = () => {
             {category !== 'Full System' && (
               <Input label="Brand" placeholder="e.g. Huawei, Jinko" value={brand} onChange={setBrand} required={category !== 'Full System'} />
             )}
+            <Input label="Min Order Qty (MOQ)" type="number" placeholder="1" value={moq} onChange={setMoq} required />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Input label="Price (RM)" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
+              <Input label="Unit Price" type="number" placeholder="0.00" value={price} onChange={setPrice} required />
               {showPricePerWatt && (
                 <p className="text-xs text-emerald-600 font-bold mt-1 text-right">
-                  ≈ RM {pricePerWatt}/Watt
+                  ≈ {currency} {pricePerWatt}/Watt
                 </p>
               )}
             </div>
+            <Input
+              label="Datasheet Document URL (Optional)"
+              placeholder="e.g. https://domain.com/spec-sheet.pdf"
+              value={datasheetUrl}
+              onChange={setDatasheetUrl}
+            />
           </div>
         </div>
 

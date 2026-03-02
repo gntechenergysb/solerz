@@ -11,6 +11,9 @@ import toast from 'react-hot-toast';
 import { supabase } from '../services/supabaseClient';
 import { compressImageFile } from '../services/imageCompression';
 
+import { GLOBAL_LOCATIONS } from '../utils/countries';
+import { detectUserLocation } from '../utils/geo';
+
 const FileSelector = ({ onSelect, accept = ".pdf", label }: { onSelect: (file: File) => void, accept?: string, label?: string }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -106,9 +109,19 @@ const SampleModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
         <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded flex justify-center">
           <img src="/company-reg-sample.png" alt="Company Registration Sample" className="max-h-[70vh] w-auto object-contain rounded border border-slate-200 dark:border-slate-800 shadow-sm" />
         </div>
-        <div className="mt-3 text-center">
+        <div className="mt-4 text-center">
           <p className="text-sm font-bold text-red-600">Important:</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">We only accept the LATEST version of Company Registration document (PDF Format).</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 pb-2">We only accept the LATEST version of your official Company Registration document (PDF Format).</p>
+          <div className="text-left text-xs bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900/40 text-slate-600 dark:text-slate-300">
+            <span className="font-bold">Examples by Region:</span>
+            <ul className="list-disc ml-4 mt-1 space-y-0.5">
+              <li><strong>Corporate:</strong> Business License / Articles of Incorporation (equivalent to your region's registrar)</li>
+              <li><strong>Singapore:</strong> ACRA BizFile+</li>
+              <li><strong>United States:</strong> Certificate of Incorporation / EIN Letter</li>
+              <li><strong>Europe:</strong> Extract from Commercial Register / VAT Certificate</li>
+              <li><strong>China:</strong> Business License (营业执照)</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -118,6 +131,7 @@ const SampleModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
 const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File) => void, isSubmitting: boolean }) => {
   const [formData, setFormData] = useState({
     company_reg_no: '',
+    country: 'United States',
     handphone_no: '',
     business_address: '',
     incorporation_date: '',
@@ -126,6 +140,12 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [showSample, setShowSample] = useState(false);
+
+  useEffect(() => {
+    detectUserLocation().then(geo => {
+      if (geo) setFormData(prev => ({ ...prev, country: geo.country_name }));
+    });
+  }, []);
 
   const handleFileSelect = (file: File | null) => {
     setFileError(null);
@@ -166,8 +186,29 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
         <div>
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Company Reg. No.</label>
           <input required name="company_reg_no" value={formData.company_reg_no} onChange={handleChange}
-            placeholder="e.g. 201901001234" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+            placeholder="e.g. 1234567-T or 202101012345"
+            className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+          />
         </div>
+
+        <div>
+          <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Registered Country</label>
+          <select
+            value={formData.country}
+            onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+            className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+          >
+            {GLOBAL_LOCATIONS.map(group => (
+              <optgroup key={group.region} label={group.region}>
+                {group.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+              </optgroup>
+            ))}
+            <option value="Other Location">Other Location</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Phone Number</label>
           <input required name="handphone_no" value={formData.handphone_no} onChange={handleChange}
@@ -683,10 +724,10 @@ const Dashboard: React.FC = () => {
   const hasPanels = myActivePanelListings.length > 0;
 
   const myAvgPrice = hasPanels
-    ? myActivePanelListings.reduce((acc, curr) => acc + Number((curr as any).price_rm || 0), 0) / myActivePanelListings.length
+    ? myActivePanelListings.reduce((acc, curr) => acc + Number((curr as any).price || 0), 0) / myActivePanelListings.length
     : 0;
-  const myMinPrice = hasPanels ? Math.min(...myActivePanelListings.map(l => Number((l as any).price_rm || 0))) : 0;
-  const myMaxPrice = hasPanels ? Math.max(...myActivePanelListings.map(l => Number((l as any).price_rm || 0))) : 0;
+  const myMinPrice = hasPanels ? Math.min(...myActivePanelListings.map(l => Number((l as any).price || 0))) : 0;
+  const myMaxPrice = hasPanels ? Math.max(...myActivePanelListings.map(l => Number((l as any).price || 0))) : 0;
 
   // Top Category Pricing Logic (auto-detect user's most active category)
   const categoryCount: Record<string, number> = {};
@@ -705,14 +746,15 @@ const Dashboard: React.FC = () => {
   const topCategoryListings = topCategory
     ? activeListings.filter(l => l.category === topCategory)
     : [];
-  const topCategoryAvgPrice = topCategoryListings.length > 0
-    ? topCategoryListings.reduce((acc, curr) => acc + Number((curr as any).price_rm || 0), 0) / topCategoryListings.length
+  const hasTopCategoryListings = topCategoryListings.length > 0;
+  const topCategoryAvgPrice = hasTopCategoryListings
+    ? topCategoryListings.reduce((acc, curr) => acc + Number((curr as any).price || 0), 0) / topCategoryListings.length
     : 0;
-  const topCategoryMinPrice = topCategoryListings.length > 0
-    ? Math.min(...topCategoryListings.map(l => Number((l as any).price_rm || 0)))
+  const topCategoryMinPrice = hasTopCategoryListings
+    ? Math.min(...topCategoryListings.map(l => Number((l as any).price || 0)))
     : 0;
-  const topCategoryMaxPrice = topCategoryListings.length > 0
-    ? Math.max(...topCategoryListings.map(l => Number((l as any).price_rm || 0)))
+  const topCategoryMaxPrice = hasTopCategoryListings
+    ? Math.max(...topCategoryListings.map(l => Number((l as any).price || 0)))
     : 0;
 
   const maxTrendingSearch = trendingKeywords.length > 0 ? Math.max(...trendingKeywords.map(k => k.searches)) : 0;

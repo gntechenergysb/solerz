@@ -10,9 +10,9 @@ type StripeCatalogProductIds = Partial<
   Record<'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE', Partial<Record<'monthly' | 'yearly', string>>>
 >;
 
-const DEFAULT_STRIPE_CATALOG_IDS: StripeCatalogProductIds = {
+const DEFAULT_STRIPE_CATALOG_IDS: Record<string, { monthly: string; yearly: string }> = {
   STARTER: { monthly: 'price_1T4BtJ3k3Z28WqJKINJ9Efd0', yearly: 'price_1T4BtJ3k3Z28WqJKqhbXBvex' },
-  PRO: { monthly: 'price_1T4BtQ3k3Z28WqJKZZ4Xh2cP', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
+  PRO: { monthly: 'price_1T5GBu3k3Z28WqJKdaRJnAsE', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
   ELITE: { monthly: 'price_1T4BtS3k3Z28WqJK59BkDgNI', yearly: 'price_1T4BtS3k3Z28WqJKJwLzoags' },
   ENTERPRISE: { monthly: 'price_1T4BtV3k3Z28WqJK3QYvTdHr', yearly: 'price_1T4BtV3k3Z28WqJKdOmXM9Zt' }
 };
@@ -115,16 +115,16 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     console.log('Failed to fetch profile for stripe_customer_id in checkout', e);
   }
 
-  const amountMapMyr: Record<string, { monthly: number; yearly: number }> = {
-    STARTER: { monthly: 39, yearly: 428 },
-    PRO: { monthly: 99, yearly: 1088 },
-    ELITE: { monthly: 199, yearly: 2188 },
-    ENTERPRISE: { monthly: 499, yearly: 5488 }
+  const amountMapUsd: Record<string, { monthly: number; yearly: number }> = {
+    STARTER: { monthly: 9, yearly: 99 },
+    PRO: { monthly: 29, yearly: 319 },
+    ELITE: { monthly: 49, yearly: 539 },
+    ENTERPRISE: { monthly: 129, yearly: 1419 }
   };
 
-  const planAmounts = amountMapMyr[tier];
-  const myrAmount = billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly;
-  const unitAmount = Math.round(myrAmount * 100);
+  const planAmounts = amountMapUsd[tier];
+  const usdAmount = billingCycle === 'monthly' ? planAmounts.monthly : planAmounts.yearly;
+  const unitAmount = Math.round(usdAmount * 100);
 
   let catalogId: string | null = null;
   if (env.STRIPE_CATALOG_PRODUCT_IDS_JSON) {
@@ -146,19 +146,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   const isSubscription = true;
   const sessionParams = new URLSearchParams();
 
-  sessionParams.set('mode', isSubscription ? 'subscription' : 'payment');
-  sessionParams.set('success_url', `${origin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`);
-  sessionParams.set('cancel_url', `${origin}/pricing?payment=canceled`);
+  sessionParams.set('payment_method_types[0]', 'card');
+  sessionParams.set('mode', 'subscription');
+  sessionParams.set('success_url', `${origin}/dashboard?checkout_success=true&session_id={CHECKOUT_SESSION_ID}`);
+  sessionParams.set('cancel_url', `${origin}/pricing?checkout_canceled=true`);
 
-  sessionParams.set('client_reference_id', userId);
-  sessionParams.set('metadata[user_id]', userId);
-  sessionParams.set('metadata[tier]', tier);
-  sessionParams.set('metadata[billing_cycle]', billingCycle);
-
-  // Use the existing customer ID to prevent duplicates
   if (stripeCustomerId) {
     sessionParams.set('customer', stripeCustomerId);
-  } else if (email) {
+    sessionParams.set('customer_update[address]', 'auto');
+  } else {
     sessionParams.set('customer_email', email);
   }
 
@@ -169,7 +165,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (usingPriceId && catalogId) {
     sessionParams.set('line_items[0][price]', catalogId);
   } else {
-    sessionParams.set('line_items[0][price_data][currency]', 'myr');
+    sessionParams.set('line_items[0][price_data][currency]', 'usd');
     sessionParams.set('line_items[0][price_data][unit_amount]', String(unitAmount));
     if (catalogId && catalogId.startsWith('prod_')) {
       sessionParams.set('line_items[0][price_data][product]', catalogId);

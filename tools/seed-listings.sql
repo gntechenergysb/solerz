@@ -30,7 +30,9 @@ begin
     brand,
     condition,
     specs,
-    price_rm,
+    price,
+    currency,
+    location_country,
     location_state,
     images_url,
     is_sold,
@@ -345,7 +347,9 @@ begin
         end
         * (0.9 + random()*0.25)
       )::numeric
-    , 2) as price_rm,
+    , 2) as price,
+    'USD' as currency,
+    'United States' as location_country,
 
     location_state,
 

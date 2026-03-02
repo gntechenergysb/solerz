@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS public.profiles_public (
     handphone_no TEXT,
     business_address TEXT,
     company_reg_no TEXT,  -- Company/Business Registration Number (international)
+    country TEXT,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -51,6 +52,7 @@ BEGIN
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS handphone_no TEXT;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS business_address TEXT;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS company_reg_no TEXT;  -- International company reg number
+    ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS country TEXT;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 END $$;
 
@@ -83,6 +85,7 @@ BEGIN
 
     -- 核心 KYC 字段
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS company_reg_no TEXT;  -- International company/business registration number
+    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS country TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS business_address TEXT;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS incorporation_date DATE;
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS nature_of_business TEXT;
@@ -98,9 +101,13 @@ CREATE TABLE IF NOT EXISTS public.listings (
     brand TEXT,
     condition TEXT,
     specs JSONB DEFAULT '{}'::jsonb,
-    price_rm DECIMAL(12, 2) NOT NULL,
+    price DECIMAL(12, 2) NOT NULL,
+    moq INTEGER DEFAULT 1,
+    currency TEXT DEFAULT 'USD',
+    location_country TEXT DEFAULT 'United States',
     location_state TEXT NOT NULL,
     images_url TEXT[] DEFAULT '{}',
+    datasheet_url TEXT,
     is_verified_listing BOOLEAN DEFAULT FALSE,
     active_until TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
     archive_until TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
@@ -144,7 +151,8 @@ CREATE TABLE IF NOT EXISTS public.search_events (
     user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     search_query TEXT,
     category TEXT,
-    state TEXT,
+  country TEXT,
+  state TEXT,
     condition TEXT,
     marketplace_layer TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -370,6 +378,7 @@ GRANT EXECUTE ON FUNCTION public.increment_view_count(UUID) TO anon, authenticat
 CREATE OR REPLACE FUNCTION public.track_search_event(
   p_search_query TEXT,
   p_category TEXT,
+  p_country TEXT,
   p_state TEXT,
   p_condition TEXT,
   p_marketplace_layer TEXT
@@ -382,13 +391,13 @@ AS $$
 BEGIN
   PERFORM public.check_rate_limit('rpc.track_search_event', 240, 60);
 
-  INSERT INTO public.search_events (user_id, search_query, category, state, condition, marketplace_layer)
-  VALUES (auth.uid(), p_search_query, p_category, p_state, p_condition, p_marketplace_layer);
+  INSERT INTO public.search_events (user_id, search_query, category, country, state, condition, marketplace_layer)
+  VALUES (auth.uid(), p_search_query, p_category, p_country, p_state, p_condition, p_marketplace_layer);
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.track_search_event(TEXT, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.track_search_event(TEXT, TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
+REVOKE ALL ON FUNCTION public.track_search_event(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.track_search_event(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.track_listing_contact_event(
   p_listing_id UUID,
