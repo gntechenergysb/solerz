@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import {
     Building2, Search, BarChart2, TrendingUp, Users, Package,
-    MapPin, CheckCircle, Flame, Star, Zap, Clock, Bookmark, X, Eye, Target
+    MapPin, CheckCircle, Flame, Star, Zap, Clock, Bookmark, X, Eye, Target,
+    MessageSquare, Phone, Mail
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const DUMMY_LISTINGS = [
     {
         id: 'd1',
-        title: 'Jinko Solar Tiger Pro 54HC (415W)',
+        title: 'SolarNova Ultra Premium 54HC (415W)',
         category: 'Panels',
         price: 450,
         condition: 'New',
-        brand: 'Jinko Solar',
+        brand: 'SolarNova',
         wattage: 415,
-        location: 'California, US',
+        location: 'Shanghai, CN',
         images: ['https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80'],
         seller: {
             company_name: 'Acme Solar Demo Corp',
@@ -24,11 +25,11 @@ const DUMMY_LISTINGS = [
     },
     {
         id: 'd2',
-        title: 'Growatt MIN 5000TL-X',
+        title: 'InverTech Alpha 5000TL-X',
         category: 'Inverters',
         price: 2800,
         condition: 'New',
-        brand: 'Growatt',
+        brand: 'InverTech',
         wattage: 5000,
         location: 'Berlin, DE',
         images: ['https://images.unsplash.com/photo-1582218414457-3f33de8eecdf?w=800&q=80'],
@@ -40,11 +41,11 @@ const DUMMY_LISTINGS = [
     },
     {
         id: 'd3',
-        title: 'Huawei LUNA2000 5kWh Battery',
+        title: 'NeoPower Energy Nexus 5kWh Battery',
         category: 'Batteries',
         price: 12500,
         condition: 'New',
-        brand: 'Huawei',
+        brand: 'NeoPower',
         location: 'Shenzhen, CN',
         images: ['https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?w=800&q=80'],
         seller: {
@@ -483,13 +484,16 @@ const Demo: React.FC = () => {
                             {modalType === 'dummy_contact' ? (
                                 <>
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 self-start">Contact Seller</h2>
-                                    <div className="space-y-4 w-full text-left">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Message</label>
-                                            <textarea rows={4} className="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100" placeholder="Hi, I am interested in this listing. Is the price negotiable?"></textarea>
-                                        </div>
-                                        <button onClick={() => { setShowModal(false); alert("Simulated Demo Message Sent!"); }} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition-colors">
-                                            Send Message (Demo)
+                                    <div className="space-y-3 w-full text-left">
+                                        <p className="text-sm text-slate-500 mb-4">Select your preferred contact method to connect directly with the supplier.</p>
+                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will open WhatsApp to message the seller directly."); }} className="w-full flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold py-3 rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-200 dark:border-emerald-500/20">
+                                            <MessageSquare className="h-5 w-5" /> WhatsApp
+                                        </button>
+                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will reveal the seller's phone number."); }} className="w-full flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700">
+                                            <Phone className="h-5 w-5" /> Phone
+                                        </button>
+                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will open your email client."); }} className="w-full flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700">
+                                            <Mail className="h-5 w-5" /> Email
                                         </button>
                                     </div>
                                 </>

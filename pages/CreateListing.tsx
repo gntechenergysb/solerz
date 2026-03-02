@@ -27,7 +27,7 @@ const CreateListing: React.FC = () => {
   const [price, setPrice] = useState('');
   const [moq, setMoq] = useState('1');
   const [currency, setCurrency] = useState('USD');
-  const [locationCountry, setLocationCountry] = useState('United States');
+  const [locationCountry, setLocationCountry] = useState('China');
   const [condition, setCondition] = useState<'New' | 'Used' | 'Refurbished'>('Used');
   const [images, setImages] = useState<File[]>([]);
 
@@ -97,11 +97,11 @@ const CreateListing: React.FC = () => {
       if (editId === 'demo-1') {
         setExistingListing({
           id: editId, seller_id: 'demo-seller', title: 'Demo Solar Panel 550W', brand: 'Jinko',
-          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'United States', location_state: 'California', condition: 'New',
+          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'China', location_state: '', condition: 'New',
           specs: { wattage: '550' }, images_url: []
         } as any);
         setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
-        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('United States'); setCondition('New'); setSpecs({ wattage: '550' });
+        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('China'); setCondition('New'); setSpecs({ wattage: '550' });
       }
       return;
     }
@@ -132,7 +132,7 @@ const CreateListing: React.FC = () => {
         setPrice(String(row.price ?? ''));
         setMoq(String(row.moq ?? '1'));
         setCurrency(row.currency || 'USD');
-        setLocationCountry(row.location_country || 'United States');
+        setLocationCountry(row.location_country || 'China');
         setCondition(((row as any).condition as any) || 'Used');
         setSpecs((row.specs || {}) as any);
       } catch (e) {
@@ -150,7 +150,7 @@ const CreateListing: React.FC = () => {
   }, [editId, isEditMode, navigate, user?.id]);
 
   useEffect(() => {
-    if (isEditMode || isDemo || locationCountry !== 'United States') return;
+    if (isEditMode || isDemo || locationCountry !== 'China') return;
     detectUserLocation().then(geo => {
       if (geo) {
         setLocationCountry(geo.country_name);

@@ -131,7 +131,7 @@ const SampleModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
 const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File) => void, isSubmitting: boolean }) => {
   const [formData, setFormData] = useState({
     company_reg_no: '',
-    country: 'United States',
+    country: 'China',
     handphone_no: '',
     business_address: '',
     incorporation_date: '',
@@ -231,7 +231,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
         <div>
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nature of Business</label>
           <input required name="nature_of_business" value={formData.nature_of_business} onChange={handleChange}
-            placeholder="e.g. Solar Installation" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+            placeholder="" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
         </div>
       </div>
 
@@ -679,7 +679,7 @@ const Dashboard: React.FC = () => {
     {
       key: 'business_nature',
       label: 'Nature of business',
-      hint: 'E.g. solar installation, trading, O&M services.',
+      hint: 'trading, O&M services.',
       points: 10,
       done: !!user.nature_of_business
     },

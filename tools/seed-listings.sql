@@ -48,7 +48,7 @@ begin
       v_seller_id as seller_id,
       i,
       random() as r,
-      (array['Selangor','Johor','Penang','Perak','Kuala Lumpur','Sarawak','Sabah'])[1 + floor(random()*7)::int] as location_state,
+      (array['Shanghai','Guangdong','Jiangsu','Zhejiang','Beijing','Sichuan','Shandong'])[1 + floor(random()*7)::int] as location_state,
       (1 + floor(random()*1000)::int) as img_seed
     from gs
   ),
@@ -71,10 +71,10 @@ begin
     select
       c.*,
       case
-        when c.category = 'Panels' then (array['JA Solar','Jinko','Trina','LONGi'])[1 + floor(random()*4)::int]
-        when c.category = 'Inverters' then (array['Huawei','Sungrow','Growatt','SMA','GoodWe'])[1 + floor(random()*5)::int]
-        when c.category = 'Batteries' then (array['BYD','Pylontech','Dyness','Generic'])[1 + floor(random()*4)::int]
-        when c.category = 'Full System' then (array['Custom','SunPower','SolarEdge','Generic'])[1 + floor(random()*4)::int]
+        when c.category = 'Panels' then (array['SolarNova','AlphaSun','EcoPanel','VoltEnergy'])[1 + floor(random()*4)::int]
+        when c.category = 'Inverters' then (array['NeoPower','SunGen','InverTech','AeroVolt','PureSine'])[1 + floor(random()*5)::int]
+        when c.category = 'Batteries' then (array['BetaPower','GammaEnergy','ZetaStore','Generic'])[1 + floor(random()*4)::int]
+        when c.category = 'Full System' then (array['Custom','SunMax','OptiSolar','Generic'])[1 + floor(random()*4)::int]
         when c.category = 'Mounting' then (array['Clenergy','K2 Systems','Schletter','Unirac','IronRidge','Generic'])[1 + floor(random()*6)::int]
         when c.category = 'Cable' then (array['Prysmian','Nexans','LS Cable','Helukabel','Generic'])[1 + floor(random()*5)::int]
         when c.category = 'Protective' then (array['Schneider','ABB','Eaton','Siemens','Hager','Generic'])[1 + floor(random()*6)::int]
@@ -151,16 +151,16 @@ begin
       (array['On-Grid','Off-Grid','Hybrid'])[1 + floor(random()*3)::int] as fs_system_type,
       (array[3,5,10,12,15,20,50])[1 + floor(random()*7)::int] as fs_total_capacity_kwp,
       (array[0,0,10,15,20,30])[1 + floor(random()*6)::int] as fs_battery_storage_kwh,
-      (array['Trina','Jinko','LONGi','JA Solar'])[1 + floor(random()*4)::int] as fs_panel_brand,
+      (array['EcoPanel','AlphaSun','VoltEnergy','SolarNova'])[1 + floor(random()*4)::int] as fs_panel_brand,
       (array[450,550,600])[1+floor(random()*3)::int] as fs_panel_wattage_w,
       (array['Monocrystalline','Polycrystalline','N-type','TOPCon'])[1+floor(random()*4)::int] as fs_panel_cell_type,
 
-      (array['Huawei','Growatt','GoodWe','SMA'])[1 + floor(random()*4)::int] as fs_inverter_brand,
+      (array['NeoPower','InverTech','PureSine','AeroVolt'])[1 + floor(random()*4)::int] as fs_inverter_brand,
       (array[5,10,15])[1+floor(random()*3)::int] as fs_inverter_rated_power_kw,
       (array['Single','Three'])[1+floor(random()*2)::int] as fs_inverter_phase,
       (array['String','Hybrid','Micro'])[1+floor(random()*3)::int] as fs_inverter_type,
 
-      (array['BYD','Pylontech','Dyness'])[1 + floor(random()*3)::int] as fs_battery_brand,
+      (array['BetaPower','GammaEnergy','ZetaStore'])[1 + floor(random()*3)::int] as fs_battery_brand,
       (array['LiFePO4','NMC'])[1 + floor(random()*2)::int] as fs_battery_technology,
 
       (array['Clenergy','K2 Systems'])[1 + floor(random()*2)::int] as fs_mounting_brand,
@@ -349,7 +349,7 @@ begin
       )::numeric
     , 2) as price,
     'USD' as currency,
-    'United States' as location_country,
+    'China' as location_country,
 
     location_state,
 

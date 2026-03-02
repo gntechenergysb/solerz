@@ -87,7 +87,7 @@ const Marketplace: React.FC = () => {
   // Filters
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('United States');
+  const [selectedCountry, setSelectedCountry] = useState('China');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCondition, setSelectedCondition] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -1065,7 +1065,6 @@ const Marketplace: React.FC = () => {
                 value={selectedCountry}
                 onChange={(e) => {
                   setSelectedCountry(e.target.value);
-                  if (e.target.value !== 'United States') setSelectedState('');
                 }}
               >
                 <option value="">All Countries</option>
@@ -1079,26 +1078,6 @@ const Marketplace: React.FC = () => {
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </div>
             </div>
-
-            {/* State Dropdown (Only show if US) */}
-            {selectedCountry === 'United States' && (
-              <div className="relative w-full sm:min-w-[160px]">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-4 w-4 text-slate-500" />
-                </div>
-                <select
-                  className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
-                >
-                  <option value="">All States</option>
-                  {MALAYSIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
-                </div>
-              </div>
-            )}
 
             {/* Condition Dropdown */}
             <div className="relative w-full sm:min-w-[160px]">
