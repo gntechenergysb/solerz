@@ -6,56 +6,61 @@ export interface LocationGroup {
 export const GLOBAL_LOCATIONS: LocationGroup[] = [
     {
         region: 'Asia Pacific',
+        // Priority sorted by solar manufacturing & market scale
         locations: [
-            'Malaysia',
-            'Singapore',
-            'Indonesia',
-            'Thailand',
-            'Vietnam',
-            'Philippines',
             'China',
-            'Taiwan (China)',
-            'Hong Kong SAR',
-            'Japan',
-            'South Korea',
+            'Vietnam',
+            'Malaysia',
             'India',
+            'Thailand',
+            'South Korea',
+            'Japan',
+            'Taiwan (China)',
+            'Indonesia',
+            'Philippines',
             'Australia',
-            'New Zealand'
+            'Singapore',
+            'New Zealand',
+            'Hong Kong SAR'
         ]
     },
     {
+        // "Americas" is the standard UN/business term for North, Central & South America combined
         region: 'Americas',
+        // Sorted by manufacturing capacity & assembly hubs
         locations: [
             'United States',
-            'Canada',
             'Mexico',
             'Brazil',
+            'Canada',
             'Argentina',
             'Colombia'
         ]
     },
     {
         region: 'Europe',
+        // Sorted by PV manufacturing (modules/inverters/trackers)
         locations: [
-            'United Kingdom',
             'Germany',
-            'France',
-            'Italy',
             'Spain',
-            'Netherlands',
+            'Italy',
+            'France',
             'Poland',
+            'Netherlands',
+            'United Kingdom',
             'Sweden'
         ]
     },
     {
         region: 'Middle East & Africa',
+        // Sorted by PV assembly & production scale
         locations: [
+            'Turkey',
             'United Arab Emirates',
             'Saudi Arabia',
-            'South Africa',
-            'Nigeria',
             'Egypt',
-            'Turkey'
+            'South Africa',
+            'Nigeria'
         ]
     }
 ];

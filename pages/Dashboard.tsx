@@ -186,7 +186,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
         <div>
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Company Reg. No.</label>
           <input required name="company_reg_no" value={formData.company_reg_no} onChange={handleChange}
-            placeholder="e.g. 1234567-T or 202101012345"
+            placeholder=""
             className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         </div>
@@ -212,7 +212,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
         <div>
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Phone Number</label>
           <input required name="handphone_no" value={formData.handphone_no} onChange={handleChange}
-            placeholder="e.g. 0123456789" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+            placeholder="" className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
         </div>
       </div>
 
