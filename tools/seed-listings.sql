@@ -75,10 +75,10 @@ begin
         when c.category = 'Inverters' then (array['NeoPower','SunGen','InverTech','AeroVolt','PureSine'])[1 + floor(random()*5)::int]
         when c.category = 'Batteries' then (array['BetaPower','GammaEnergy','ZetaStore','Generic'])[1 + floor(random()*4)::int]
         when c.category = 'Full System' then (array['Custom','SunMax','OptiSolar','Generic'])[1 + floor(random()*4)::int]
-        when c.category = 'Mounting' then (array['Clenergy','K2 Systems','Schletter','Unirac','IronRidge','Generic'])[1 + floor(random()*6)::int]
-        when c.category = 'Cable' then (array['Prysmian','Nexans','LS Cable','Helukabel','Generic'])[1 + floor(random()*5)::int]
-        when c.category = 'Protective' then (array['Schneider','ABB','Eaton','Siemens','Hager','Generic'])[1 + floor(random()*6)::int]
-        when c.category = 'Accessories' then (array['SolarEdge','Tigo','Hoymiles','Renusol','Schletter','K2','Generic','Unbranded'])[1 + floor(random()*8)::int]
+        when c.category = 'Mounting' then (array['MountPro','KMount','QuickRack','UniHold','IronBase','Generic'])[1 + floor(random()*6)::int]
+        when c.category = 'Cable' then (array['WireFlex','VoltLine','LSCord','PowerWire','Generic'])[1 + floor(random()*5)::int]
+        when c.category = 'Protective' then (array['SafeGuard','VoltProtect','CircuitMax','AmpShield','GuardTech','Generic'])[1 + floor(random()*6)::int]
+        when c.category = 'Accessories' then (array['OptiSolar','MicroTech','NovaLink','FlexMount','QuickRack','KMount','Generic','Unbranded'])[1 + floor(random()*8)::int]
         else (array['Generic','Unbranded','Other'])[1 + floor(random()*3)::int]
       end as brand,
 
@@ -163,15 +163,15 @@ begin
       (array['BetaPower','GammaEnergy','ZetaStore'])[1 + floor(random()*3)::int] as fs_battery_brand,
       (array['LiFePO4','NMC'])[1 + floor(random()*2)::int] as fs_battery_technology,
 
-      (array['Clenergy','K2 Systems'])[1 + floor(random()*2)::int] as fs_mounting_brand,
+      (array['MountPro','KMount'])[1 + floor(random()*2)::int] as fs_mounting_brand,
       (array['Roof Mount','Ground Mount'])[1 + floor(random()*2)::int] as fs_mounting_type,
       (array['Aluminum','Galvanized Steel'])[1 + floor(random()*2)::int] as fs_mounting_material,
 
-      (array['Prysmian','Nexans'])[1 + floor(random()*2)::int] as fs_cable_brand,
+      (array['WireFlex','VoltLine'])[1 + floor(random()*2)::int] as fs_cable_brand,
       (array['PV1-F','H1Z2Z2-K'])[1 + floor(random()*2)::int] as fs_cable_type,
       (array[4,6,10])[1 + floor(random()*3)::int] as fs_cable_size_mm2,
 
-      (array['Schneider','ABB'])[1 + floor(random()*2)::int] as fs_protective_breaker_brand,
+      (array['SafeGuard','VoltProtect'])[1 + floor(random()*2)::int] as fs_protective_breaker_brand,
       (array[16,20,32])[1 + floor(random()*3)::int] as fs_protective_breaker_rated_current_a,
       (array['Finder','Dehn'])[1 + floor(random()*2)::int] as fs_protective_spd_brand,
       (array[20,40])[1 + floor(random()*2)::int] as fs_protective_spd_rated_current_a,
