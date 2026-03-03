@@ -1054,7 +1054,7 @@ const Marketplace: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto overflow-hidden">
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
             {/* Country Dropdown */}
             <div className="relative w-full sm:min-w-[160px]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
