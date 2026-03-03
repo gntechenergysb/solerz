@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../services/db';
-import { Listing } from '../types';
+import { Listing, SalesRepresentative } from '../types';
 import ProductCard from '../components/ProductCard';
-import { MapPin, CheckCircle, Mail, Phone, ExternalLink, ShieldCheck } from 'lucide-react';
+import { MapPin, CheckCircle, Mail, Phone, ExternalLink, ShieldCheck, Users, MessageSquare, MessageCircle, Send, Linkedin, Facebook, Twitter, Instagram, Video, Hash } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const SupplierProfile: React.FC = () => {
@@ -11,6 +11,7 @@ const SupplierProfile: React.FC = () => {
     const [profile, setProfile] = useState<any>(null);
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
+    const [salesReps, setSalesReps] = useState<SalesRepresentative[]>([]);
 
     useEffect(() => {
         if (!id) return;
@@ -18,9 +19,10 @@ const SupplierProfile: React.FC = () => {
         const fetchSupplierData = async () => {
             setLoading(true);
             try {
-                const [profileData, supplierListings] = await Promise.all([
+                const [profileData, supplierListings, repsData] = await Promise.all([
                     db.getPublicProfile(id),
-                    db.getListingsBySellerId(id)
+                    db.getListingsBySellerId(id),
+                    db.getSalesReps(id)
                 ]);
 
                 if (profileData) {
@@ -28,6 +30,8 @@ const SupplierProfile: React.FC = () => {
                 } else {
                     toast.error("Supplier not found.");
                 }
+
+                setSalesReps(repsData || []);
 
                 // Filter out hidden or sold listings for public view
                 const activePublicListings = (supplierListings || []).filter(
@@ -157,10 +161,129 @@ const SupplierProfile: React.FC = () => {
                             <ShieldCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                             <h4 className="font-bold text-emerald-900 dark:text-emerald-100">Trade Assurance</h4>
                         </div>
-                        <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
-                            Solerz connects you with global suppliers. We strongly recommend conducting your own due diligence and using secure payment methods (such as Escrow or Letters of Credit) for large cross-border transactions.
+                        <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                            Always conduct your own due diligence and use secure payment methods to protect your transactions.
                         </p>
                     </div>
+
+                    {/* Sales Team Section */}
+                    {salesReps.length > 0 && (
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center gap-2">
+                                <Users className="h-5 w-5 text-indigo-500" /> Sales Team
+                            </h3>
+                            <div className="space-y-4">
+                                {salesReps.map(rep => {
+                                    const repMsisdn = String(rep.phone || '').replace(/\D/g, '');
+                                    const defaultPhoneLink = repMsisdn.startsWith('60') ? repMsisdn : (repMsisdn.startsWith('0') ? `60${repMsisdn.slice(1)}` : repMsisdn);
+
+                                    const wappNum = rep.whatsapp ? String(rep.whatsapp).replace(/\D/g, '') : defaultPhoneLink;
+                                    const phoneLink = wappNum.startsWith('60') ? wappNum : (wappNum.startsWith('0') ? `60${wappNum.slice(1)}` : wappNum);
+
+                                    const socialLinks = [];
+                                    if (wappNum) {
+                                        socialLinks.push({
+                                            id: 'whatsapp', icon: MessageSquare, label: 'WhatsApp',
+                                            color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900',
+                                            onClick: () => { window.open(`https://web.whatsapp.com/send?phone=${encodeURIComponent(phoneLink)}`, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.phone) {
+                                        socialLinks.push({
+                                            id: 'call', icon: Phone, label: 'Call',
+                                            color: 'border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900',
+                                            onClick: () => { window.location.href = `tel:${rep.phone.replace(/\s+/g, '')}`; }
+                                        });
+                                    }
+                                    if (rep.wechat) {
+                                        socialLinks.push({
+                                            id: 'wechat', icon: MessageCircle, label: 'WeChat',
+                                            color: 'bg-[#E3F2E1] dark:bg-[#1E3B21] text-[#07C160] hover:bg-[#D1EBD0] dark:hover:bg-[#2A4D2D]',
+                                            onClick: () => { alert(`WeChat ID: ${rep.wechat}\n\nSearch this ID in WeChat to connect.`); }
+                                        });
+                                    }
+                                    if (rep.telegram) {
+                                        const tgLink = rep.telegram.startsWith('http') ? rep.telegram : `https://t.me/${rep.telegram.replace('@', '')}`;
+                                        socialLinks.push({
+                                            id: 'telegram', icon: Send, label: 'Telegram',
+                                            color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900',
+                                            onClick: () => { window.open(tgLink, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.linkedin) {
+                                        const lnLink = rep.linkedin.startsWith('http') ? rep.linkedin : `https://${rep.linkedin}`;
+                                        socialLinks.push({
+                                            id: 'linkedin', icon: Linkedin, label: 'LinkedIn',
+                                            color: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900',
+                                            onClick: () => { window.open(lnLink, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.facebook) {
+                                        const fbLink = rep.facebook.startsWith('http') ? rep.facebook : `https://${rep.facebook}`;
+                                        socialLinks.push({
+                                            id: 'facebook', icon: Facebook, label: 'Facebook',
+                                            color: 'bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 border border-blue-200 dark:border-blue-900',
+                                            onClick: () => { window.open(fbLink, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.x_twitter) {
+                                        const xLink = rep.x_twitter.startsWith('http') ? rep.x_twitter : `https://${rep.x_twitter}`;
+                                        socialLinks.push({
+                                            id: 'twitter', icon: Twitter, label: 'X',
+                                            color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700',
+                                            onClick: () => { window.open(xLink, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.skype) {
+                                        socialLinks.push({
+                                            id: 'skype', icon: Video, label: 'Skype',
+                                            color: 'bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-900',
+                                            onClick: () => { window.open(`skype:${rep.skype}?chat`, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.line) {
+                                        socialLinks.push({
+                                            id: 'line', icon: Hash, label: 'LINE',
+                                            color: 'bg-[#E1F5E1] dark:bg-[#1A3B1A] text-[#00C300] hover:bg-[#C8EFC8] dark:hover:bg-[#254C25]',
+                                            onClick: () => { window.open(`https://line.me/R/ti/p/~${rep.line}`, '_blank'); }
+                                        });
+                                    }
+                                    if (rep.instagram) {
+                                        const igLink = rep.instagram.startsWith('http') ? rep.instagram : `https://instagram.com/${rep.instagram.replace('@', '')}`;
+                                        socialLinks.push({
+                                            id: 'instagram', icon: Instagram, label: 'Instagram',
+                                            color: 'bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-400 hover:bg-pink-200 dark:hover:bg-pink-900',
+                                            onClick: () => { window.open(igLink, '_blank'); }
+                                        });
+                                    }
+
+                                    return (
+                                        <div key={rep.id} className="p-4 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-colors">
+                                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                                                <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0 overflow-hidden border border-slate-300 dark:border-slate-700 font-bold flex items-center justify-center text-slate-500 text-sm">
+                                                    {rep.avatar_url ? <img src={rep.avatar_url} alt={rep.name} className="h-full w-full object-cover" /> : rep.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{rep.name}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{rep.email || rep.phone}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {socialLinks.map(link => {
+                                                    const Icon = link.icon;
+                                                    return (
+                                                        <button key={link.id} onClick={link.onClick} title={link.label} className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 ${link.color}`}>
+                                                            <Icon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{link.label}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column: Listings */}
@@ -189,8 +312,8 @@ const SupplierProfile: React.FC = () => {
                     )}
                 </div>
 
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

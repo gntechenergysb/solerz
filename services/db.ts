@@ -516,7 +516,7 @@ export const db = {
         .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no')
         .eq('id', id)
         .single();
-      data = retry.data;
+      data = retry.data as any;
       error = retry.error;
     }
 
@@ -725,5 +725,48 @@ export const db = {
       return { success: false, error };
     }
     return { success: true };
+  },
+
+  getSalesReps: async (sellerId: string) => {
+    const { data, error } = await supabase
+      .from('sales_representatives')
+      .select('*')
+      .eq('seller_id', sellerId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching sales reps:', error);
+      return [];
+    }
+    return data;
+  },
+
+  upsertSalesRep: async (repData: any) => {
+    const { data, error } = await supabase
+      .from('sales_representatives')
+      .upsert({ ...repData, updated_at: new Date().toISOString() })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error upserting sales rep:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  deleteSalesRep: async (id: string, sellerId: string) => {
+    const { error } = await supabase
+      .from('sales_representatives')
+      .update({ is_active: false })
+      .eq('id', id)
+      .eq('seller_id', sellerId);
+
+    if (error) {
+      console.error('Error deleting sales rep:', error);
+      throw error;
+    }
+    return true;
   }
 };

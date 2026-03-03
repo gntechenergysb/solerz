@@ -12,6 +12,9 @@ declare
   
   -- Every Nth listing is sold (0 = none sold)
   v_sold_every int := 0;
+  
+  -- Whether to also seed dummy sales representatives for this seller
+  v_seed_reps boolean := true;
   -- =======================================
   v_seller_is_verified boolean;
 begin
@@ -355,15 +358,126 @@ begin
 
     array[
       case
-        when category = 'Panels' then format('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Inverters' then format('https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Batteries' then format('https://images.unsplash.com/photo-1617783756017-38d7c1b32402?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Cable' then format('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Protective' then format('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Full System' then format('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Mounting' then format('https://images.unsplash.com/photo-1504917595217-d4ce5eb3e212?w=800&h=600&fit=crop&random=%s', img_seed)
-        when category = 'Accessories' then format('https://images.unsplash.com/photo-1548613053-220e7558185a?w=800&h=600&fit=crop&random=%s', img_seed)
-        else format('https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=800&h=600&fit=crop&random=%s', img_seed)
+        when category = 'Panels' then (array[
+          'https://plus.unsplash.com/premium_photo-1680302170704-7830b91d4cd5?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326291289-f666da315e7b?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326319476-d061f4cf7f28?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326320478-38c1e9842e85?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1732511287812-4fa41911ec26?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326291220-658ebcb8d223?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1626793369994-a904d2462888?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1626077641207-54883482bb0a?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1678143954695-3be8daf18864?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1710014959134-ab832a854549?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Inverters' then (array[
+          'https://plus.unsplash.com/premium_photo-1671808063278-5ffee0bb3db7?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1626793369994-a904d2462888?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326320478-38c1e9842e85?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1655300283247-6b1924b1d152?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1666345068016-be88fd87ee1a?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1655300256486-4ec7251bf84e?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1754619880959-2b0528375883?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1616745207210-a98414926a3a?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1732511287812-4fa41911ec26?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1710014959134-ab832a854549?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Batteries' then (array[
+          'https://plus.unsplash.com/premium_photo-1683120793196-0797cec08a7d?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1670322196746-e8c6ea72ab90?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1723509202767-38319b093be9?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1587391569745-10e2d1489768?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1764695523729-921f8f667000?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1739124794957-4667b8b74894?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1637773339519-679b29199c18?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1600869009558-c0dca8dcbc37?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1751005960710-55f1c32e7b14?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1737878324814-fe33c4179815?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Cable' then (array[
+          'https://plus.unsplash.com/premium_photo-1760331485712-6b2a6ec865be?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1621294468533-b58ea7fab492?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1629758417569-1e0caae3c94a?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1635335874521-7987db781153?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1759734604433-dade9a993356?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1630397769649-28e1429b8e23?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1663224597963-62c87f9347ec?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1761507321319-2d59343016f6?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1766436237999-b4b0bd2d615e?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1610554318144-649235adfc44?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Protective' then (array[
+          'https://plus.unsplash.com/premium_photo-1682928136660-8cbeaf4941b2?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1724867431886-aa029d2ad504?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1635335874521-7987db781153?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1673522816016-a27e96c41109?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1663013671816-5866890c7fc1?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1613315622081-3b066dbe5d83?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1668893530232-e11b3650d06a?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1761251947512-a293e482919f?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1661911021547-b0188f22d548?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1636409307896-891c7c9a59e3?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Full System' then (array[
+          'https://plus.unsplash.com/premium_photo-1671808063467-865289c2959c?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1624397640148-949b1732bb0a?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1754620906555-ba341e4a8c25?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1754620906571-9ba64bd3ffb4?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1671808063485-72344e20a8e4?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1754620906703-496ec2451744?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1635424709870-cdc6e64f0e20?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1635424709961-f3a150459ad4?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1680302170704-7830b91d4cd5?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1635424710928-0544e8512eae?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Mounting' then (array[
+          'https://plus.unsplash.com/premium_photo-1661369151760-cadf46fe252e?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1761365996643-cb5647a11919?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1763887278182-1baf248d6f3c?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1768347441402-ac0feabbb351?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1663013176019-031d86bd760e?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1768347442246-6e7e7336bc95?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1767816888575-60466925d0c0?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1716066501275-c5ccf2c0f744?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1664298803248-952380d6ee2f?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1768719952028-a180fe4583c4?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Accessories' then (array[
+          'https://plus.unsplash.com/premium_photo-1683127814960-3a97c4f0d882?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1682365114917-4d3fe315b2ca?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1581091226649-bf2f2b7c4a24?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1581092921461-eab62e97a780?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1723773725735-942add735744?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1581094025024-648fbcaf4fe0?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1581094275452-f5df25d2556e?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1581094285214-779d97298443?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1723780824510-354af0484373?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1758295745926-88faff7ec2f2?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        when category = 'Misc' then (array[
+          'https://plus.unsplash.com/premium_photo-1742418102701-b519e0025f91?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1768839722298-0491a671634d?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1768839727824-28d6f0dcd1d1?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1761990924773-adb3aeba5496?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1742464831793-d54d7320bc9d?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1768327509733-bc7270eb96ad?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1762381072961-3bc311dd72b8?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1626793369994-a904d2462888?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1742457758281-219f50e7bd31?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326320478-38c1e9842e85?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
+        else (array[
+          'https://plus.unsplash.com/premium_photo-1680302170704-7830b91d4cd5?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326291289-f666da315e7b?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326319476-d061f4cf7f28?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326320478-38c1e9842e85?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1732511287812-4fa41911ec26?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1652326291220-658ebcb8d223?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1626793369994-a904d2462888?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1626077641207-54883482bb0a?auto=format&fit=crop&w=800&q=80',
+          'https://plus.unsplash.com/premium_photo-1678143954695-3be8daf18864?auto=format&fit=crop&w=800&q=80',
+          'https://images.unsplash.com/photo-1710014959134-ab832a854549?auto=format&fit=crop&w=800&q=80'
+        ])[(i % 10) + 1]
       end
     ]::text[] as images_url,
 
@@ -372,4 +486,61 @@ begin
     v_seller_is_verified as is_verified_listing
 
   from derived;
+
+  if v_seed_reps then
+    -- Insert a few dummy sales representatives for the seller
+    insert into public.sales_representatives (
+      seller_id,
+      name,
+      phone,
+      email,
+      whatsapp,
+      wechat,
+      telegram,
+      linkedin,
+      skype,
+      line,
+      is_active
+    ) values 
+    (
+      v_seller_id,
+      'Alex Wong (Demo Regional)',
+      '+60 12-345 6789',
+      'alex@example.com',
+      '+60123456789',
+      'alex_solar',
+      '@alextgsolar',
+      'https://linkedin.com/in/alexw',
+      'live:alex_solar',
+      'alex123',
+      true
+    ),
+    (
+      v_seller_id,
+      'Sarah Chen (Demo Accounts)',
+      '+86 138-1234-5678',
+      'sarah@example.com',
+      '+8613812345678',
+      'sarah_wx',
+      null,
+      null,
+      null,
+      null,
+      true
+    ),
+    (
+      v_seller_id,
+      'Michael Lee (Demo Tech)',
+      '+65 9876 5432',
+      'michael@example.com',
+      '+6598765432',
+      null,
+      '@tech_mike',
+      'https://linkedin.com/in/michaell',
+      null,
+      null,
+      true
+    );
+  end if;
+
 end $$;

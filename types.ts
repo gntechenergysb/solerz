@@ -27,6 +27,27 @@ export interface Profile {
   avatar_url?: string;
 }
 
+export interface SalesRepresentative {
+  id: string;
+  seller_id: string;
+  name: string;
+  phone: string;
+  email?: string | null;
+  avatar_url?: string | null;
+  whatsapp?: string | null;
+  wechat?: string | null;
+  telegram?: string | null;
+  linkedin?: string | null;
+  facebook?: string | null;
+  x_twitter?: string | null;
+  skype?: string | null;
+  line?: string | null;
+  instagram?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Misc' | 'Full System';
 
 export type ListingCondition = 'New' | 'Used' | 'Refurbished' | string;

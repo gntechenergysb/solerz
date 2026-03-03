@@ -13,6 +13,7 @@ import { compressImageFile } from '../services/imageCompression';
 
 import { GLOBAL_LOCATIONS } from '../utils/countries';
 import { detectUserLocation } from '../utils/geo';
+import SalesTeamManager from '../components/SalesTeamManager';
 
 const FileSelector = ({ onSelect, accept = ".pdf", label }: { onSelect: (file: File) => void, accept?: string, label?: string }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,11 +104,8 @@ const SampleModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-xl w-full p-4 animate-in zoom-in-50 duration-200" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-2">
-          <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Company Registration Sample</h3>
+          <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Company Registration Rules</h3>
           <button onClick={onClose}><X className="h-5 w-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" /></button>
-        </div>
-        <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded flex justify-center">
-          <img src="/company-reg-sample.png" alt="Company Registration Sample" className="max-h-[70vh] w-auto object-contain rounded border border-slate-200 dark:border-slate-800 shadow-sm" />
         </div>
         <div className="mt-4 text-center">
           <p className="text-sm font-bold text-red-600">Important:</p>
@@ -238,8 +236,8 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
       <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 dashed-border">
         <div className="flex justify-between items-start mb-2">
           <label className="block text-xs font-bold text-indigo-900 dark:text-indigo-300">Upload Company Registration Document (PDF Only)</label>
-          <button onClick={() => setShowSample(true)} className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline flex items-center gap-1">
-            <Eye className="h-3 w-3" /> View Sample
+          <button type="button" onClick={() => setShowSample(true)} className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline flex items-center gap-1">
+            <Eye className="h-3 w-3" /> View Rules
           </button>
         </div>
 
@@ -1161,6 +1159,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Sales Team Management */}
+      <SalesTeamManager sellerId={user.id} />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

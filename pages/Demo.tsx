@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import {
     Building2, Search, BarChart2, TrendingUp, Users, Package,
     MapPin, CheckCircle, Flame, Star, Zap, Clock, Bookmark, X, Eye, Target,
-    MessageSquare, Phone, Mail
+    MessageSquare, Phone, Mail, MessageCircle, Send, Linkedin, Facebook, Twitter, Instagram, Video, Hash
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SalesTeamManager from '../components/SalesTeamManager';
 
 const DUMMY_LISTINGS = [
     {
@@ -400,6 +401,11 @@ const Demo: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Sales Team Management Demo */}
+                        <div className="mb-6">
+                            <SalesTeamManager sellerId="demo-seller-id" isDemo={true} />
+                        </div>
+
                         {/* Main Content Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             <div className="lg:col-span-8 space-y-6">
@@ -483,18 +489,68 @@ const Demo: React.FC = () => {
 
                             {modalType === 'dummy_contact' ? (
                                 <>
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 self-start">Contact Seller</h2>
-                                    <div className="space-y-3 w-full text-left">
-                                        <p className="text-sm text-slate-500 mb-4">Select your preferred contact method to connect directly with the supplier.</p>
-                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will open WhatsApp to message the seller directly."); }} className="w-full flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold py-3 rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-200 dark:border-emerald-500/20">
-                                            <MessageSquare className="h-5 w-5" /> WhatsApp
-                                        </button>
-                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will reveal the seller's phone number."); }} className="w-full flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700">
-                                            <Phone className="h-5 w-5" /> Phone
-                                        </button>
-                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will open your email client."); }} className="w-full flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-3 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700">
-                                            <Mail className="h-5 w-5" /> Email
-                                        </button>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 self-start">Contact Sales Team</h2>
+                                    <div className="space-y-4 w-full text-left">
+                                        <p className="text-sm text-slate-500 mb-2">Select your preferred business representative to connect with.</p>
+
+                                        <div className="space-y-3">
+                                            {[
+                                                { id: 1, name: 'Alex Wong', role: 'Regional Sales', bg: 'bg-emerald-100 dark:bg-emerald-900/40', whatsapp: true, wechat: true, linkedin: true, skype: true },
+                                                { id: 2, name: 'Sarah Chen', role: 'Key Accounts', bg: 'bg-blue-100 dark:bg-blue-900/40', line: true, telegram: true, instagram: true }
+                                            ].map(rep => (
+                                                <div key={rep.id} className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-colors">
+                                                    <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                                                        <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500">
+                                                            {rep.name.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-sm text-slate-900 dark:text-slate-100">{rep.name}</p>
+                                                            <p className="text-xs text-slate-500">{rep.role}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        {rep.whatsapp && (
+                                                            <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will open WhatsApp to message this representative."); }} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold rounded-lg text-xs hover:bg-emerald-200 transition-colors hover:scale-105">
+                                                                <MessageSquare className="h-3.5 w-3.5" /> <span className="hidden sm:inline">WhatsApp</span>
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => { setShowModal(false); alert("Demo: In the real app, this will reveal the representative's phone number."); }} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold rounded-lg text-xs hover:bg-slate-50 transition-colors hover:scale-105">
+                                                            <Phone className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Call</span>
+                                                        </button>
+                                                        {rep.wechat && (
+                                                            <button onClick={() => alert('Demo: Show WeChat ID')} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-[#E3F2E1] dark:bg-[#1E3B21] text-[#07C160] hover:bg-[#D1EBD0] font-bold rounded-lg text-xs transition-colors hover:scale-105">
+                                                                <MessageCircle className="h-3.5 w-3.5" /> <span className="hidden sm:inline">WeChat</span>
+                                                            </button>
+                                                        )}
+                                                        {rep.line && (
+                                                            <button onClick={() => alert('Demo: Open LINE app')} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-[#E1F5E1] dark:bg-[#1A3B1A] text-[#00C300] hover:bg-[#C8EFC8] font-bold rounded-lg text-xs transition-colors hover:scale-105">
+                                                                <Hash className="h-3.5 w-3.5" /> <span className="hidden sm:inline">LINE</span>
+                                                            </button>
+                                                        )}
+                                                        {rep.telegram && (
+                                                            <button onClick={() => alert('Demo: Open Telegram')} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-xs hover:bg-blue-200 transition-colors hover:scale-105">
+                                                                <Send className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Telegram</span>
+                                                            </button>
+                                                        )}
+                                                        {rep.skype && (
+                                                            <button onClick={() => alert('Demo: Open Skype')} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 font-bold rounded-lg text-xs hover:bg-sky-200 transition-colors hover:scale-105">
+                                                                <Video className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Skype</span>
+                                                            </button>
+                                                        )}
+                                                        {rep.linkedin && (
+                                                            <button onClick={() => alert('Demo: Open LinkedIn')} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 font-bold rounded-lg text-xs hover:bg-indigo-200 transition-colors hover:scale-105">
+                                                                <Linkedin className="h-3.5 w-3.5" /> <span className="hidden sm:inline">LinkedIn</span>
+                                                            </button>
+                                                        )}
+                                                        {rep.instagram && (
+                                                            <button onClick={() => alert('Demo: Open Instagram')} className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-400 font-bold rounded-lg text-xs hover:bg-pink-200 transition-colors hover:scale-105">
+                                                                <Instagram className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Instagram</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </>
                             ) : (

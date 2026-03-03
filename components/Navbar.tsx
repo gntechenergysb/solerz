@@ -113,7 +113,7 @@ const Navbar: React.FC = () => {
               Listings
             </Link>
             <Link to="/demo" className="text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors flex items-center gap-1">
-              <Sun className="h-4 w-4" /> Live Demo
+              <Sun className="h-4 w-4" /> Demo
             </Link>
             <Link to="/how-it-works" className="text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-emerald-600 transition-colors">
               How It Works

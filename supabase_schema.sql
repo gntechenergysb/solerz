@@ -1223,3 +1223,42 @@ $$;
 
 REVOKE ALL ON FUNCTION public.get_trending_keywords(INT, INT, INT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_trending_keywords(INT, INT, INT) TO anon, authenticated;
+
+-- =========================================================
+-- SALES REPRESENTATIVES
+-- =========================================================
+CREATE TABLE IF NOT EXISTS public.sales_representatives (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    seller_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT,
+    avatar_url TEXT,
+    whatsapp TEXT,
+    wechat TEXT,
+    telegram TEXT,
+    linkedin TEXT,
+    facebook TEXT,
+    x_twitter TEXT,
+    skype TEXT,
+    line TEXT,
+    instagram TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Policies
+ALTER TABLE public.sales_representatives ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Sales reps are viewable by everyone"
+    ON public.sales_representatives FOR SELECT
+    USING (true);
+
+-- Users can manage their own sales reps
+CREATE POLICY "Users can fully manage their own sales reps"
+    ON public.sales_representatives
+    USING (auth.uid() = seller_id);
+    
+-- Allow storage bucket for avatars
+-- (Assumes 'avatars' bucket already exists, adding specific policy if possible or just rely on existing avatars bucket policies)
