@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Listing } from '../types';
-import { CheckCircle, MapPin, ArrowRight, AlertTriangle } from 'lucide-react';
+import { CheckCircle, MapPin, ArrowRight, AlertTriangle, Scale } from 'lucide-react';
 
 interface ProductCardProps {
   listing: Listing;
+  onCompareToggle?: (listing: Listing, e: React.MouseEvent) => void;
+  isCompared?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isCompared }) => {
   const isSold = listing.is_sold;
   const isVerified = listing.is_verified_listing;
   const categoryLabel = listing.category === 'Accessories' ? 'Misc' : listing.category === ('Miscellaneous' as any) ? 'Misc' : listing.category;
@@ -60,6 +62,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
             onError={() => setImgSrc(fallbackImage)}
           />
 
+          {/* Compare Button */}
+          {onCompareToggle && (
+            <button
+              onClick={(e) => onCompareToggle(listing, e)}
+              className={`absolute top-2 right-2 z-30 p-2 rounded-full shadow-md backdrop-blur-md transition-all ${isCompared
+                  ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                  : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
+                }`}
+              title={isCompared ? "Remove from Compare" : "Add to Compare"}
+            >
+              <Scale className="h-4 w-4" />
+            </button>
+          )}
+
           {/* Verification Badges (Absolute Top Left) */}
           {isVerified ? (
             <div className="absolute top-0 left-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-br-lg shadow-sm flex items-center gap-1 z-10">
@@ -111,7 +127,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
                 <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Asking Price</p>
                 <div className="flex flex-col">
                   <span className="text-xl font-bold text-amber-600 dark:text-amber-500 truncate mt-1 sm:mt-0 flex-shrink-0">
-                    {listing.currency || 'USD'} {listing.price ? listing.price.toLocaleString() : '0'}
+                    {!listing.price || listing.price === 0 ? "POA" : `${listing.currency || 'USD'} ${listing.price.toLocaleString()}`}
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium mt-0.5">
                     Min Order: {listing.moq || 1}

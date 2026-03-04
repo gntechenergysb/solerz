@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
 import { GLOBAL_LOCATIONS } from '../utils/countries';
 import { detectUserLocation } from '../utils/geo';
 import ProductCard from '../components/ProductCard';
-import { Search, SlidersHorizontal, MapPin, ChevronDown, ArrowUpDown, Tag, AlertTriangle } from 'lucide-react';
+import CompareModal from '../components/CompareModal';
+import toast from 'react-hot-toast';
+import { Search, SlidersHorizontal, MapPin, ChevronDown, ArrowUpDown, Tag, AlertTriangle, X, Scale } from 'lucide-react';
 
 const PANEL_CELL_TYPES = [
   'Monocrystalline',
@@ -84,14 +87,22 @@ const Marketplace: React.FC = () => {
 
   const fetchSeqRef = useRef(0);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Filters
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('China');
-  const [selectedState, setSelectedState] = useState('');
-  const [selectedCondition, setSelectedCondition] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [sortBy, setSortBy] = useState('latest');
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || 'All Countries');
+  const [selectedState, setSelectedState] = useState(searchParams.get('state') || '');
+  const [selectedCondition, setSelectedCondition] = useState(searchParams.get('condition') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '');
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'latest');
+
+  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
+  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
+  const [includePOA, setIncludePOA] = useState(searchParams.get('poa') !== 'false');
 
   const [panelMinWattage, setPanelMinWattage] = useState('');
   const [panelMaxWattage, setPanelMaxWattage] = useState('');
@@ -134,6 +145,33 @@ const Marketplace: React.FC = () => {
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
+  // Compare functionality
+  const [compareItems, setCompareItems] = useState<Listing[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+
+  const handleCompareToggle = (listing: Listing, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setCompareItems(prev => {
+      const isAlreadyAdded = prev.some(item => item.id === listing.id);
+
+      if (isAlreadyAdded) {
+        return prev.filter(item => item.id !== listing.id);
+      } else {
+        if (prev.length > 0 && prev[0].category !== listing.category) {
+          toast.error(`You can only compare items within the same category (${prev[0].category}). Clear current selection first.`);
+          return prev;
+        }
+        if (prev.length >= 4) {
+          toast.error('You can compare a maximum of 4 items at a time.');
+          return prev;
+        }
+        return [...prev, listing];
+      }
+    });
+  };
+
   const dedupeById = (rows: Listing[]) => {
     const seen = new Set<string>();
     const out: Listing[] = [];
@@ -168,14 +206,30 @@ const Marketplace: React.FC = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    detectUserLocation().then(geo => {
-      if (geo) setSelectedCountry(geo.country_name);
-    });
-  }, []);
+    // Only fetch brands when category changes or on mount to populate Any Category
+    db.getUniqueBrandsByCategory(selectedCategory).then(setAvailableBrands);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    // Sync core filters to URL
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('q', searchQuery);
+    if (selectedCountry && selectedCountry !== 'All Countries') params.set('country', selectedCountry);
+    if (selectedState) params.set('state', selectedState);
+    if (selectedCondition) params.set('condition', selectedCondition);
+    if (selectedCategory) params.set('category', selectedCategory);
+    if (selectedBrand) params.set('brand', selectedBrand);
+    if (sortBy !== 'latest') params.set('sort', sortBy);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (!includePOA) params.set('poa', 'false');
+
+    setSearchParams(params, { replace: true });
+  }, [searchQuery, selectedCountry, selectedState, selectedCondition, selectedCategory, selectedBrand, sortBy, minPrice, maxPrice, includePOA, setSearchParams]);
 
   useEffect(() => {
     const cacheKey = `marketplace_cache_v1_${sortBy}`;
-    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition;
+    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Countries' && !selectedBrand && !minPrice && !maxPrice;
 
     const inferCategory = (q: string) => {
       const s = (q || '').toLowerCase();
@@ -213,7 +267,7 @@ const Marketplace: React.FC = () => {
           db.trackSearchEvent({
             searchQuery,
             category: cat,
-            country: selectedCountry,
+            country: selectedCountry === 'All Countries' ? '' : selectedCountry,
             state: selectedState,
             condition: selectedCondition,
             marketplaceLayer: 'verified'
@@ -232,10 +286,14 @@ const Marketplace: React.FC = () => {
             to: 11,
             marketplaceLayer: 'verified',
             searchQuery,
-            country: selectedCountry,
+            country: selectedCountry === 'All Countries' ? '' : selectedCountry,
             state: selectedState,
             condition: selectedCondition,
             category: selectedCategory,
+            brand: selectedBrand,
+            minPrice: minPrice ? Number(minPrice) : undefined,
+            maxPrice: maxPrice ? Number(maxPrice) : undefined,
+            includePOA: includePOA,
             sortBy: sortBy as any
           });
           setHasMore(data.length > 11);
@@ -259,13 +317,13 @@ const Marketplace: React.FC = () => {
       }
     };
     fetchListings();
-  }, [sortBy, searchQuery, selectedCountry, selectedState, selectedCategory, selectedCondition]);
+  }, [sortBy, searchQuery, selectedCountry, selectedState, selectedCategory, selectedCondition, selectedBrand, minPrice, maxPrice, includePOA]);
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
 
     // Don't load more if we're using random listings (default query without filters)
-    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition;
+    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Countries' && !selectedBrand && !minPrice && !maxPrice;
     if (isDefaultQuery) {
       // For random listings, fetch a fresh batch incrementally
       setIsLoadingMore(true);
@@ -291,10 +349,14 @@ const Marketplace: React.FC = () => {
         to,
         marketplaceLayer: 'verified',
         searchQuery,
-        country: selectedCountry,
+        country: selectedCountry === 'All Countries' ? '' : selectedCountry,
         state: selectedState,
         condition: selectedCondition,
         category: selectedCategory,
+        brand: selectedBrand,
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        includePOA: includePOA,
         sortBy: sortBy as any
       });
       if (next.length > 0) {
@@ -317,6 +379,10 @@ const Marketplace: React.FC = () => {
 
     if (selectedCondition) {
       result = result.filter(l => (l as any).condition === selectedCondition);
+    }
+
+    if (selectedBrand) {
+      result = result.filter(l => l.brand?.toLowerCase() === selectedBrand.toLowerCase());
     }
 
     // 4b. Panel Specs Filters
@@ -553,10 +619,18 @@ const Marketplace: React.FC = () => {
     fsSystemType,
     fsMinCapacityKwp,
     fsMaxCapacityKwp,
-    fsMinBatteryStorage
+    fsMinBatteryStorage,
+    selectedBrand,
+    minPrice,
+    maxPrice,
+    !includePOA
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
+    setSelectedBrand('');
+    setMinPrice('');
+    setMaxPrice('');
+    setIncludePOA(true);
     setPanelMinWattage('');
     setPanelMaxWattage('');
     setPanelCellType('');
@@ -603,53 +677,118 @@ const Marketplace: React.FC = () => {
   }, [selectedCategory]);
 
   const renderAdvancedFilters = () => {
-    if (!selectedCategory) return null;
+    const priceFilters = (
+      <>
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Price (USD)</label>
+          <input
+            type="number"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+            placeholder="0"
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max Price (USD)</label>
+          <input
+            type="number"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            placeholder="Any"
+            className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+          />
+        </div>
+        <div className="flex items-end pb-1.5">
+          <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100/50 dark:bg-slate-900 px-3 py-2 rounded-lg w-full whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={includePOA}
+              onChange={(e) => setIncludePOA(e.target.checked)}
+              className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+            />
+            Include POA Quotes
+          </label>
+        </div>
+      </>
+    );
+
+    if (!selectedCategory) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+          {priceFilters}
+          <div className="sm:col-span-2 lg:col-span-2 text-sm text-slate-500 dark:text-slate-400 py-3 px-3 text-center bg-slate-50 dark:bg-slate-900 rounded-xl flex items-center justify-center">
+            Select a specific category above to unlock technical filters.
+          </div>
+        </div>
+      );
+    }
+
+    const brandFilter = (
+      <div>
+        <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Brand</label>
+        <select
+          value={selectedBrand}
+          onChange={(e) => setSelectedBrand(e.target.value)}
+          className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+        >
+          <option value="">Any Brand</option>
+          {availableBrands.map(b => (
+            <option key={b} value={b}>{b}</option>
+          ))}
+        </select>
+      </div>
+    );
 
     if (selectedCategory === 'Panels') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Panel Min (W)</label>
-            <input
-              type="number"
-              value={panelMinWattage}
-              onChange={(e) => setPanelMinWattage(e.target.value)}
-              placeholder="450"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Panel Max (W)</label>
-            <input
-              type="number"
-              value={panelMaxWattage}
-              onChange={(e) => setPanelMaxWattage(e.target.value)}
-              placeholder="600"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Cell Type</label>
-            <select
-              value={panelCellType}
-              onChange={(e) => setPanelCellType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {PANEL_CELL_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Eff. (%)</label>
-            <input
-              type="number"
-              value={panelMinEfficiency}
-              onChange={(e) => setPanelMinEfficiency(e.target.value)}
-              placeholder="20"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Panel Min (W)</label>
+              <input
+                type="number"
+                value={panelMinWattage}
+                onChange={(e) => setPanelMinWattage(e.target.value)}
+                placeholder="450"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Panel Max (W)</label>
+              <input
+                type="number"
+                value={panelMaxWattage}
+                onChange={(e) => setPanelMaxWattage(e.target.value)}
+                placeholder="600"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Cell Type</label>
+              <select
+                value={panelCellType}
+                onChange={(e) => setPanelCellType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {PANEL_CELL_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Eff. (%)</label>
+              <input
+                type="number"
+                value={panelMinEfficiency}
+                onChange={(e) => setPanelMinEfficiency(e.target.value)}
+                placeholder="20"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
@@ -657,71 +796,75 @@ const Marketplace: React.FC = () => {
 
     if (selectedCategory === 'Inverters') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Type</label>
-            <select
-              value={inverterType}
-              onChange={(e) => setInverterType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {INVERTER_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Phase</label>
-            <select
-              value={inverterPhase}
-              onChange={(e) => setInverterPhase(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              <option value="Single">Single</option>
-              <option value="Three">Three</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min kW</label>
-            <input
-              type="number"
-              value={inverterMinPowerKw}
-              onChange={(e) => setInverterMinPowerKw(e.target.value)}
-              placeholder="5"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max kW</label>
-            <input
-              type="number"
-              value={inverterMaxPowerKw}
-              onChange={(e) => setInverterMaxPowerKw(e.target.value)}
-              placeholder="100"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Eff. (%)</label>
-            <input
-              type="number"
-              value={inverterMinEfficiency}
-              onChange={(e) => setInverterMinEfficiency(e.target.value)}
-              placeholder="98"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Volts</label>
-            <input
-              type="number"
-              value={inverterMinInputVoltage}
-              onChange={(e) => setInverterMinInputVoltage(e.target.value)}
-              placeholder="600"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Type</label>
+              <select
+                value={inverterType}
+                onChange={(e) => setInverterType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {INVERTER_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Phase</label>
+              <select
+                value={inverterPhase}
+                onChange={(e) => setInverterPhase(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                <option value="Single">Single</option>
+                <option value="Three">Three</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min kW</label>
+              <input
+                type="number"
+                value={inverterMinPowerKw}
+                onChange={(e) => setInverterMinPowerKw(e.target.value)}
+                placeholder="5"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max kW</label>
+              <input
+                type="number"
+                value={inverterMaxPowerKw}
+                onChange={(e) => setInverterMaxPowerKw(e.target.value)}
+                placeholder="100"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Eff. (%)</label>
+              <input
+                type="number"
+                value={inverterMinEfficiency}
+                onChange={(e) => setInverterMinEfficiency(e.target.value)}
+                placeholder="98"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Input Voltage</label>
+              <input
+                type="number"
+                value={inverterMinInputVoltage}
+                onChange={(e) => setInverterMinInputVoltage(e.target.value)}
+                placeholder="600"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
@@ -729,64 +872,68 @@ const Marketplace: React.FC = () => {
 
     if (selectedCategory === 'Batteries') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Type</label>
-            <select
-              value={batteryType}
-              onChange={(e) => setBatteryType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {BATTERY_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Technology</label>
-            <select
-              value={batteryTechnology}
-              onChange={(e) => setBatteryTechnology(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {BATTERY_TECHNOLOGIES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min kWh</label>
-            <input
-              type="number"
-              value={batteryMinCapacityKwh}
-              onChange={(e) => setBatteryMinCapacityKwh(e.target.value)}
-              placeholder="5"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max kWh</label>
-            <input
-              type="number"
-              value={batteryMaxCapacityKwh}
-              onChange={(e) => setBatteryMaxCapacityKwh(e.target.value)}
-              placeholder="20"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Volts</label>
-            <select
-              value={batteryNominalVoltage}
-              onChange={(e) => setBatteryNominalVoltage(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              <option value="48">48V</option>
-              <option value="51.2">51.2V</option>
-            </select>
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Type</label>
+              <select
+                value={batteryType}
+                onChange={(e) => setBatteryType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {BATTERY_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Technology</label>
+              <select
+                value={batteryTechnology}
+                onChange={(e) => setBatteryTechnology(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {BATTERY_TECHNOLOGIES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min kWh</label>
+              <input
+                type="number"
+                value={batteryMinCapacityKwh}
+                onChange={(e) => setBatteryMinCapacityKwh(e.target.value)}
+                placeholder="5"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max kWh</label>
+              <input
+                type="number"
+                value={batteryMaxCapacityKwh}
+                onChange={(e) => setBatteryMaxCapacityKwh(e.target.value)}
+                placeholder="20"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Volts</label>
+              <select
+                value={batteryNominalVoltage}
+                onChange={(e) => setBatteryNominalVoltage(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                <option value="48">48V</option>
+                <option value="51.2">51.2V</option>
+              </select>
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
@@ -794,90 +941,94 @@ const Marketplace: React.FC = () => {
 
     if (selectedCategory === 'Cable') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Cable Type</label>
-            <select
-              value={cableType}
-              onChange={(e) => setCableType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {CABLE_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Current Type</label>
-            <select
-              value={cableCurrentType}
-              onChange={(e) => setCableCurrentType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              <option value="DC">DC</option>
-              <option value="AC">AC</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Voltage</label>
-            <select
-              value={cableVoltage}
-              onChange={(e) => setCableVoltage(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {CABLE_VOLTAGES.map(v => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Material</label>
-            <select
-              value={cableMaterial}
-              onChange={(e) => setCableMaterial(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {CABLE_MATERIALS.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Insulation</label>
-            <select
-              value={cableInsulation}
-              onChange={(e) => setCableInsulation(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {CABLE_INSULATIONS.map(i => (
-                <option key={i} value={i}>{i}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Size (mm²)</label>
-            <input
-              type="number"
-              value={cableSizeMm2}
-              onChange={(e) => setCableSizeMm2(e.target.value)}
-              placeholder="6"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Cores</label>
-            <input
-              type="number"
-              value={cableCores}
-              onChange={(e) => setCableCores(e.target.value)}
-              placeholder="2"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Cable Type</label>
+              <select
+                value={cableType}
+                onChange={(e) => setCableType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {CABLE_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Current Type</label>
+              <select
+                value={cableCurrentType}
+                onChange={(e) => setCableCurrentType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                <option value="DC">DC</option>
+                <option value="AC">AC</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Voltage</label>
+              <select
+                value={cableVoltage}
+                onChange={(e) => setCableVoltage(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {CABLE_VOLTAGES.map(v => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Material</label>
+              <select
+                value={cableMaterial}
+                onChange={(e) => setCableMaterial(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {CABLE_MATERIALS.map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Insulation</label>
+              <select
+                value={cableInsulation}
+                onChange={(e) => setCableInsulation(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {CABLE_INSULATIONS.map(i => (
+                  <option key={i} value={i}>{i}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Size (mm²)</label>
+              <input
+                type="number"
+                value={cableSizeMm2}
+                onChange={(e) => setCableSizeMm2(e.target.value)}
+                placeholder="6"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Cores</label>
+              <input
+                type="number"
+                value={cableCores}
+                onChange={(e) => setCableCores(e.target.value)}
+                placeholder="2"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
@@ -885,41 +1036,45 @@ const Marketplace: React.FC = () => {
 
     if (selectedCategory === 'Protective') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Device</label>
-            <select
-              value={protectiveDeviceType}
-              onChange={(e) => setProtectiveDeviceType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              <option value="Fuse">Fuse</option>
-              <option value="Breaker">Breaker</option>
-              <option value="SPD">SPD</option>
-              <option value="Isolator">Isolator</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Rated A</label>
-            <input
-              type="number"
-              value={protectiveRatedCurrentA}
-              onChange={(e) => setProtectiveRatedCurrentA(e.target.value)}
-              placeholder="16"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Rated V</label>
-            <input
-              type="number"
-              value={protectiveRatedVoltageV}
-              onChange={(e) => setProtectiveRatedVoltageV(e.target.value)}
-              placeholder="1000"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Device</label>
+              <select
+                value={protectiveDeviceType}
+                onChange={(e) => setProtectiveDeviceType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                <option value="Fuse">Fuse</option>
+                <option value="Breaker">Breaker</option>
+                <option value="SPD">SPD</option>
+                <option value="Isolator">Isolator</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Rated A</label>
+              <input
+                type="number"
+                value={protectiveRatedCurrentA}
+                onChange={(e) => setProtectiveRatedCurrentA(e.target.value)}
+                placeholder="16"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Rated V</label>
+              <input
+                type="number"
+                value={protectiveRatedVoltageV}
+                onChange={(e) => setProtectiveRatedVoltageV(e.target.value)}
+                placeholder="1000"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
@@ -927,45 +1082,49 @@ const Marketplace: React.FC = () => {
 
     if (selectedCategory === 'Mounting') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Mounting Type</label>
-            <select
-              value={mountingType}
-              onChange={(e) => setMountingType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {MOUNTING_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Material</label>
-            <select
-              value={mountingMaterial}
-              onChange={(e) => setMountingMaterial(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {MOUNTING_MATERIALS.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Roof Type Compatibility</label>
-            <select
-              value={mountingRoofType}
-              onChange={(e) => setMountingRoofType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              {MOUNTING_ROOF_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Mounting Type</label>
+              <select
+                value={mountingType}
+                onChange={(e) => setMountingType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {MOUNTING_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Material</label>
+              <select
+                value={mountingMaterial}
+                onChange={(e) => setMountingMaterial(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {MOUNTING_MATERIALS.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Roof Type Compatibility</label>
+              <select
+                value={mountingRoofType}
+                onChange={(e) => setMountingRoofType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                {MOUNTING_ROOF_TYPES.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
@@ -973,57 +1132,65 @@ const Marketplace: React.FC = () => {
 
     if (selectedCategory === 'Full System') {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">System Type</label>
-            <select
-              value={fsSystemType}
-              onChange={(e) => setFsSystemType(e.target.value)}
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            >
-              <option value="">Any</option>
-              <option value="On-Grid">On-Grid</option>
-              <option value="Off-Grid">Off-Grid</option>
-              <option value="Hybrid">Hybrid</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Capacity (kWp)</label>
-            <input
-              type="number"
-              value={fsMinCapacityKwp}
-              onChange={(e) => setFsMinCapacityKwp(e.target.value)}
-              placeholder="5"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max Capacity (kWp)</label>
-            <input
-              type="number"
-              value={fsMaxCapacityKwp}
-              onChange={(e) => setFsMaxCapacityKwp(e.target.value)}
-              placeholder="50"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Batt Storage (kWh)</label>
-            <input
-              type="number"
-              value={fsMinBatteryStorage}
-              onChange={(e) => setFsMinBatteryStorage(e.target.value)}
-              placeholder="10"
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {brandFilter}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">System Type</label>
+              <select
+                value={fsSystemType}
+                onChange={(e) => setFsSystemType(e.target.value)}
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <option value="">Any</option>
+                <option value="On-Grid">On-Grid</option>
+                <option value="Off-Grid">Off-Grid</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Capacity (kWp)</label>
+              <input
+                type="number"
+                value={fsMinCapacityKwp}
+                onChange={(e) => setFsMinCapacityKwp(e.target.value)}
+                placeholder="5"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Max Capacity (kWp)</label>
+              <input
+                type="number"
+                value={fsMaxCapacityKwp}
+                onChange={(e) => setFsMaxCapacityKwp(e.target.value)}
+                placeholder="50"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Min Batt Storage (kWh)</label>
+              <input
+                type="number"
+                value={fsMinBatteryStorage}
+                onChange={(e) => setFsMinBatteryStorage(e.target.value)}
+                placeholder="10"
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              />
+            </div>
+            {priceFilters}
           </div>
         </div>
       );
     }
 
     return (
-      <div className="text-sm text-slate-500 dark:text-slate-400 py-2">No advanced filters for this category.</div>
+      <div>
+        <div className="text-sm text-slate-500 dark:text-slate-400 py-3 text-center bg-slate-50 dark:bg-slate-900 rounded-xl">
+          No specific technical filters for this category.
+        </div>
+      </div>
     );
   };
 
@@ -1258,7 +1425,12 @@ const Marketplace: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {dedupeById(filteredListings).map(listing => (
-                <ProductCard key={listing.id} listing={listing} />
+                <ProductCard
+                  key={listing.id}
+                  listing={listing}
+                  onCompareToggle={handleCompareToggle}
+                  isCompared={compareItems.some(item => item.id === listing.id)}
+                />
               ))}
             </div>
             {/* Only show loading/updating indicator for paginated results (not random listings) */}
@@ -1302,6 +1474,61 @@ const Marketplace: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Compare Bar */}
+      {compareItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-emerald-500/30 dark:border-emerald-500/30 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] transform transition-transform duration-300">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+              <div className="text-sm font-black text-slate-800 dark:text-slate-100 whitespace-nowrap block mr-2 tracking-wide uppercase">
+                Compare <span className="text-emerald-600">({compareItems.length}/4)</span>
+              </div>
+              {compareItems.map(item => (
+                <div key={item.id} className="relative w-14 h-14 rounded-lg border-2 border-emerald-500 overflow-hidden flex-shrink-0 bg-slate-100 group cursor-pointer shadow-md">
+                  <img src={item.images_url?.[0] || ''} className="w-full h-full object-cover" alt={item.title}
+                    onError={(e) => (e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="800" height="600" fill="%23f1f5f9"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="32" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E')} />
+                  <button
+                    onClick={() => setCompareItems(prev => prev.filter(i => i.id !== item.id))}
+                    className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    title="Remove from compare"
+                  >
+                    <X className="w-5 h-5 drop-shadow-md" />
+                  </button>
+                </div>
+              ))}
+              {Array.from({ length: Math.max(0, 4 - compareItems.length) }).map((_, i) => (
+                <div key={`empty-${i}`} className="w-14 h-14 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 flex-shrink-0 flex items-center justify-center bg-slate-50/50 dark:bg-slate-800/50">
+                  <span className="text-slate-400 font-bold text-sm">+{i + 1}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <button
+                onClick={() => setCompareItems([])}
+                className="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors w-full md:w-auto hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => setIsCompareModalOpen(true)}
+                disabled={compareItems.length < 2}
+                className="w-full md:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:from-slate-300 disabled:to-slate-300 dark:disabled:from-slate-700 dark:disabled:to-slate-700 disabled:text-slate-500 text-white px-8 py-3 rounded-xl font-bold tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 disabled:scale-100"
+              >
+                <Scale className="w-5 h-5" /> Compare Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Compare Modal Container */}
+      <CompareModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        listings={compareItems}
+        onRemove={(id) => setCompareItems(prev => prev.filter(item => item.id !== id))}
+      />
 
     </div>
   );

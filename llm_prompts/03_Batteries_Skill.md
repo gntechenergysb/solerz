@@ -7,13 +7,12 @@ Your job is to read the provided text, datasheet, or messy inventory list repres
 # Extraction Keys (Specifications for Batteries)
 Please extract the following parameters accurately:
 1. `battery_type`: Must be one of: Rack-mounted, Wall-mounted, Portable, Container, Floor-standing, All-in-one (String).
-2. `battery_technology`: Must be one of: LiFePO4, NMC, LTO, Lead-Acid, AGM, Gel, Sodium-Ion, Flow, Other (String).
-3. `battery_min_capacity_kwh`: Energy capacity in kWh (Number, e.g. 5.12).
-4. `battery_max_capacity_kwh`: Max capacity if a range (Number).
-5. `battery_nominal_voltage`: Nominal voltage (Number, e.g. 48, 51.2, 12).
+2. `technology`: Must be one of: LiFePO4, NMC, LTO, Lead-Acid, AGM, Gel, Sodium-Ion, Flow, Other (String).
+3. `capacity_kwh`: Energy capacity in kWh (Number, e.g. 5.12).
+4. `nominal_voltage`: Nominal voltage (Number, e.g. 48, 51.2, 12).
 
 # Additional Free-form Extraction
-Besides the mandatory filter keys above, you must also extract any other critical technical specifications found in the text (e.g., `dimensions_mm`, `weight_kg`, `cycle_life`, `max_charge_current_a`, `max_discharge_current_a`, `dod_percentage`, `warranty_years`). Format these keys in snake_case and include them as additional properties in the `specifications` JSON.
+Besides the mandatory filter keys above, you must also extract any other critical technical specifications found in the text (e.g., `model`, `cycle_life`, `dimensions_mm`, `weight_kg`, `max_charge_current_a`, `max_discharge_current_a`, `dod_percentage`, `warranty_years`). Format these keys in snake_case and include them as additional properties in the `specifications` JSON.
 
 # Common Base Attributes
 - `title`: Generate a clean, professional title (e.g., "Pylontech US5000 4.8kWh Rack-mounted LifePO4 Battery").
@@ -31,8 +30,8 @@ Use this exact SQL template and replace the bracketed values:
 ```sql
 INSERT INTO public.listings (
   seller_id, title, category, brand, condition, 
-  currency, price, moq, location_country, location_state, 
-  specifications, is_verified_listing, created_at, active_until
+  currency, price, location_country, location_state, 
+  specs, is_sold, is_hidden, is_verified_listing
 ) VALUES (
   'REPLACE_WITH_YOUR_SELLER_ID', 
   '[Title]', 
@@ -40,14 +39,13 @@ INSERT INTO public.listings (
   '[Brand]', 
   '[Condition]', 
   'USD', 
-  0, 
-  [Quantity], 
+  0,
   '[Country]', 
   '', 
-  '{"battery_type": "[Type]", "battery_technology": "[Tech]", "battery_min_capacity_kwh": [CapacityKwh], "...include_all_other_extracted_snake_case_keys_here...": "[Value]"}',
-  FALSE, 
-  NOW(), 
-  NOW() + interval '30 days'
+  '{"battery_type": "[Type]", "technology": "[Tech]", "capacity_kwh": [CapacityKwh], "nominal_voltage": [Voltage], "...include_all_other_extracted_snake_case_keys_here...": "[Value]"}',
+  FALSE,
+  FALSE,
+  FALSE
 );
 ```
 *Note: Insert all extracted keys into the `specifications` JSON. If an exact specification value is not found, omit that key from the JSON entirely.*

@@ -7,7 +7,7 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: Record<string, { monthly: string; yearly: string }> = {
-  STARTER: { monthly: 'price_1T4BtJ3k3Z28WqJKINJ9Efd0', yearly: 'price_1T4BtJ3k3Z28WqJKqhbXBvex' },
+  STARTER: { monthly: 'price_1T79qU3k3Z28WqJK4o1U7nQN', yearly: 'price_1T4BtJ3k3Z28WqJKqhbXBvex' },
   PRO: { monthly: 'price_1T5GBu3k3Z28WqJKdaRJnAsE', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
   ELITE: { monthly: 'price_1T4BtS3k3Z28WqJK59BkDgNI', yearly: 'price_1T4BtS3k3Z28WqJKJwLzoags' },
   ENTERPRISE: { monthly: 'price_1T4BtV3k3Z28WqJK3QYvTdHr', yearly: 'price_1T4BtV3k3Z28WqJKdOmXM9Zt' }

@@ -95,6 +95,30 @@ export const db = {
     return enrichListingsWithSeller(listings || []);
   },
 
+  getUniqueBrandsByCategory: async (category?: string): Promise<string[]> => {
+    let q = supabase
+      .from('listings')
+      .select('brand')
+      .eq('is_hidden', false)
+      .eq('is_sold', false)
+      .gt('active_until', new Date().toISOString());
+
+    if (category) {
+      if (category === 'Misc' || (category as unknown) === 'Miscellaneous') {
+        q = q.in('category', ['Misc', 'Miscellaneous', 'Accessories']);
+      } else {
+        q = q.eq('category', category);
+      }
+    }
+
+    const { data, error } = await q;
+    if (error || !data) return [];
+
+    // Extract unique non-null brands and sort alphabetically
+    const brands = Array.from(new Set(data.map(d => d.brand).filter(b => b && b.trim() !== ''))).sort();
+    return brands as string[];
+  },
+
   getMarketplaceListings: async (params?: {
     from?: number;
     to?: number;
@@ -104,6 +128,10 @@ export const db = {
     state?: string;
     category?: string;
     condition?: string;
+    brand?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    includePOA?: boolean;
     sortBy?: 'latest' | 'price-low' | 'price-high';
   }): Promise<Listing[]> => {
     const from = params?.from ?? 0;
@@ -114,6 +142,10 @@ export const db = {
     const state = params?.state ?? '';
     const category = params?.category ?? '';
     const condition = (params?.condition ?? '').trim();
+    const brand = (params?.brand ?? '').trim();
+    const minPrice = params?.minPrice;
+    const maxPrice = params?.maxPrice;
+    const includePOA = params?.includePOA ?? true; // Default to true if not specified
     const sortBy = params?.sortBy ?? 'latest';
     const nowIso = new Date().toISOString();
 
@@ -143,6 +175,27 @@ export const db = {
 
       if (condition) {
         q = q.eq('condition', condition);
+      }
+
+      if (brand) {
+        q = q.ilike('brand', brand);
+      }
+
+      // Price Range & POA logic
+      if (!includePOA && minPrice === undefined && maxPrice === undefined) {
+        // Just exclude POA if no price range is set
+        q = q.gt('price', 0);
+      } else if (minPrice !== undefined || maxPrice !== undefined) {
+        const min = minPrice !== undefined ? minPrice : 0;
+        const max = maxPrice !== undefined ? maxPrice : 999999999;
+
+        if (includePOA) {
+          // price=0 OR (price >= min AND price <= max)
+          // Note: using explicit or syntax
+          q = q.or(`price.eq.0,and(price.gte.${min},price.lte.${max})`);
+        } else {
+          q = q.gte('price', min).lte('price', max);
+        }
       }
 
       if (searchQuery) {

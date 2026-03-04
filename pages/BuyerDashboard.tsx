@@ -4,7 +4,7 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { Listing } from '../types';
 import ProductCard from '../components/ProductCard';
-import { Bookmark, Clock, Search, AlertCircle } from 'lucide-react';
+import { Bookmark, Clock, Search, AlertCircle, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const BuyerDashboard: React.FC = () => {
@@ -108,6 +108,14 @@ const BuyerDashboard: React.FC = () => {
             <span className="text-xs bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full">{recentIds.length}</span>
           </button>
 
+          <button
+            onClick={() => setActiveTab('inquiries')}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'inquiries' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
+          >
+            <span className="flex items-center gap-3"><MessageSquare className="h-4 w-4" /> Inquiries</span>
+            <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 px-2 py-0.5 rounded-full">3</span>
+          </button>
+
           <div className="my-4 border-t border-slate-200 dark:border-slate-800" />
 
           <button
@@ -191,7 +199,90 @@ const BuyerDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* TAB: INQUIRIES (MOCKUP) */}
+          {activeTab === 'inquiries' && (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h2 className="font-bold text-xl text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-blue-500" />
+                    Inquiry Manager
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">Track the status of quotes and messages sent to sellers.</p>
+                </div>
+                <button
+                  onClick={() => toast('This is a preview of the upcoming Inquiry Manager.', { icon: '✨' })}
+                  className="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-bold px-4 py-2 rounded-xl text-sm"
+                >
+                  New RFQ
+                </button>
+              </div>
 
+              <div className="p-6">
+                <div className="space-y-4">
+
+                  {/* Mock Inquiry 1 */}
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors bg-white dark:bg-slate-950">
+                    <div className="flex flex-col sm:flex-row justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Pending Reply
+                          </span>
+                          <span className="text-xs text-slate-400">Sent: 2 hours ago</span>
+                        </div>
+                        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Inquiry for: 20x JA Solar 550W Panels</h3>
+                        <p className="text-sm text-slate-500 mt-1">Seller: <span className="font-semibold">Solar King Corp</span></p>
+                      </div>
+                      <div className="flex items-center gap-2 sm:self-center">
+                        <button className="text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                          View Thread
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mock Inquiry 2 */}
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors bg-white dark:bg-slate-950 flex flex-col sm:flex-row justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Quoted
+                        </span>
+                        <span className="text-xs text-slate-400">Sent: Yesterday</span>
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Inquiry for: Huawei 100kW Inverter</h3>
+                      <p className="text-sm text-slate-500 mt-1">Seller: <span className="font-semibold">MegaVolt Supplies</span></p>
+                    </div>
+                    <div className="flex flex-col items-end justify-center gap-2">
+                      <div className="text-right">
+                        <span className="text-xs text-slate-500 block">Quoted Price:</span>
+                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-lg">$4,200.00</span>
+                      </div>
+                      <button className="text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                        Reply
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mock Inquiry 3 */}
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 opacity-75 hover:opacity-100 transition-opacity bg-white dark:bg-slate-950 flex flex-col sm:flex-row justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1">
+                          <XCircle className="w-3 h-3" /> Declined
+                        </span>
+                        <span className="text-xs text-slate-400">Sent: 3 days ago</span>
+                      </div>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg line-through text-slate-400 dark:text-slate-600">Inquiry for: Second-hand Longi 450W</h3>
+                      <p className="text-sm text-slate-500 mt-1">Reason: Out of stock</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* TAB: PROFILE MANAGEMENT (MOCKUP) */}
           {activeTab === 'profile' && (

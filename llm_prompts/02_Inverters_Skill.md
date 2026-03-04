@@ -6,15 +6,15 @@ Your job is to read the provided text, datasheet, or messy inventory list repres
 
 # Extraction Keys (Specifications for Inverters)
 Please extract the following parameters accurately:
-1. `inverter_type`: Must be one of: String, Micro, Hybrid, Off-Grid, Grid-Tied, Central (String).
-2. `inverter_phase`: Must be one of: Single, Three (String).
-3. `inverter_min_power_kw`: Minimum or exact output power in Kilowatts (Number, e.g. 5.5).
-4. `inverter_max_power_kw`: Maximum output power in kW (Number).
-5. `inverter_min_efficiency`: Maximum or nominal conversion efficiency % (Number, e.g. 98.4).
-6. `inverter_min_input_voltage`: Max input DC voltage (Number).
+1. `inverter_type`: Must be one of: String, Micro, Microinverter, Hybrid, Off-Grid, Grid-Tied, Central (String).
+2. `phase`: Must be one of: Single, Three (String).
+3. `rated_ac_power_kw`: Minimum or exact output power in Kilowatts (Number, e.g. 5.5).
+4. `max_ac_power_kw`: Maximum output power in kW (Number).
+5. `efficiency`: Maximum or nominal conversion efficiency % (Number, e.g. 98.4).
+6. `max_input_voltage`: Max input DC voltage (Number).
 
 # Additional Free-form Extraction
-Besides the mandatory filter keys above, you must also extract any other critical technical specifications found in the text (e.g., `dimensions_mm`, `weight_kg`, `max_output_current_a`, `mppt_voltage_range_v`, `warranty_years`). Format these keys in snake_case and include them as additional properties in the `specifications` JSON.
+Besides the mandatory filter keys above, you must also extract any other critical technical specifications found in the text (e.g., `model`, `warranty_years`, `mppt_count`, `max_dc_power_kw`, `protection_rating`, `weight_kg`). Format these keys in snake_case and include them as additional properties in the `specifications` JSON.
 
 # Common Base Attributes
 - `title`: Generate a clean, professional title (e.g., "Growatt MIN 5000TL-X Single Phase Inverter").
@@ -32,8 +32,8 @@ Use this exact SQL template and replace the bracketed values:
 ```sql
 INSERT INTO public.listings (
   seller_id, title, category, brand, condition, 
-  currency, price, moq, location_country, location_state, 
-  specifications, is_verified_listing, created_at, active_until
+  currency, price, location_country, location_state, 
+  specs, is_sold, is_hidden, is_verified_listing
 ) VALUES (
   'REPLACE_WITH_YOUR_SELLER_ID', 
   '[Title]', 
@@ -42,13 +42,12 @@ INSERT INTO public.listings (
   '[Condition]', 
   'USD', 
   0, 
-  [Quantity], 
   '[Country]', 
   '', 
-  '{"inverter_type": "[Type]", "inverter_phase": "[Phase]", "inverter_min_power_kw": [PowerKw], "...include_all_other_extracted_snake_case_keys_here...": "[Value]"}',
-  FALSE, 
-  NOW(), 
-  NOW() + interval '30 days'
+  '{"inverter_type": "[Type]", "phase": "[Phase]", "rated_ac_power_kw": [PowerKw], "max_input_voltage": [Voltage], "efficiency": [Efficiency], "...include_all_other_extracted_snake_case_keys_here...": "[Value]"}',
+  FALSE,
+  FALSE,
+  FALSE
 );
 ```
 *Note: Insert all extracted keys into the `specifications` JSON. If an exact specification value is not found, omit that key from the JSON entirely.*
