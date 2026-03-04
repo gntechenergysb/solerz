@@ -67,8 +67,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isC
             <button
               onClick={(e) => onCompareToggle(listing, e)}
               className={`absolute top-2 right-2 z-30 p-2 rounded-full shadow-md backdrop-blur-md transition-all ${isCompared
-                  ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                  : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
+                ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
                 }`}
               title={isCompared ? "Remove from Compare" : "Add to Compare"}
             >
@@ -122,25 +122,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isC
 
           {/* Bottom Section: Action */}
           <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-end justify-between mb-3">
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Asking Price</p>
-                <div className="flex flex-col">
-                  <span className="text-xl font-bold text-amber-600 dark:text-amber-500 truncate mt-1 sm:mt-0 flex-shrink-0">
-                    {!listing.price || listing.price === 0 ? "POA" : `${listing.currency || 'USD'} ${listing.price.toLocaleString()}`}
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-medium mt-0.5">
-                    Min Order: {listing.moq || 1}
-                  </span>
-                </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-0.5">Asking Price</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-extrabold text-amber-600 dark:text-amber-500 tracking-tight">
+                  {!listing.price || listing.price === 0 ? "POA" : `${listing.currency || 'USD'} ${listing.price.toLocaleString()}`}
+                </span>
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  (Min Order: {listing.moq || 1})
+                </span>
               </div>
             </div>
-
-            <button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg shadow-sm shadow-amber-200 dark:shadow-none transition-colors flex items-center justify-center gap-2 group/btn">
-              <span>View Details</span>
-              <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
-
             {/* Unverified Seller - Important Safety Notice */}
             {!isVerified && (
               <div className="mt-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-lg p-2">
