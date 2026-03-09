@@ -12,9 +12,9 @@ type StripeCatalogProductIds = Partial<
 
 const DEFAULT_STRIPE_CATALOG_IDS: Record<string, { monthly: string; yearly: string }> = {
   STARTER: { monthly: '', yearly: '' },
-  PRO: { monthly: 'price_1T8W1s3xgQicLevmvnud3FCO', yearly: 'price_1T8W2C3xgQicLevmiWMSMCjF' },
-  ELITE: { monthly: 'price_1T8W3r3xgQicLevm2ByjjU6s', yearly: 'price_1T8W473xgQicLevmhmV1vLOc' },
-  ENTERPRISE: { monthly: 'price_1T8W4U3xgQicLevmeQkQ5DGP', yearly: 'price_1T8W4i3xgQicLevmvpQff8s4' }
+  PRO: { monthly: 'price_1T5GBu3k3Z28WqJKdaRJnAsE', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
+  ELITE: { monthly: 'price_1T4BtS3k3Z28WqJK59BkDgNI', yearly: 'price_1T4BtS3k3Z28WqJKJwLzoags' },
+  ENTERPRISE: { monthly: 'price_1T4BtV3k3Z28WqJK3QYvTdHr', yearly: 'price_1T4BtV3k3Z28WqJKdOmXM9Zt' }
 };
 
 const normalizeTier = (planId: string) => {
