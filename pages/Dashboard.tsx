@@ -595,8 +595,9 @@ const Dashboard: React.FC = () => {
   const getListingLimit = (tier: string) => {
     if (user?.role === 'ADMIN') return Infinity;
     switch (tier) {
-      case 'STARTER': return 5;
-      case 'PRO': return 25;
+      case 'UNSUBSCRIBED': return 0;
+      case 'STARTER': return 3;
+      case 'PRO': return 10;
       case 'ELITE': return 25;
       case 'ENTERPRISE': return 80;
       default: return 0;
@@ -781,10 +782,10 @@ const Dashboard: React.FC = () => {
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Seller Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{user?.role === 'BUYER' ? 'Buyer Dashboard' : 'Seller Dashboard'}</h1>
           <p className="text-slate-500 dark:text-slate-300">Welcome back, {user?.company_name}</p>
         </div>
-        {(user?.is_verified && user?.tier !== 'UNSUBSCRIBED') ? (
+        {(user?.is_verified && user?.tier !== 'UNSUBSCRIBED' && user?.role !== 'BUYER') ? (
           <Link to="/create">
             <button className="flex items-center space-x-2 bg-primary text-white px-5 py-2.5 rounded-lg hover:bg-emerald-600 transition shadow-sm font-medium">
               <PlusCircle className="h-5 w-5" />
@@ -798,21 +799,23 @@ const Dashboard: React.FC = () => {
                 <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
                 <span className="text-emerald-900 dark:text-emerald-200 font-bold truncate">Account Verified</span>
               </div>
-              {user?.tier !== 'UNSUBSCRIBED' ? (
-                <div className="flex flex-col items-end gap-0.5 shrink-0">
-                  <span className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40">
-                    TIER: {user.tier}
-                  </span>
-                  {user?.pending_tier && user?.tier_effective_at ? (
-                    <span className="text-[10px] font-bold text-emerald-700/80 dark:text-emerald-200/80">
-                      Next: {user.pending_tier} ({new Date(user.tier_effective_at * 1000).toLocaleDateString()})
+              {user?.role !== 'BUYER' && (
+                user?.tier !== 'UNSUBSCRIBED' ? (
+                  <div className="flex flex-col items-end gap-0.5 shrink-0">
+                    <span className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40">
+                      TIER: {user.tier}
                     </span>
-                  ) : null}
-                </div>
-              ) : (
-                <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-slate-800 shrink-0">
-                  Subscribe
-                </Link>
+                    {user?.pending_tier && user?.tier_effective_at ? (
+                      <span className="text-[10px] font-bold text-emerald-700/80 dark:text-emerald-200/80">
+                        Next: {user.pending_tier} ({new Date(user.tier_effective_at * 1000).toLocaleDateString()})
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <Link to="/pricing" className="bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-200 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-slate-800 shrink-0">
+                    Subscribe
+                  </Link>
+                )
               )}
             </div>
           )
@@ -1074,262 +1077,267 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
-      {/* --- ELITE ANALYTICS REDESIGN --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-
-        {/* Card 1: My Listing Performance */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-50"><Eye className="h-16 w-16 text-slate-100 dark:text-slate-800" /></div>
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Total Listing Views</p>
-            </div>
-            <div className="flex items-end gap-3 mb-1">
-              <h3 className="text-4xl font-black text-slate-900 dark:text-slate-100">{totalViewsAllTime}</h3>
-              {totalViewsAllTime > 0 && (
-                <span className="text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 mb-1">
-                  <TrendingUp className="h-3 w-3" /> +12% MoM
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-              All-time accumulated views across your <span className="font-bold text-slate-600 dark:text-slate-300">{activeUsedCount}</span> active listings.
-            </p>
-          </div>
-        </div>
-
-        {/* Card 2: Conversion Funnel */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-50"><Target className="h-16 w-16 text-slate-100 dark:text-slate-800" /></div>
-          <div className="relative z-10 w-full">
-            <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Buyer Conversion (7d)</p>
-            </div>
-            <div className="flex items-end gap-3 mb-2">
-              <h3 className="text-4xl font-black text-slate-900 dark:text-slate-100">
-                {funnel.views > 0 ? ((funnel.contacts / funnel.views) * 100).toFixed(1) : 0}%
-              </h3>
-              {funnel.contacts > 0 && (
-                <span className="text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 mb-1">
-                  <TrendingUp className="h-3 w-3" /> +4.2%
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800 mt-3">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider">Views</span>
-                <span className="text-slate-800 dark:text-slate-200">{funnel.views}</span>
-              </div>
-              <div className="h-4 border-l border-slate-300 dark:border-slate-700"></div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider">Contacts</span>
-                <span className="text-indigo-600 dark:text-indigo-400">{funnel.contacts}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Trending Keywords Visualizer */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Trending Keywords</p>
-            <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30">
-              <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {trendingKeywords.map((item, index) => {
-              // Cycle colors for visual distinctness
-              const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500'];
-              const colorClass = colors[index % colors.length];
-              return (
-                <div key={index}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">{item.keyword}</span>
-                    <span className="text-slate-500 font-bold">{getTrendingLabel(item.searches)}</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div className={`${colorClass} h-1.5 rounded-full transition-all duration-1000`} style={{ width: getTrendingWidth(item.searches) }}></div>
+      {user?.role !== 'BUYER' && (
+        <>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column: Listings + Alerts */}
+            <div className="lg:col-span-8 space-y-6">
+              {user?.is_verified && user?.tier !== 'UNSUBSCRIBED' && overLimitCount > 0 && (
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="font-bold text-amber-900 dark:text-amber-200">You are over your plan limit</div>
+                    <div className="text-sm text-amber-800 dark:text-amber-200/80">
+                      Your plan allows {listingLimit} active listings. Please deactivate {overLimitCount} listing(s) to stay within your limit.
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              )}
+
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100">My Listings Inventory</h3>
+                  <div className="flex items-center gap-2">
+                    {pausedCount > 0 && (
+                      <span className="text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 px-2 py-1 rounded">
+                        {pausedCount} Paused (Upgrade to resume)
+                      </span>
+                    )}
+                    <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 py-1 rounded">
+                      {activeUsedCount} / {listingLimit === Infinity ? 'Unlimited' : listingLimit} Slots Used
+                    </span>
+                  </div>
+                </div>
+                <div className="overflow-x-auto flex-grow">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-300 font-medium">
+                      <tr>
+                        <th className="px-4 py-3 w-1/2">Title</th>
+                        <th className="px-4 py-3 w-20">Status</th>
+                        <th className="px-4 py-3 text-right w-16">Views</th>
+                        <th className="px-4 py-3 text-right w-32">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {loading ? (
+                        <tr><td colSpan={5} className="p-6 text-center">Loading...</td></tr>
+                      ) : myListings.length === 0 ? (
+                        <tr><td colSpan={5} className="p-6 text-center text-slate-500 dark:text-slate-300">No listings yet.</td></tr>
+                      ) : (
+                        myListings.map(l => {
+                          const created = new Date(l.created_at).getTime();
+                          const activeUntil = new Date(l.active_until).getTime();
+                          const now = new Date().getTime();
+
+                          const isExpired = now > activeUntil;
+                          const isHidden = !!(l as any).is_hidden;
+
+                          return (
+                            <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors group">
+                              <td className="px-4 py-4 font-medium text-slate-900 dark:text-slate-100">
+                                <div className="truncate max-w-[360px]" title={l.title}>{l.title}</div>
+                              </td>
+                              <td className="px-4 py-4">
+                                {isHidden ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-200 text-slate-700">
+                                    Hidden
+                                  </span>
+                                ) : l.is_sold ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                                    Sold
+                                  </span>
+                                ) : (l as any).is_paused ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
+                                    Paused
+                                  </span>
+                                ) : !isExpired ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                    Active
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                                    Expired
+                                  </span>
+                                )}
+                              </td>
+
+                              <td className="px-4 py-4 text-right">
+                                <span className="text-slate-500 dark:text-slate-400 text-xs">{l.view_count}</span>
+                              </td>
+
+                              <td className="px-4 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Link
+                                    to={`/edit/${l.id}`}
+                                    className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                  >
+                                    Edit
+                                  </Link>
+                                  <span className="text-slate-300">|</span>
+                                  {!l.is_sold && (
+                                    <button
+                                      onClick={async () => {
+                                        const next = !isHidden;
+                                        setMyListings(prev => prev.map(x => x.id === l.id ? ({ ...x, is_hidden: next } as any) : x));
+                                        const ok = await db.setListingHidden(l.id, next);
+                                        if (!ok) {
+                                          setMyListings(prev => prev.map(x => x.id === l.id ? (l as any) : x));
+                                          toast.error('Failed to update listing status.');
+                                          return;
+                                        }
+                                        toast.success(next ? 'Listing hidden.' : 'Listing shown.');
+                                      }}
+                                      className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                                    >
+                                      {isHidden ? 'Show' : 'Hide'}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="lg:col-span-4 space-y-6">
+
+              {/* Quick Actions - Simplified */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <Link
+                    to="/create"
+                    className="bg-slate-900 text-white text-sm font-bold px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-center"
+                  >
+                    Create Listing
+                  </Link>
+                  {user?.tier && user.tier !== 'UNSUBSCRIBED' ? (
+                    <a
+                      href={`mailto:support@solerz.com?subject=Priority Support Request - Account: ${user?.email}`}
+                      className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-200 text-sm font-bold px-4 py-3 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-center flex items-center justify-center gap-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Email Us
+                    </a>
+                  ) : (
+                    <Link
+                      to="/pricing"
+                      className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-200 text-sm font-bold px-4 py-3 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-center"
+                    >
+                      Upgrade to Pro
+                    </Link>
+                  )}
+                  <Link
+                    to="/"
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
+                  >
+                    Browse Listings
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* --- ELITE ANALYTICS REDESIGN --- */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+            {/* Card 1: My Listing Performance */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-50"><Eye className="h-16 w-16 text-slate-100 dark:text-slate-800" /></div>
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Total Listing Views</p>
+                </div>
+                <div className="flex items-end gap-3 mb-1">
+                  <h3 className="text-4xl font-black text-slate-900 dark:text-slate-100">{totalViewsAllTime}</h3>
+                  {totalViewsAllTime > 0 && (
+                    <span className="text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 mb-1">
+                      <TrendingUp className="h-3 w-3" /> +12% MoM
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                  All-time accumulated views across your <span className="font-bold text-slate-600 dark:text-slate-300">{activeUsedCount}</span> active listings.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2: Conversion Funnel */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-50"><Target className="h-16 w-16 text-slate-100 dark:text-slate-800" /></div>
+              <div className="relative z-10 w-full">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Buyer Conversion (7d)</p>
+                </div>
+                <div className="flex items-end gap-3 mb-2">
+                  <h3 className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                    {funnel.views > 0 ? ((funnel.contacts / funnel.views) * 100).toFixed(1) : 0}%
+                  </h3>
+                  {funnel.contacts > 0 && (
+                    <span className="text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-lg flex items-center gap-1 mb-1">
+                      <TrendingUp className="h-3 w-3" /> +4.2%
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800 mt-3">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider">Views</span>
+                    <span className="text-slate-800 dark:text-slate-200">{funnel.views}</span>
+                  </div>
+                  <div className="h-4 border-l border-slate-300 dark:border-slate-700"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider">Contacts</span>
+                    <span className="text-indigo-600 dark:text-indigo-400">{funnel.contacts}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Trending Keywords Visualizer */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between">
+              <div className="flex justify-between items-start mb-4">
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Trending Keywords</p>
+                <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                  <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {trendingKeywords.map((item, index) => {
+                  // Cycle colors for visual distinctness
+                  const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500'];
+                  const colorClass = colors[index % colors.length];
+                  return (
+                    <div key={index}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">{item.keyword}</span>
+                        <span className="text-slate-500 font-bold">{getTrendingLabel(item.searches)}</span>
+                      </div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div className={`${colorClass} h-1.5 rounded-full transition-all duration-1000`} style={{ width: getTrendingWidth(item.searches) }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Sales Team Management */}
       <SalesTeamManager sellerId={user.id} />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Listings + Alerts */}
-        <div className="lg:col-span-8 space-y-6">
-          {user?.is_verified && user?.tier !== 'UNSUBSCRIBED' && overLimitCount > 0 && (
-            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <div className="font-bold text-amber-900 dark:text-amber-200">You are over your plan limit</div>
-                <div className="text-sm text-amber-800 dark:text-amber-200/80">
-                  Your plan allows {listingLimit} active listings. Please deactivate {overLimitCount} listing(s) to stay within your limit.
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">My Listings Inventory</h3>
-              <div className="flex items-center gap-2">
-                {pausedCount > 0 && (
-                  <span className="text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 px-2 py-1 rounded">
-                    {pausedCount} Paused (Upgrade to resume)
-                  </span>
-                )}
-                <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 py-1 rounded">
-                  {activeUsedCount} / {listingLimit === Infinity ? 'Unlimited' : listingLimit} Slots Used
-                </span>
-              </div>
-            </div>
-            <div className="overflow-x-auto flex-grow">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-300 font-medium">
-                  <tr>
-                    <th className="px-4 py-3 w-1/2">Title</th>
-                    <th className="px-4 py-3 w-20">Status</th>
-                    <th className="px-4 py-3 text-right w-16">Views</th>
-                    <th className="px-4 py-3 text-right w-32">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {loading ? (
-                    <tr><td colSpan={5} className="p-6 text-center">Loading...</td></tr>
-                  ) : myListings.length === 0 ? (
-                    <tr><td colSpan={5} className="p-6 text-center text-slate-500 dark:text-slate-300">No listings yet.</td></tr>
-                  ) : (
-                    myListings.map(l => {
-                      const created = new Date(l.created_at).getTime();
-                      const activeUntil = new Date(l.active_until).getTime();
-                      const now = new Date().getTime();
-
-                      const isExpired = now > activeUntil;
-                      const isHidden = !!(l as any).is_hidden;
-
-                      return (
-                        <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-slate-950 transition-colors group">
-                          <td className="px-4 py-4 font-medium text-slate-900 dark:text-slate-100">
-                            <div className="truncate max-w-[360px]" title={l.title}>{l.title}</div>
-                          </td>
-                          <td className="px-4 py-4">
-                            {isHidden ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-200 text-slate-700">
-                                Hidden
-                              </span>
-                            ) : l.is_sold ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                                Sold
-                              </span>
-                            ) : (l as any).is_paused ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
-                                Paused
-                              </span>
-                            ) : !isExpired ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                                Active
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                                Expired
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="px-4 py-4 text-right">
-                            <span className="text-slate-500 dark:text-slate-400 text-xs">{l.view_count}</span>
-                          </td>
-
-                          <td className="px-4 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Link
-                                to={`/edit/${l.id}`}
-                                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:hover:text-emerald-400"
-                              >
-                                Edit
-                              </Link>
-                              <span className="text-slate-300">|</span>
-                              {!l.is_sold && (
-                                <button
-                                  onClick={async () => {
-                                    const next = !isHidden;
-                                    setMyListings(prev => prev.map(x => x.id === l.id ? ({ ...x, is_hidden: next } as any) : x));
-                                    const ok = await db.setListingHidden(l.id, next);
-                                    if (!ok) {
-                                      setMyListings(prev => prev.map(x => x.id === l.id ? (l as any) : x));
-                                      toast.error('Failed to update listing status.');
-                                      return;
-                                    }
-                                    toast.success(next ? 'Listing hidden.' : 'Listing shown.');
-                                  }}
-                                  className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-                                >
-                                  {isHidden ? 'Show' : 'Hide'}
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="lg:col-span-4 space-y-6">
-
-          {/* Quick Actions - Simplified */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-1 gap-3">
-              <Link
-                to="/create"
-                className="bg-slate-900 text-white text-sm font-bold px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-center"
-              >
-                Create Listing
-              </Link>
-              {user?.tier && user.tier !== 'UNSUBSCRIBED' ? (
-                <a
-                  href={`mailto:support@solerz.com?subject=Priority Support Request - Account: ${user?.email}`}
-                  className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-200 text-sm font-bold px-4 py-3 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-center flex items-center justify-center gap-2"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Email Us
-                </a>
-              ) : (
-                <Link
-                  to="/pricing"
-                  className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-200 text-sm font-bold px-4 py-3 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-center"
-                >
-                  Upgrade to Pro
-                </Link>
-              )}
-              <Link
-                to="/"
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold px-4 py-3 rounded-lg hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors text-center"
-              >
-                Browse Listings
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

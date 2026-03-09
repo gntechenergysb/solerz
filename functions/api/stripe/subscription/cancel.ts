@@ -196,7 +196,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       });
 
       await supabaseServicePatchProfile(env, userId, {
-        pending_tier: 'UNSUBSCRIBED',
+        pending_tier: 'STARTER',
         tier_effective_at: currentPeriodEnd || null,
         stripe_cancel_at_period_end: true,
         stripe_subscription_status: 'active', // Still active until period end
@@ -221,7 +221,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     await stripeRequest(env, `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`, { method: 'DELETE' });
 
     await supabaseServicePatchProfile(env, userId, {
-      tier: 'UNSUBSCRIBED',
+      tier: 'STARTER',
       pending_tier: null,
       tier_effective_at: null,
       stripe_cancel_at_period_end: false,

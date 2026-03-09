@@ -7,10 +7,10 @@ type StripeCatalogProductIds = Partial<
 >;
 
 const DEFAULT_STRIPE_CATALOG_IDS: Record<string, { monthly: string; yearly: string }> = {
-  STARTER: { monthly: 'price_1T79qU3k3Z28WqJK4o1U7nQN', yearly: 'price_1T4BtJ3k3Z28WqJKqhbXBvex' },
-  PRO: { monthly: 'price_1T5GBu3k3Z28WqJKdaRJnAsE', yearly: 'price_1T4BtQ3k3Z28WqJKA34RjNpe' },
-  ELITE: { monthly: 'price_1T4BtS3k3Z28WqJK59BkDgNI', yearly: 'price_1T4BtS3k3Z28WqJKJwLzoags' },
-  ENTERPRISE: { monthly: 'price_1T4BtV3k3Z28WqJK3QYvTdHr', yearly: 'price_1T4BtV3k3Z28WqJKdOmXM9Zt' }
+  STARTER: { monthly: '', yearly: '' },
+  PRO: { monthly: 'price_1T8W1s3xgQicLevmvnud3FCO', yearly: 'price_1T8W2C3xgQicLevmiWMSMCjF' },
+  ELITE: { monthly: 'price_1T8W3r3xgQicLevm2ByjjU6s', yearly: 'price_1T8W473xgQicLevmhmV1vLOc' },
+  ENTERPRISE: { monthly: 'price_1T8W4U3xgQicLevmeQkQ5DGP', yearly: 'price_1T8W4i3xgQicLevmvpQff8s4' }
 };
 
 const normalizeTier = (t: string) => {
@@ -263,7 +263,7 @@ const bestEffortPatchPendingFromSubscription = async (env: Env, sub: any) => {
   }
 
   if (cancelAtPeriodEnd === true) {
-    patch.pending_tier = 'UNSUBSCRIBED';
+    patch.pending_tier = 'STARTER';
     if (Number.isFinite(currentPeriodEnd)) patch.tier_effective_at = currentPeriodEnd;
   } else if (cancelAtPeriodEnd === false) {
     // Only clear pending_tier if there's no active subscription schedule.
@@ -790,7 +790,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       return new Response('Unable to find user for deleted subscription', { status: 500 });
     }
 
-    tier = 'UNSUBSCRIBED';
+    tier = 'STARTER';
     stripeCustomerId = String(sub?.customer || '').trim();
     stripeSubscriptionId = String(sub?.id || '').trim();
     stripeSubscriptionStatus = String(sub?.status || '').trim();

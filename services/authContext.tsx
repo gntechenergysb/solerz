@@ -3,19 +3,19 @@ import { Profile } from '../types';
 import { db } from './db';
 import { supabase } from './supabaseClient';
 
- const AUTH_CACHE_USER_ID_KEY = 'solerz_auth_user_id_v1';
- const AUTH_CACHE_EMAIL_KEY = 'solerz_auth_email_v1';
- const PROFILE_CACHE_KEY = 'solerz_profile_cache_v2_minimal'; // v2: only minimal non-sensitive fields
+const AUTH_CACHE_USER_ID_KEY = 'solerz_auth_user_id_v1';
+const AUTH_CACHE_EMAIL_KEY = 'solerz_auth_email_v1';
+const PROFILE_CACHE_KEY = 'solerz_profile_cache_v2_minimal'; // v2: only minimal non-sensitive fields
 
- // Only cache non-sensitive fields to localStorage (security)
- const MINIMAL_CACHE_FIELDS: Array<keyof Profile> = [
+// Only cache non-sensitive fields to localStorage (security)
+const MINIMAL_CACHE_FIELDS: Array<keyof Profile> = [
   'id', 'email', 'company_name', 'tier', 'is_verified', 'role', 'avatar_url', 'company_doc_path', 'company_reg_no',
   // Stripe subscription fields needed for Dashboard display
-  'stripe_subscription_status', 'stripe_current_period_end', 'stripe_current_period_start', 
+  'stripe_subscription_status', 'stripe_current_period_end', 'stripe_current_period_start',
   'stripe_billing_interval', 'stripe_cancel_at_period_end', 'pending_tier', 'tier_effective_at'
- ];
+];
 
- const extractMinimalProfile = (profile: Profile | null): Partial<Profile> | null => {
+const extractMinimalProfile = (profile: Profile | null): Partial<Profile> | null => {
   if (!profile) return null;
   const minimal: Partial<Profile> = {};
   for (const key of MINIMAL_CACHE_FIELDS) {
@@ -24,64 +24,64 @@ import { supabase } from './supabaseClient';
     }
   }
   return minimal;
- };
+};
 
- const readCachedAuthUserId = (): string | null => {
-   try {
-     if (typeof window === 'undefined') return null;
-     return window.localStorage.getItem(AUTH_CACHE_USER_ID_KEY);
-   } catch {
-     return null;
-   }
- };
+const readCachedAuthUserId = (): string | null => {
+  try {
+    if (typeof window === 'undefined') return null;
+    return window.localStorage.getItem(AUTH_CACHE_USER_ID_KEY);
+  } catch {
+    return null;
+  }
+};
 
- const writeCachedAuthUserId = (id: string | null) => {
-   try {
-     if (typeof window === 'undefined') return;
-     if (!id) {
-       window.localStorage.removeItem(AUTH_CACHE_USER_ID_KEY);
-       return;
-     }
-     window.localStorage.setItem(AUTH_CACHE_USER_ID_KEY, id);
-   } catch {
-     return;
-   }
- };
+const writeCachedAuthUserId = (id: string | null) => {
+  try {
+    if (typeof window === 'undefined') return;
+    if (!id) {
+      window.localStorage.removeItem(AUTH_CACHE_USER_ID_KEY);
+      return;
+    }
+    window.localStorage.setItem(AUTH_CACHE_USER_ID_KEY, id);
+  } catch {
+    return;
+  }
+};
 
- const readCachedAuthEmail = (): string | null => {
-   try {
-     if (typeof window === 'undefined') return null;
-     return window.localStorage.getItem(AUTH_CACHE_EMAIL_KEY);
-   } catch {
-     return null;
-   }
- };
+const readCachedAuthEmail = (): string | null => {
+  try {
+    if (typeof window === 'undefined') return null;
+    return window.localStorage.getItem(AUTH_CACHE_EMAIL_KEY);
+  } catch {
+    return null;
+  }
+};
 
- const writeCachedAuthEmail = (email: string | null) => {
-   try {
-     if (typeof window === 'undefined') return;
-     if (!email) {
-       window.localStorage.removeItem(AUTH_CACHE_EMAIL_KEY);
-       return;
-     }
-     window.localStorage.setItem(AUTH_CACHE_EMAIL_KEY, email);
-   } catch {
-     return;
-   }
- };
+const writeCachedAuthEmail = (email: string | null) => {
+  try {
+    if (typeof window === 'undefined') return;
+    if (!email) {
+      window.localStorage.removeItem(AUTH_CACHE_EMAIL_KEY);
+      return;
+    }
+    window.localStorage.setItem(AUTH_CACHE_EMAIL_KEY, email);
+  } catch {
+    return;
+  }
+};
 
- const readCachedProfile = (): Profile | null => {
-   try {
-     if (typeof window === 'undefined') return null;
-     const raw = window.localStorage.getItem(PROFILE_CACHE_KEY);
-     if (!raw) return null;
-     return JSON.parse(raw) as Profile;
-   } catch {
-     return null;
-   }
- };
+const readCachedProfile = (): Profile | null => {
+  try {
+    if (typeof window === 'undefined') return null;
+    const raw = window.localStorage.getItem(PROFILE_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as Profile;
+  } catch {
+    return null;
+  }
+};
 
- const writeCachedProfile = (profile: Profile | null) => {
+const writeCachedProfile = (profile: Profile | null) => {
   try {
     if (typeof window === 'undefined') return;
     if (!profile) {
@@ -94,7 +94,7 @@ import { supabase } from './supabaseClient';
   } catch {
     return;
   }
- };
+};
 
 const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promise<T> => {
   let t: any;
@@ -175,12 +175,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const profile = await withTimeout(db.getProfileById(finalId), 5000, 'db_get_profile');
-        
+
         // Warn if profile is missing but user exists in Auth
         if (!profile && isMountedRef.current) {
           console.warn(`Profile not found for user ${finalId}. User may need to complete profile setup.`);
         }
-        
+
         if (isMountedRef.current) {
           setAuthUserId(finalId);
           writeCachedAuthUserId(finalId);
@@ -349,6 +349,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: userResponse.data.user.id,
             ...data
           }), 3500, 'db_update_profile');
+
+          // Safety net: ensure Seller accounts always get STARTER tier
+          // Uses backend endpoint to bypass RLS restrictions on the tier column
+          if (data.role !== 'BUYER') {
+            try {
+              const { data: sessionData } = await supabase.auth.getSession();
+              const accessToken = sessionData.session?.access_token;
+              if (accessToken) {
+                await fetch('/api/activate-starter', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`
+                  }
+                });
+              }
+            } catch (e) {
+              console.warn('activate-starter fallback failed (non-critical):', e);
+            }
+          }
         }
       }
 

@@ -353,7 +353,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
     // If cancel_at_period_end is true but pending_tier is not set, set it
     if (cancelAtPeriodEnd && !pendingTier) {
-      pendingTier = 'UNSUBSCRIBED';
+      pendingTier = 'STARTER';
       tierEffectiveAt = Number.isFinite(currentPeriodEnd) ? currentPeriodEnd : null;
     }
 

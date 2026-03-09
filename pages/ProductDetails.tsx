@@ -11,7 +11,7 @@ const ProductDetails: React.FC = () => {
   const { user } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mainImage, setMainImage] = useState('');
+  const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video', url: string }>({ type: 'image', url: '' });
   const [salesReps, setSalesReps] = useState<SalesRepresentative[]>([]);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -27,9 +27,16 @@ const ProductDetails: React.FC = () => {
           setSalesReps(reps || []);
         }
         setListing(data);
+
         const fallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-        const first = (data && Array.isArray(data.images_url) && data.images_url.length > 0) ? data.images_url[0] : '';
-        setMainImage(first || fallback);
+        const videoUrl = data?.specs?.video_url as string | undefined;
+        if (videoUrl) {
+          setActiveMedia({ type: 'video', url: videoUrl });
+        } else {
+          const first = (data && Array.isArray(data.images_url) && data.images_url.length > 0) ? data.images_url[0] : '';
+          setActiveMedia({ type: 'image', url: first || fallback });
+        }
+
         db.updateViewCount(id);
       }
       setLoading(false);
@@ -83,23 +90,52 @@ const ProductDetails: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
 
-        {/* Left Column: Images */}
+        {/* Left Column: Images / Video */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800">
-            <img
-              src={mainImage}
-              alt={listing.title}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              onError={() => setMainImage('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E')}
-            />
+          <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 relative group">
+            {activeMedia.type === 'video' ? (
+              <iframe
+                className="w-full h-full"
+                src={activeMedia.url + (activeMedia.url.includes('?') ? '&autoplay=1&mute=0' : '?autoplay=1&mute=0')}
+                title="Product Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <img
+                src={activeMedia.url}
+                alt={listing.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                onError={() => setActiveMedia({ type: 'image', url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E' })}
+              />
+            )}
           </div>
+
           <div className="grid grid-cols-4 gap-4">
+            {listing.specs?.video_url && (
+              <button
+                onClick={() => setActiveMedia({ type: 'video', url: listing.specs?.video_url as string })}
+                className={`aspect-square rounded-xl overflow-hidden border-2 transition-all relative ${activeMedia.type === 'video' ? 'border-rose-500 shadow-md scale-95' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}
+              >
+                <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                  <Video className="w-8 h-8 text-white drop-shadow-md" />
+                </div>
+                <img
+                  src={(Array.isArray(listing.images_url) && listing.images_url.length > 0) ? listing.images_url[0] : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"%3E%3Crect width="300" height="300" fill="%23f1f5f9"/%3E%3Ctext x="150" y="150" font-family="Arial" font-size="24" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3EVideo%3C/text%3E%3C/svg%3E'}
+                  alt="Video Thumbnail"
+                  className="w-full h-full object-cover grayscale"
+                />
+              </button>
+            )}
+
             {(Array.isArray(listing.images_url) ? listing.images_url : []).filter(Boolean).map((img, idx) => (
               <button
                 key={idx}
-                onClick={() => setMainImage(img)}
-                className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${mainImage === img ? 'border-emerald-500 shadow-md scale-95' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}
+                onClick={() => setActiveMedia({ type: 'image', url: img })}
+                className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeMedia.type === 'image' && activeMedia.url === img ? 'border-emerald-500 shadow-md scale-95' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}
               >
                 <img
                   src={img}
@@ -115,7 +151,7 @@ const ProductDetails: React.FC = () => {
           </div>
 
           {/* Description Section */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 mt-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 mt-6 shadow-sm">
             <h3 className="font-bold text-xl text-slate-900 dark:text-slate-100 mb-4">Product Overview</h3>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
               This {listing.brand} {listing.title} is available for immediate acquisition.
@@ -147,26 +183,68 @@ const ProductDetails: React.FC = () => {
             </div>
 
             <div className="mb-8">
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Asking Price</p>
-              <div className="flex flex-col">
-                <p className="text-4xl font-bold text-amber-600 dark:text-amber-400">{listing.currency || 'USD'} {listing.price.toLocaleString()}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
-                  Minimum Order Quantity: <span className="text-slate-900 dark:text-slate-100 font-bold">{listing.moq || 1} Unit(s)</span>
-                </p>
-                {listing.datasheet_url && (
-                  <div className="mt-4">
-                    <a
-                      href={listing.datasheet_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-bold text-sm rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                      View Official Datasheet (PDF)
-                    </a>
+              {!user ? (
+                <Link to="/login" className="flex flex-col relative group cursor-pointer select-none" title="Login to view price">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Asking Price</p>
+                  <div className="flex flex-col filter blur-[8px] transition-all duration-300 group-hover:blur-[5px]">
+                    <p className="text-4xl font-bold text-amber-600/80 dark:text-amber-400/80">USD 99,999.00</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
+                      Minimum Order Quantity: <span className="text-slate-900/80 dark:text-slate-100/80 font-bold">50 Unit(s)</span>
+                    </p>
                   </div>
-                )}
-              </div>
+                </Link>
+              ) : !listing.price || listing.price === 0 ? (
+                <div className="flex flex-col">
+                  <p className="text-4xl font-bold text-amber-600 dark:text-amber-400">POA</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
+                    Minimum Order Quantity: <span className="text-slate-900 dark:text-slate-100 font-bold">{listing.moq || 1} Unit(s)</span>
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {Array.isArray(listing.specs?.price_tiers) && listing.specs.price_tiers.length > 0 ? (
+                    <>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-2 uppercase tracking-wider">Volume Pricing</p>
+                      <div className="flex flex-row overflow-x-auto gap-3 pb-2 -mx-2 px-2 snap-x">
+                        {listing.specs.price_tiers.map((tier: any, idx: number) => (
+                          <div key={idx} className="snap-start shrink-0 flex flex-col p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 min-w-[140px] flex-1">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
+                              {tier.max_quantity ? `${tier.min_quantity} - ${tier.max_quantity} Units` : `≥ ${tier.min_quantity} Units`}
+                            </span>
+                            <span className="text-xl font-extrabold text-amber-600 dark:text-amber-500 tracking-tight">
+                              {listing.currency || 'USD'} {tier.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Asking Price</p>
+                      <div className="flex flex-col">
+                        <p className="text-4xl font-bold text-amber-600 dark:text-amber-400">{listing.currency || 'USD'} {listing.price.toLocaleString()}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
+                          Minimum Order Quantity: <span className="text-slate-900 dark:text-slate-100 font-bold">{listing.moq || 1} Unit(s)</span>
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {listing.datasheet_url && (
+                <div className="mt-6">
+                  <a
+                    href={listing.datasheet_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-bold text-sm rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    View Official Datasheet (PDF)
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mb-4">
@@ -193,191 +271,207 @@ const ProductDetails: React.FC = () => {
             </div>
 
             {canContact ? (
-              <div className="space-y-4">
-                {salesReps.length > 0 ? (
-                  <div>
-                    <button onClick={() => setIsContactExpanded(!isContactExpanded)} className="flex items-center justify-between w-full text-sm font-bold text-slate-900 dark:text-slate-100 mb-3 border-t border-slate-100 dark:border-slate-800 pt-4 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                      <span>Contact Sales Team</span>
-                      {isContactExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
-                    {isContactExpanded && (
-                      <div className="space-y-3">
-                        {salesReps.map(rep => {
-                          const repMsisdn = normalizeMsisdn(rep.phone);
-                          const wappNum = rep.whatsapp ? normalizeMsisdn(rep.whatsapp) : repMsisdn;
+              user ? (
+                <div className="space-y-4">
+                  {salesReps.length > 0 ? (
+                    <div>
+                      <button onClick={() => setIsContactExpanded(!isContactExpanded)} className="flex items-center justify-between w-full text-sm font-bold text-slate-900 dark:text-slate-100 mb-3 border-t border-slate-100 dark:border-slate-800 pt-4 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                        <span>Contact Sales Team</span>
+                        {isContactExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </button>
+                      {isContactExpanded && (
+                        <div className="space-y-3">
+                          {salesReps.map(rep => {
+                            const repMsisdn = normalizeMsisdn(rep.phone);
+                            const wappNum = rep.whatsapp ? normalizeMsisdn(rep.whatsapp) : repMsisdn;
 
-                          const socialLinks = [];
+                            const socialLinks = [];
 
-                          if (wappNum) {
-                            socialLinks.push({
-                              id: 'whatsapp', icon: MessageSquare, label: 'WhatsApp',
-                              color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900',
-                              onClick: () => {
-                                db.trackListingContactEvent(listing.id, 'whatsapp');
-                                const text = encodeURIComponent(`Hi ${rep.name}, I'm interested in: ${listing.title}`);
-                                window.open(`https://web.whatsapp.com/send?phone=${encodeURIComponent(wappNum)}&text=${text}`, '_blank');
-                              }
-                            });
-                          }
-                          if (rep.phone) {
-                            socialLinks.push({
-                              id: 'call', icon: Phone, label: 'Call',
-                              color: 'border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900',
-                              onClick: () => {
-                                db.trackListingContactEvent(listing.id, 'phone_reveal');
-                                window.location.href = `tel:${rep.phone.replace(/\s+/g, '')}`;
-                              }
-                            });
-                          }
-                          if (rep.wechat) {
-                            socialLinks.push({
-                              id: 'wechat', icon: MessageCircle, label: 'WeChat',
-                              color: 'bg-[#E3F2E1] dark:bg-[#1E3B21] text-[#07C160] hover:bg-[#D1EBD0] dark:hover:bg-[#2A4D2D]',
-                              onClick: () => { alert(`WeChat ID: ${rep.wechat}\n\nSearch this ID in WeChat to connect.`); }
-                            });
-                          }
-                          if (rep.telegram) {
-                            const tgLink = rep.telegram.startsWith('http') ? rep.telegram : `https://t.me/${rep.telegram.replace('@', '')}`;
-                            socialLinks.push({
-                              id: 'telegram', icon: Send, label: 'Telegram',
-                              color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900',
-                              onClick: () => { window.open(tgLink, '_blank'); }
-                            });
-                          }
-                          if (rep.linkedin) {
-                            const lnLink = rep.linkedin.startsWith('http') ? rep.linkedin : `https://${rep.linkedin}`;
-                            socialLinks.push({
-                              id: 'linkedin', icon: Linkedin, label: 'LinkedIn',
-                              color: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900',
-                              onClick: () => { window.open(lnLink, '_blank'); }
-                            });
-                          }
-                          if (rep.facebook) {
-                            const fbLink = rep.facebook.startsWith('http') ? rep.facebook : `https://${rep.facebook}`;
-                            socialLinks.push({
-                              id: 'facebook', icon: Facebook, label: 'Facebook',
-                              color: 'bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 border border-blue-200 dark:border-blue-900',
-                              onClick: () => { window.open(fbLink, '_blank'); }
-                            });
-                          }
-                          if (rep.x_twitter) {
-                            const xLink = rep.x_twitter.startsWith('http') ? rep.x_twitter : `https://${rep.x_twitter}`;
-                            socialLinks.push({
-                              id: 'twitter', icon: Twitter, label: 'X',
-                              color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700',
-                              onClick: () => { window.open(xLink, '_blank'); }
-                            });
-                          }
-                          if (rep.skype) {
-                            socialLinks.push({
-                              id: 'skype', icon: Video, label: 'Skype',
-                              color: 'bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-900',
-                              onClick: () => { window.open(`skype:${rep.skype}?chat`, '_blank'); }
-                            });
-                          }
-                          if (rep.line) {
-                            socialLinks.push({
-                              id: 'line', icon: Hash, label: 'LINE',
-                              color: 'bg-[#E1F5E1] dark:bg-[#1A3B1A] text-[#00C300] hover:bg-[#C8EFC8] dark:hover:bg-[#254C25]',
-                              onClick: () => { window.open(`https://line.me/R/ti/p/~${rep.line}`, '_blank'); }
-                            });
-                          }
-                          if (rep.instagram) {
-                            const igLink = rep.instagram.startsWith('http') ? rep.instagram : `https://instagram.com/${rep.instagram.replace('@', '')}`;
-                            socialLinks.push({
-                              id: 'instagram', icon: Instagram, label: 'Instagram',
-                              color: 'bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-400 hover:bg-pink-200 dark:hover:bg-pink-900',
-                              onClick: () => { window.open(igLink, '_blank'); }
-                            });
-                          }
+                            if (wappNum) {
+                              socialLinks.push({
+                                id: 'whatsapp', icon: MessageSquare, label: 'WhatsApp',
+                                color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900',
+                                onClick: () => {
+                                  db.trackListingContactEvent(listing.id, 'whatsapp');
+                                  const text = encodeURIComponent(`Hi ${rep.name}, I'm interested in: ${listing.title}`);
+                                  window.open(`https://web.whatsapp.com/send?phone=${encodeURIComponent(wappNum)}&text=${text}`, '_blank');
+                                }
+                              });
+                            }
+                            if (rep.phone) {
+                              socialLinks.push({
+                                id: 'call', icon: Phone, label: 'Call',
+                                color: 'border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900',
+                                onClick: () => {
+                                  db.trackListingContactEvent(listing.id, 'phone_reveal');
+                                  window.location.href = `tel:${rep.phone.replace(/\s+/g, '')}`;
+                                }
+                              });
+                            }
+                            if (rep.wechat) {
+                              socialLinks.push({
+                                id: 'wechat', icon: MessageCircle, label: 'WeChat',
+                                color: 'bg-[#E3F2E1] dark:bg-[#1E3B21] text-[#07C160] hover:bg-[#D1EBD0] dark:hover:bg-[#2A4D2D]',
+                                onClick: () => { alert(`WeChat ID: ${rep.wechat}\n\nSearch this ID in WeChat to connect.`); }
+                              });
+                            }
+                            if (rep.telegram) {
+                              const tgLink = rep.telegram.startsWith('http') ? rep.telegram : `https://t.me/${rep.telegram.replace('@', '')}`;
+                              socialLinks.push({
+                                id: 'telegram', icon: Send, label: 'Telegram',
+                                color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900',
+                                onClick: () => { window.open(tgLink, '_blank'); }
+                              });
+                            }
+                            if (rep.linkedin) {
+                              const lnLink = rep.linkedin.startsWith('http') ? rep.linkedin : `https://${rep.linkedin}`;
+                              socialLinks.push({
+                                id: 'linkedin', icon: Linkedin, label: 'LinkedIn',
+                                color: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900',
+                                onClick: () => { window.open(lnLink, '_blank'); }
+                              });
+                            }
+                            if (rep.facebook) {
+                              const fbLink = rep.facebook.startsWith('http') ? rep.facebook : `https://${rep.facebook}`;
+                              socialLinks.push({
+                                id: 'facebook', icon: Facebook, label: 'Facebook',
+                                color: 'bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 border border-blue-200 dark:border-blue-900',
+                                onClick: () => { window.open(fbLink, '_blank'); }
+                              });
+                            }
+                            if (rep.x_twitter) {
+                              const xLink = rep.x_twitter.startsWith('http') ? rep.x_twitter : `https://${rep.x_twitter}`;
+                              socialLinks.push({
+                                id: 'twitter', icon: Twitter, label: 'X',
+                                color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700',
+                                onClick: () => { window.open(xLink, '_blank'); }
+                              });
+                            }
+                            if (rep.skype) {
+                              socialLinks.push({
+                                id: 'skype', icon: Video, label: 'Skype',
+                                color: 'bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 hover:bg-sky-200 dark:hover:bg-sky-900',
+                                onClick: () => { window.open(`skype:${rep.skype}?chat`, '_blank'); }
+                              });
+                            }
+                            if (rep.line) {
+                              socialLinks.push({
+                                id: 'line', icon: Hash, label: 'LINE',
+                                color: 'bg-[#E1F5E1] dark:bg-[#1A3B1A] text-[#00C300] hover:bg-[#C8EFC8] dark:hover:bg-[#254C25]',
+                                onClick: () => { window.open(`https://line.me/R/ti/p/~${rep.line}`, '_blank'); }
+                              });
+                            }
+                            if (rep.instagram) {
+                              const igLink = rep.instagram.startsWith('http') ? rep.instagram : `https://instagram.com/${rep.instagram.replace('@', '')}`;
+                              socialLinks.push({
+                                id: 'instagram', icon: Instagram, label: 'Instagram',
+                                color: 'bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-400 hover:bg-pink-200 dark:hover:bg-pink-900',
+                                onClick: () => { window.open(igLink, '_blank'); }
+                              });
+                            }
 
-                          return (
-                            <div key={rep.id} className="flex flex-col p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-colors">
-                              <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-                                <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0 overflow-hidden border border-slate-300 dark:border-slate-700 font-bold flex items-center justify-center text-slate-500">
-                                  {rep.avatar_url ? <img src={rep.avatar_url} alt={rep.name} className="h-full w-full object-cover" /> : rep.name.charAt(0)}
+                            return (
+                              <div key={rep.id} className="flex flex-col p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 hover:border-emerald-200 dark:hover:border-emerald-800/50 transition-colors">
+                                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                                  <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0 overflow-hidden border border-slate-300 dark:border-slate-700 font-bold flex items-center justify-center text-slate-500">
+                                    {rep.avatar_url ? <img src={rep.avatar_url} alt={rep.name} className="h-full w-full object-cover" /> : rep.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{rep.name}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{rep.phone}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{rep.name}</p>
-                                  <p className="text-xs text-slate-500 dark:text-slate-400">{rep.phone}</p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {socialLinks.map(link => {
+                                    const Icon = link.icon;
+                                    return (
+                                      <button key={link.id} onClick={link.onClick} title={link.label} className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 ${link.color}`}>
+                                        <Icon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{link.label}</span>
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               </div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                {socialLinks.map(link => {
-                                  const Icon = link.icon;
-                                  return (
-                                    <button key={link.id} onClick={link.onClick} title={link.label} className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 ${link.color}`}>
-                                      <Icon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{link.label}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      disabled={!hasPhone}
-                      onClick={() => {
-                        if (!hasPhone) {
-                          toast.error('Supplier phone not available');
-                          return;
-                        }
-                        db.trackListingContactEvent(listing.id, 'whatsapp');
-                        const text = encodeURIComponent(`Hi, I'm interested in: ${listing.title}`);
-                        const url = `https://web.whatsapp.com/send?phone=${encodeURIComponent(phoneMsisdn)}&text=${text}`;
-                        window.open(url, '_blank', 'noopener,noreferrer');
-                      }}
-                      className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border ${hasPhone ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
-                    >
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        disabled={!hasPhone}
+                        onClick={() => {
+                          if (!hasPhone) {
+                            toast.error('Supplier phone not available');
+                            return;
+                          }
+                          db.trackListingContactEvent(listing.id, 'whatsapp');
+                          const text = encodeURIComponent(`Hi, I'm interested in: ${listing.title}`);
+                          const url = `https://web.whatsapp.com/send?phone=${encodeURIComponent(phoneMsisdn)}&text=${text}`;
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                        }}
+                        className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border ${hasPhone ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
+                      >
+                        <MessageSquare className="h-5 w-5" /> WhatsApp
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={!hasPhone}
+                        onClick={() => {
+                          if (!hasPhone) {
+                            toast.error('Supplier phone not available');
+                            return;
+                          }
+                          if (!isPhoneRevealed) {
+                            db.trackListingContactEvent(listing.id, 'phone_reveal');
+                            setIsPhoneRevealed(true);
+                            return;
+                          }
+                          window.location.href = `tel:${phoneRaw.replace(/\s+/g, '')}`;
+                        }}
+                        className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border ${hasPhone ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
+                      >
+                        <Phone className="h-5 w-5" /> {hasPhone ? (isPhoneRevealed ? phoneRaw : 'Phone') : 'Phone'}
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={!hasEmail}
+                        onClick={() => {
+                          const email = (listing.seller_email || '').trim();
+                          if (!email) {
+                            toast.error('Supplier email not available');
+                            return;
+                          }
+                          db.trackListingContactEvent(listing.id, 'email');
+                          const subject = encodeURIComponent(`Inquiry: ${listing.title}`);
+                          window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}`;
+                        }}
+                        className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border ${hasEmail ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
+                      >
+                        <Mail className="h-5 w-5" /> Email
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link to="/login" className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative group cursor-pointer select-none" title="Login to contact supplier">
+                  <div className="col-span-1 sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3 filter blur-[6px] transition-all duration-300 group-hover:blur-[8px]">
+                    <div className="w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 opacity-60">
                       <MessageSquare className="h-5 w-5" /> WhatsApp
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={!hasPhone}
-                      onClick={() => {
-                        if (!hasPhone) {
-                          toast.error('Supplier phone not available');
-                          return;
-                        }
-                        if (!isPhoneRevealed) {
-                          db.trackListingContactEvent(listing.id, 'phone_reveal');
-                          setIsPhoneRevealed(true);
-                          return;
-                        }
-                        window.location.href = `tel:${phoneRaw.replace(/\s+/g, '')}`;
-                      }}
-                      className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border ${hasPhone ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
-                    >
-                      <Phone className="h-5 w-5" /> {hasPhone ? (isPhoneRevealed ? phoneRaw : 'Phone') : 'Phone'}
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={!hasEmail}
-                      onClick={() => {
-                        const email = (listing.seller_email || '').trim();
-                        if (!email) {
-                          toast.error('Supplier email not available');
-                          return;
-                        }
-                        db.trackListingContactEvent(listing.id, 'email');
-                        const subject = encodeURIComponent(`Inquiry: ${listing.title}`);
-                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}`;
-                      }}
-                      className={`w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border ${hasEmail ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800' : 'bg-slate-100 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
-                    >
+                    </div>
+                    <div className="w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 opacity-60">
+                      <Phone className="h-5 w-5" /> Phone
+                    </div>
+                    <div className="w-full font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 opacity-60">
                       <Mail className="h-5 w-5" /> Email
-                    </button>
+                    </div>
                   </div>
-                )}
-              </div>
+                </Link>
+              )
             ) : (
               <button
                 disabled
@@ -497,7 +591,9 @@ const ProductDetails: React.FC = () => {
                     <Phone className="h-3.5 w-3.5" /> Phone
                   </span>
                   <span className="font-semibold text-slate-900 dark:text-slate-100">
-                    {isPhoneRevealed ? phoneRaw : '******** (Click Phone above to reveal)'}
+                    {user ? (isPhoneRevealed ? phoneRaw : '******** (Click Phone above to reveal)') : (
+                      <Link to="/login" className="filter blur-[5px] select-none hover:blur-[3px] transition-all duration-300 block" title="Login to view phone">+1 202 555 0192</Link>
+                    )}
                   </span>
                 </div>
               )}
@@ -506,7 +602,11 @@ const ProductDetails: React.FC = () => {
                   <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
                     <Mail className="h-3.5 w-3.5" /> Email
                   </span>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">{listing.seller_email}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {user ? listing.seller_email : (
+                      <Link to="/login" className="filter blur-[5px] select-none hover:blur-[3px] transition-all duration-300 block" title="Login to view email">contact@supplier.com</Link>
+                    )}
+                  </span>
                 </div>
               )}
               {listing.seller_business_address && (
@@ -514,7 +614,11 @@ const ProductDetails: React.FC = () => {
                   <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
                     <MapPin className="h-3.5 w-3.5" /> Address
                   </span>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100 text-right max-w-[60%] line-clamp-2">{listing.seller_business_address}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 text-right max-w-[80%] line-clamp-2">
+                    {user ? listing.seller_business_address : (
+                      <Link to="/login" className="filter blur-[5px] select-none hover:blur-[3px] transition-all duration-300 block text-right w-full" title="Login to view address">123 Industrial Park Road, Tech Valley, Shenzhen, China</Link>
+                    )}
+                  </span>
                 </div>
               )}
             </div>

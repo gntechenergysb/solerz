@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, ShieldCheck, Zap, BarChart2, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../services/authContext';
@@ -22,14 +22,14 @@ const PLANS: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 19,
-    yearlyPrice: 209,
+    monthlyPrice: 0,
+    yearlyPrice: 0,
     listingLimit: 3,
     features: [
-      '3 Active Listings (30 days each)',
-      'Basic View Counter',
+      '3 Active Listings forever',
       'Standard Visibility',
-      'Company Verification'
+      'Company Profile',
+      'Message Support'
     ],
     colorTheme: 'slate'
   },
@@ -89,6 +89,13 @@ const Pricing: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  useEffect(() => {
+    if (user?.role === 'BUYER') {
+      toast.error('Pricing plans are only for Sellers.');
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
   const isSubscribed = !!user && user.tier !== 'UNSUBSCRIBED';
   const currentTier = user?.tier?.toUpperCase() || '';
   const currentBilling = user?.stripe_billing_interval === 'year' ? 'yearly' : 'monthly';
@@ -110,6 +117,11 @@ const Pricing: React.FC = () => {
     const planRank = TIER_RANK[planTier] || 0;
     const currentRank = TIER_RANK[currentTier] || 0;
 
+    if (planTier === 'STARTER' && currentRank === planRank) {
+      if (isCancelPending) return { label: 'Resubscribe', disabled: false, action: 'resubscribe' };
+      return { label: 'Current Plan', disabled: true, action: 'current' };
+    }
+
     if (planRank > currentRank) return { label: 'Upgrade', disabled: false, action: 'upgrade' };
     if (planRank < currentRank) return { label: 'Downgrade', disabled: false, action: 'downgrade' };
 
@@ -129,6 +141,41 @@ const Pricing: React.FC = () => {
     }
     const { disabled } = getPlanAction(plan);
     if (disabled) return;
+
+    // Starter is free — if user has no active Stripe sub, activate directly (no modal)
+    if (plan.id === 'starter' && !isSubscribed) {
+      (async () => {
+        setIsProcessing(true);
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData.session?.access_token;
+          if (!accessToken) {
+            toast.error('Please login again.');
+            navigate('/login');
+            return;
+          }
+          const res = await fetch('/api/activate-starter', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`
+            }
+          });
+          const json = (await res.json().catch(() => null)) as any;
+          if (!res.ok) throw new Error(json?.error || 'Failed to activate Starter');
+          toast.success('Free Starter plan activated! You now have 3 listing slots.');
+          await refreshUser();
+          navigate('/dashboard');
+        } catch (e: any) {
+          console.error(e);
+          toast.error(e?.message || 'Failed to activate Starter plan. Please try again.');
+        } finally {
+          setIsProcessing(false);
+        }
+      })();
+      return;
+    }
+
     setSelectedPlan(plan);
   };
 
@@ -144,8 +191,60 @@ const Pricing: React.FC = () => {
         return;
       }
 
-      if (isSubscribed) {
-        // Already subscribed → call change API
+      const hasActiveStripeSub = !!user.stripe_subscription_id && ['active', 'trialing', 'past_due', 'canceled'].includes(user.stripe_subscription_status || '');
+
+      if (selectedPlan.id === 'starter') {
+        if (currentTier === 'STARTER') {
+          toast('You are already on the free Starter plan.');
+          return;
+        }
+
+        if (hasActiveStripeSub && user.stripe_subscription_status !== 'canceled') {
+          // Downgrading to the free 'Starter' plan is equivalent to canceling the Stripe subscription
+          const res = await fetch('/api/stripe/subscription/cancel', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ atPeriodEnd: true })
+          });
+
+          const json = (await res.json().catch(() => null)) as any;
+          if (!res.ok) throw new Error(String(json?.error || 'cancel_failed'));
+
+          toast.success('Your subscription will be canceled at the end of the billing period, reverting to free Starter.');
+        } else {
+          // No active Stripe subscription, set database tier via backend (no Stripe needed for free plan)
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData.session?.access_token;
+          if (!accessToken) {
+            toast.error('Please login again.');
+            navigate('/login');
+            return;
+          }
+          const activateRes = await fetch('/api/activate-starter', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`
+            }
+          });
+          if (!activateRes.ok) {
+            const errJson = (await activateRes.json().catch(() => null)) as any;
+            throw new Error(errJson?.error || 'activate_failed');
+          }
+          toast.success('Successfully activated free Starter plan!');
+        }
+
+        await refreshUser();
+        setSelectedPlan(null);
+        navigate('/dashboard');
+        return;
+      }
+
+      // Reaching here means they selected a Paid Plan
+      if (hasActiveStripeSub && user.stripe_subscription_status !== 'canceled') {
         const res = await fetch('/api/stripe/subscription/change', {
           method: 'POST',
           headers: {
@@ -159,9 +258,7 @@ const Pricing: React.FC = () => {
         });
 
         const json = (await res.json().catch(() => null)) as any;
-        if (!res.ok) {
-          throw new Error(String(json?.error || 'change_failed'));
-        }
+        if (!res.ok) throw new Error(String(json?.error || 'change_failed'));
 
         if (json?.mode === 'resubscribed') {
           toast.success('Subscription reactivated!');
@@ -179,6 +276,8 @@ const Pricing: React.FC = () => {
         navigate('/dashboard');
         return;
       }
+
+      // No Active Subscription -> Initiate Checkout for Paid Plan
 
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -341,7 +440,7 @@ const Pricing: React.FC = () => {
             <div>
               <h3 className="text-2xl font-bold text-white mb-2">Enterprise Solutions</h3>
               <p className="text-slate-400 max-w-lg leading-relaxed text-sm md:text-base">
-                Need more than 80 listings? Get specialized API integrations, dedicated account management, and bulk onboarding services.
+                Need more than 80 listings? Contact us for a custom enterprise plan tailored to your business needs.
               </p>
             </div>
           </div>
@@ -467,12 +566,14 @@ const Pricing: React.FC = () => {
 
               {(() => {
                 const action = selectedPlan ? getPlanAction(selectedPlan).action : 'subscribe';
-                const actionLabel = action === 'resubscribe' ? 'Reactivate Subscription'
-                  : action === 'upgrade' ? 'Confirm Upgrade'
-                    : action === 'downgrade' ? 'Schedule Downgrade'
-                      : action === 'switch_to_yearly' ? 'Confirm Switch'
-                        : action === 'switch_to_monthly' ? 'Schedule Switch'
-                          : 'Pay with Stripe';
+                const isStarterFree = selectedPlan?.id === 'starter';
+                const actionLabel = isStarterFree ? 'Activate Free Plan'
+                  : action === 'resubscribe' ? 'Reactivate Subscription'
+                    : action === 'upgrade' ? 'Confirm Upgrade'
+                      : action === 'downgrade' ? 'Schedule Downgrade'
+                        : action === 'switch_to_yearly' ? 'Confirm Switch'
+                          : action === 'switch_to_monthly' ? 'Schedule Switch'
+                            : 'Pay with Stripe';
                 return (
                   <button
                     onClick={handlePayment}

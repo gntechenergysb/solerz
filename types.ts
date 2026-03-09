@@ -52,8 +52,16 @@ export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cabl
 
 export type ListingCondition = 'New' | 'Used' | 'Refurbished' | string;
 
+export interface PriceTier {
+  min_quantity: number;
+  max_quantity?: number | null; // null or undefined means "and above"
+  price: number;
+}
+
 export interface BaseSpecs {
-  [key: string]: string | number;
+  [key: string]: string | number | boolean | PriceTier[] | null | undefined;
+  price_tiers?: PriceTier[];
+  video_url?: string;
 }
 
 export interface PanelSpecs extends BaseSpecs {

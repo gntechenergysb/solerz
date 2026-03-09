@@ -1264,24 +1264,7 @@ const Marketplace: React.FC = () => {
               </div>
             </div>
 
-            {/* Sorting Dropdown */}
-            <div className="relative w-full sm:min-w-[160px]">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <ArrowUpDown className="h-4 w-4 text-slate-500" />
-              </div>
-              <select
-                className="w-full pl-9 pr-8 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-100 font-medium appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm cursor-pointer"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="latest">Latest Listed</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <ChevronDown className="h-4 w-4 text-slate-400" />
-              </div>
-            </div>
+
 
             {(selectedCategory !== '') && (
               <div className="relative flex-shrink-0 w-full sm:w-auto">

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Listing } from '../types';
-import { CheckCircle, MapPin, ArrowRight, AlertTriangle, Scale } from 'lucide-react';
+import { CheckCircle, MapPin, ArrowRight, AlertTriangle, Scale, Lock } from 'lucide-react';
+import { useAuth } from '../services/authContext';
 
 interface ProductCardProps {
   listing: Listing;
@@ -10,6 +11,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isCompared }) => {
+  const { user } = useAuth();
   const isSold = listing.is_sold;
   const isVerified = listing.is_verified_listing;
   const categoryLabel = listing.category === 'Accessories' ? 'Misc' : listing.category === ('Miscellaneous' as any) ? 'Misc' : listing.category;
@@ -124,14 +126,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isC
           <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-0.5">Asking Price</span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-extrabold text-amber-600 dark:text-amber-500 tracking-tight">
-                  {!listing.price || listing.price === 0 ? "POA" : `${listing.currency || 'USD'} ${listing.price.toLocaleString()}`}
-                </span>
-                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-                  (Min Order: {listing.moq || 1})
-                </span>
-              </div>
+              {user ? (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-extrabold text-amber-600 dark:text-amber-500 tracking-tight">
+                    {!listing.price || listing.price === 0 ? "POA" : `${listing.currency || 'USD'} ${listing.price.toLocaleString()}`}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    (Min Order: {listing.moq || 1})
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-2 mt-0.5" title="Login to view price">
+                  <span className="text-xl font-extrabold text-amber-600/70 dark:text-amber-500/70 tracking-tight blur-[6px] select-none transition-all duration-300 hover:blur-[4px]">
+                    USD 99,999.00
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 opacity-40 blur-[4px] select-none transition-all duration-300 hover:blur-[2px]">
+                    (Min Order: 50)
+                  </span>
+                </div>
+              )}
             </div>
             {/* Unverified Seller - Important Safety Notice */}
             {!isVerified && (

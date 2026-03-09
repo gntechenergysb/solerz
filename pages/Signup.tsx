@@ -63,7 +63,7 @@ const Signup: React.FC = () => {
       email: formData.email,
       company_name: formData.name, // "Name" acts as Company Name or Full Name
       seller_type: role === 'Company Seller' ? 'COMPANY' : 'INDIVIDUAL' as 'COMPANY' | 'INDIVIDUAL',
-      tier: 'UNSUBSCRIBED' as any,
+      tier: role === 'Buyer' ? 'UNSUBSCRIBED' as any : 'STARTER' as any,
       role: role === 'Buyer' ? 'BUYER' : 'SELLER'
     };
 
