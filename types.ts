@@ -50,7 +50,7 @@ export interface SalesRepresentative {
 
 export type Category = 'Panels' | 'Inverters' | 'Batteries' | 'Mounting' | 'Cable' | 'Protective' | 'Accessories' | 'Misc' | 'Full System';
 
-export type ListingCondition = 'Liquidation/Surplus' | 'Used - Good' | 'Refurbished' | 'Salvaged' | 'Scrap / For Recycling' | string;
+export type ListingCondition = 'New / Unused' | 'Used (Working)' | 'Refurbished (Tested)' | 'For Parts / Repair' | 'Scrap / Recycling' | string;
 
 export interface PriceTier {
   min_quantity: number;

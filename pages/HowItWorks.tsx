@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 // Mock UI Components for screenshots
-const MarketplacePreview: React.FC = () => (
+const ListingsPreview: React.FC = () => (
   <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden w-full max-w-md mx-auto">
     {/* Header */}
     <div className="bg-slate-50 dark:bg-slate-900 p-3 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2">
@@ -61,7 +61,7 @@ const MarketplacePreview: React.FC = () => (
               <span className="font-semibold text-sm text-slate-700 dark:text-slate-300">550W Solar Panel</span>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] rounded-full font-bold">VERIFIED</span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Jinko Solar • Global Supplier</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Jinko Solar • Verified Supplier</p>
             <p className="text-sm font-bold text-emerald-600">USD 85</p>
           </div>
         </div>
@@ -206,7 +206,7 @@ const HowItWorks: React.FC = () => {
           How Solerz Works
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto px-4">
-          The world's trusted platform for global solar equipment trades (B2B, B2C, & C2C).
+          The trusted platform for regional solar equipment trades (B2B, B2C, & C2C).
           Discover how easy it is to transact safely on our platform.
         </p>
       </div>
@@ -258,7 +258,7 @@ const HowItWorks: React.FC = () => {
                   <ul className="space-y-3 inline-block text-left">
                     {[
                       'Solar panels, inverters, batteries & more',
-                      'Filter by global seller locations',
+                      'Filter by seller locations',
                       'Compare prices and specifications'
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
@@ -269,7 +269,7 @@ const HowItWorks: React.FC = () => {
                   </ul>
                 </div>
                 <div className="order-1 md:order-2">
-                  <MarketplacePreview />
+                  <ListingsPreview />
                 </div>
               </div>
 

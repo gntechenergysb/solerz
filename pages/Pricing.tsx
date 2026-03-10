@@ -319,7 +319,7 @@ const Pricing: React.FC = () => {
       <div className="text-center max-w-3xl mx-auto mb-16">
         <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">Secondary Market Pricing</h1>
         <p className="text-lg text-slate-500 dark:text-slate-300 mb-8">
-          Clear, flat-fee pricing for liquidating your used or surplus solar assets. Scale your global reach as you grow.
+          Clear, flat-fee pricing for liquidating your used or surplus solar assets. Scale your regional reach as you grow.
         </p>
 
         {/* Toggle */}

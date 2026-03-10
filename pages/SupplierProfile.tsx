@@ -65,8 +65,8 @@ const SupplierProfile: React.FC = () => {
             <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 text-center">
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4">Supplier Not Found</h2>
                 <p className="text-slate-600 dark:text-slate-400 mb-8">The supplier profile you are looking for does not exist or has been removed.</p>
-                <Link to="/marketplace" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-slate-900 bg-primary hover:bg-primary/90">
-                    Browse Marketplace
+                <Link to="/" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-slate-900 bg-primary hover:bg-primary/90">
+                    Browse Listings
                 </Link>
             </div>
         );
@@ -135,26 +135,26 @@ const SupplierProfile: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm md:text-base text-slate-200">
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm md:text-base text-slate-600 dark:text-slate-300 mt-2">
                                 {user ? (
                                     <>
                                         <span className="flex items-center gap-1.5">
-                                            <MapPin className="w-4 h-4 text-slate-300" /> {profile.country || 'Global'}, {profile.business_address || 'Registered Business'}
+                                            <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-500" /> {profile.country || 'All Countries'}, {profile.business_address || 'Registered Business'}
                                         </span>
                                         {profile.email && (
-                                            <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
-                                                <Mail className="w-4 h-4 text-slate-300" /> Email Us
+                                            <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                                                <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-500" /> Email Us
                                             </a>
                                         )}
                                     </>
                                 ) : (
                                     <>
-                                        <Link to="/login" className="flex items-center gap-1.5 filter blur-[5px] hover:blur-[3px] transition-all duration-300 select-none text-slate-300 hover:text-white" title="Login to view address">
-                                            <MapPin className="w-4 h-4 text-slate-300" /> {profile.country || 'Global'}, {profile.business_address || 'Registered Business'}
+                                        <Link to="/login" className="flex items-center gap-1.5 filter blur-[5px] hover:blur-[3px] transition-all duration-300 select-none text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Login to view address">
+                                            <MapPin className="w-4 h-4" /> {profile.country || 'All Countries'}, {profile.business_address || 'Registered Business'}
                                         </Link>
                                         {profile.email && (
-                                            <Link to="/login" className="flex items-center gap-1.5 filter blur-[5px] hover:blur-[3px] transition-all duration-300 select-none text-slate-300 hover:text-white" title="Login to view email">
-                                                <Mail className="w-4 h-4 text-slate-300" /> Email Us
+                                            <Link to="/login" className="flex items-center gap-1.5 filter blur-[5px] hover:blur-[3px] transition-all duration-300 select-none text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Login to view email">
+                                                <Mail className="w-4 h-4" /> Email Us
                                             </Link>
                                         )}
                                     </>

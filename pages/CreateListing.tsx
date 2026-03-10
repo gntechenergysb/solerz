@@ -27,8 +27,8 @@ const CreateListing: React.FC = () => {
   const [price, setPrice] = useState('');
   const [moq, setMoq] = useState('1');
   const [currency, setCurrency] = useState('USD');
-  const [locationCountry, setLocationCountry] = useState('China');
-  const [condition, setCondition] = useState<'Liquidation/Surplus' | 'Used - Good' | 'Refurbished' | 'Salvaged' | 'Scrap / For Recycling'>('Liquidation/Surplus');
+  const [locationCountry, setLocationCountry] = useState('All Countries');
+  const [condition, setCondition] = useState<'New / Unused' | 'Used (Working)' | 'Refurbished (Tested)' | 'For Parts / Repair' | 'Scrap / Recycling'>('New / Unused');
   const [images, setImages] = useState<File[]>([]);
 
   // Dynamic Specs State
@@ -97,11 +97,11 @@ const CreateListing: React.FC = () => {
       if (editId === 'demo-1') {
         setExistingListing({
           id: editId, seller_id: 'demo-seller', title: 'Demo Solar Panel 550W', brand: 'Jinko',
-          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'China', location_state: '', condition: 'New',
+          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'All Countries', location_state: '', condition: 'New / Unused',
           specs: { wattage: '550' }, images_url: []
         } as any);
         setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
-        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('China'); setCondition('Liquidation/Surplus'); setSpecs({ wattage: '550' });
+        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('All Countries'); setCondition('New / Unused'); setSpecs({ wattage: '550' });
       }
       return;
     }
@@ -873,6 +873,7 @@ const CreateListing: React.FC = () => {
                 onChange={(e) => setLocationCountry(e.target.value)}
                 className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 mb-3"
               >
+                <option value="All Countries">All Countries</option>
                 {GLOBAL_LOCATIONS.map(group => (
                   <optgroup key={group.region} label={group.region}>
                     {group.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
@@ -888,11 +889,11 @@ const CreateListing: React.FC = () => {
                 onChange={(e) => setCondition(e.target.value as any)}
                 className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
               >
-                <option value="Liquidation/Surplus">Liquidation / Surplus (Unused)</option>
-                <option value="Used - Good">Used / Working</option>
-                <option value="Refurbished">Refurbished / Tested</option>
-                <option value="Salvaged">Salvaged / For Parts</option>
-                <option value="Scrap / For Recycling">Scrap / For Recycling (Broken)</option>
+                <option value="New / Unused">New / Unused</option>
+                <option value="Used (Working)">Used / Working</option>
+                <option value="Refurbished (Tested)">Refurbished (Tested)</option>
+                <option value="For Parts / Repair">For Parts / Repair</option>
+                <option value="Scrap / Recycling">Scrap / Recycling</option>
               </select>
             </div>
           </div>

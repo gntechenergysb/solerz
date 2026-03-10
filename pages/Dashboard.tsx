@@ -1247,6 +1247,11 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
+          {/* Sales Team Management */}
+          <div className="mb-6">
+            <SalesTeamManager sellerId={user.id} />
+          </div>
+
           {/* --- ELITE ANALYTICS REDESIGN --- */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
@@ -1335,8 +1340,6 @@ const Dashboard: React.FC = () => {
         </>
       )}
 
-      {/* Sales Team Management */}
-      <SalesTeamManager sellerId={user.id} />
 
     </div>
   );
