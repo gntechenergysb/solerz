@@ -1235,10 +1235,8 @@ const Marketplace: React.FC = () => {
                 }}
               >
                 <option value="">All Countries</option>
-                {GLOBAL_LOCATIONS.map(group => (
-                  <optgroup key={group.region} label={group.region}>
-                    {group.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                  </optgroup>
+                {GLOBAL_LOCATIONS.map(loc => (
+                  <option key={loc} value={loc}>{loc}</option>
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">

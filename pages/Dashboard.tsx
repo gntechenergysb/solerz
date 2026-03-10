@@ -196,10 +196,8 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
             onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
             className="w-full border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm focus:ring-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
           >
-            {GLOBAL_LOCATIONS.map(group => (
-              <optgroup key={group.region} label={group.region}>
-                {group.locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-              </optgroup>
+            {GLOBAL_LOCATIONS.map(loc => (
+              <option key={loc} value={loc}>{loc}</option>
             ))}
             <option value="Other Location">Other Location</option>
           </select>
