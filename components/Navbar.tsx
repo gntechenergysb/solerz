@@ -207,9 +207,12 @@ const Navbar: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                <Link to="/login" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-emerald-600">
+              <div className="flex items-center space-x-4">
+                <Link to="/login" className="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-colors">
                   Log In
+                </Link>
+                <Link to="/signup" className="inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-slate-900 bg-emerald-400 hover:bg-emerald-500 rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 dark:focus:ring-offset-slate-900">
+                  Create Account
                 </Link>
               </div>
             )}

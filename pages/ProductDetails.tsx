@@ -183,17 +183,7 @@ const ProductDetails: React.FC = () => {
             </div>
 
             <div className="mb-8">
-              {!user ? (
-                <Link to="/login" className="flex flex-col relative group cursor-pointer select-none" title="Login to view price">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Asking Price</p>
-                  <div className="flex flex-col filter blur-[8px] transition-all duration-300 group-hover:blur-[5px]">
-                    <p className="text-4xl font-bold text-amber-600/80 dark:text-amber-400/80">USD 99,999.00</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
-                      Minimum Order Quantity: <span className="text-slate-900/80 dark:text-slate-100/80 font-bold">50 Unit(s)</span>
-                    </p>
-                  </div>
-                </Link>
-              ) : !listing.price || listing.price === 0 ? (
+              {!listing.price || listing.price === 0 ? (
                 <div className="flex flex-col">
                   <p className="text-4xl font-bold text-amber-600 dark:text-amber-400">POA</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
@@ -495,11 +485,17 @@ const ProductDetails: React.FC = () => {
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-wide uppercase">About the Supplier</h3>
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 font-bold text-slate-500 dark:text-slate-300">
-                {listing.seller_name?.[0]?.toUpperCase() || 'S'}
+                {user ? (listing.seller_name?.[0]?.toUpperCase() || 'S') : <Lock className="h-5 w-5" />}
               </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-lg">{listing.seller_name || 'Verified Supplier'}</h4>
+                  <h4
+                    className={`font-bold text-slate-800 dark:text-slate-200 text-lg ${!user ? 'blur-[5px] select-none hover:blur-[3px] transition-all duration-300 cursor-pointer' : ''}`}
+                    onClick={() => !user && (window.location.href = '/login')}
+                    title={!user ? "Login to view supplier" : undefined}
+                  >
+                    {user ? (listing.seller_name || 'Verified Supplier') : 'Hidden Supplier Ltd'}
+                  </h4>
                   {listing.is_verified_seller && (
                     <span className="text-emerald-500" title="Verified Seller">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
@@ -549,10 +545,16 @@ const ProductDetails: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600`}>
-                  {listing.seller_name.charAt(0)}
+                  {user ? (listing.seller_name?.charAt(0) || 'S') : <Lock className="h-4 w-4" />}
                 </div>
                 <div>
-                  <p className="font-bold text-lg text-slate-900 dark:text-slate-100">{listing.seller_name}</p>
+                  <p
+                    className={`font-bold text-lg text-slate-900 dark:text-slate-100 ${!user ? 'blur-[5px] select-none hover:blur-[3px] transition-all duration-300 cursor-pointer' : ''}`}
+                    onClick={() => !user && (window.location.href = '/login')}
+                    title={!user ? "Login to view supplier" : undefined}
+                  >
+                    {user ? listing.seller_name : 'Hidden Supplier'}
+                  </p>
                   <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     {listing.is_verified_seller ? 'Registered Company' : 'Unverified'}

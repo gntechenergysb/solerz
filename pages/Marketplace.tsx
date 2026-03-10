@@ -71,7 +71,7 @@ const CABLE_MATERIALS = [
 
 const CABLE_INSULATIONS = ['XLPE', 'XLPO', 'PVC', 'Halogen-Free', 'LSHF'];
 
-const LISTING_CONDITIONS = ['New', 'Used', 'Refurbished'];
+const LISTING_CONDITIONS = ['Liquidation/Surplus', 'Used - Good', 'Refurbished', 'Salvaged', 'Scrap / For Recycling'];
 
 const MOUNTING_TYPES = ['Roof Mount', 'Ground Mount', 'Carport', 'Tracking System', 'Wall Mount', 'Pole Mount', 'Other'];
 const MOUNTING_MATERIALS = ['Aluminum', 'Galvanized Steel', 'Stainless Steel', 'Plastic', 'Mixed', 'Other'];

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { db } from '../services/db';
 import { Listing, SalesRepresentative } from '../types';
 import ProductCard from '../components/ProductCard';
-import { MapPin, CheckCircle, Mail, Phone, ExternalLink, ShieldCheck, Users, MessageSquare, MessageCircle, Send, Linkedin, Facebook, Twitter, Instagram, Video, Hash, PlayCircle, Info } from 'lucide-react';
+import { MapPin, CheckCircle, Mail, Phone, ExternalLink, ShieldCheck, Users, MessageSquare, MessageCircle, Send, Linkedin, Facebook, Twitter, Instagram, Video, Hash, PlayCircle, Info, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../services/authContext';
 
@@ -106,18 +106,26 @@ const SupplierProfile: React.FC = () => {
                     <div className="flex flex-col md:flex-row items-center md:items-end gap-6 w-full text-center md:text-left z-10 translate-y-10 md:translate-y-12">
                         {/* Avatar */}
                         <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl shadow-xl flex items-center justify-center text-4xl md:text-5xl font-black text-slate-800 border-4 border-white/50 flex-shrink-0 overflow-hidden backdrop-blur-md">
-                            {profile.avatar_url ? (
-                                <img src={profile.avatar_url} alt={supplierName} className="w-full h-full object-cover" />
+                            {user ? (
+                                profile.avatar_url ? (
+                                    <img src={profile.avatar_url} alt={supplierName} className="w-full h-full object-cover" />
+                                ) : (
+                                    initial
+                                )
                             ) : (
-                                initial
+                                <Lock className="w-10 h-10 text-slate-400" />
                             )}
                         </div>
 
                         {/* Main Info */}
                         <div className="flex-grow pb-2">
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
-                                <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">
-                                    {supplierName}
+                                <h1
+                                    className={`text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md ${!user ? 'blur-[8px] select-none hover:blur-[5px] transition-all cursor-pointer' : ''}`}
+                                    onClick={() => !user && (window.location.href = '/login')}
+                                    title={!user ? "Login to view supplier" : undefined}
+                                >
+                                    {user ? supplierName : 'Hidden Supplier Ltd'}
                                 </h1>
                                 {profile.is_verified && (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/90 text-slate-900 border border-primary/50 rounded-full text-xs font-bold shadow-lg shadow-primary/20 backdrop-blur-md">
@@ -186,7 +194,7 @@ const SupplierProfile: React.FC = () => {
                             </h2>
                             <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
                                 <p>
-                                    Welcome to {supplierName}. We are a {profile.seller_type === 'COMPANY' ? 'leading registered enterprise' : 'specialized trader'} based in {profile.country || 'the region'}, dedicated to providing top-tier renewable energy products to installers, EPCs, and distributors worldwide.
+                                    Welcome to <span className={!user ? "blur-[5px] select-none cursor-pointer hover:blur-[3px] transition-all" : "font-bold"} onClick={() => !user && (window.location.href = '/login')} title={!user ? "Login to view supplier" : undefined}>{user ? supplierName : 'Hidden Supplier Ltd'}</span>. We are a {profile.seller_type === 'COMPANY' ? 'leading registered enterprise' : 'specialized trader'} based in {profile.country || 'the region'}, dedicated to providing top-tier renewable energy products to installers, EPCs, and distributors worldwide.
                                 </p>
                                 <p>
                                     With a focus on quality and reliability, check out our catalog below for our latest stock items. We are committed to fostering long-term business partnerships. Feel free to reach out to any of our dedicated sales representatives for bulk pricing and project quotations.

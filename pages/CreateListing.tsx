@@ -28,7 +28,7 @@ const CreateListing: React.FC = () => {
   const [moq, setMoq] = useState('1');
   const [currency, setCurrency] = useState('USD');
   const [locationCountry, setLocationCountry] = useState('China');
-  const [condition, setCondition] = useState<'New' | 'Used' | 'Refurbished'>('Used');
+  const [condition, setCondition] = useState<'Liquidation/Surplus' | 'Used - Good' | 'Refurbished' | 'Salvaged' | 'Scrap / For Recycling'>('Liquidation/Surplus');
   const [images, setImages] = useState<File[]>([]);
 
   // Dynamic Specs State
@@ -101,7 +101,7 @@ const CreateListing: React.FC = () => {
           specs: { wattage: '550' }, images_url: []
         } as any);
         setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
-        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('China'); setCondition('New'); setSpecs({ wattage: '550' });
+        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('China'); setCondition('Liquidation/Surplus'); setSpecs({ wattage: '550' });
       }
       return;
     }
@@ -133,7 +133,7 @@ const CreateListing: React.FC = () => {
         setMoq(String(row.moq ?? '1'));
         setCurrency(row.currency || 'USD');
         setLocationCountry(row.location_country || 'China');
-        setCondition(((row as any).condition as any) || 'Used');
+        setCondition(((row as any).condition as any) || 'Used - Good');
         setSpecs((row.specs || {}) as any);
       } catch (e) {
         console.error(e);
@@ -888,9 +888,11 @@ const CreateListing: React.FC = () => {
                 onChange={(e) => setCondition(e.target.value as any)}
                 className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
               >
-                <option value="New">New</option>
-                <option value="Used">Used</option>
-                <option value="Refurbished">Refurbished</option>
+                <option value="Liquidation/Surplus">Liquidation / Surplus (Unused)</option>
+                <option value="Used - Good">Used / Working</option>
+                <option value="Refurbished">Refurbished / Tested</option>
+                <option value="Salvaged">Salvaged / For Parts</option>
+                <option value="Scrap / For Recycling">Scrap / For Recycling (Broken)</option>
               </select>
             </div>
           </div>
