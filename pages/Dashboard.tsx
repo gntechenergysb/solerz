@@ -140,9 +140,7 @@ const KYCForm = ({ onSubmit, isSubmitting }: { onSubmit: (data: any, file: File)
   const [showSample, setShowSample] = useState(false);
 
   useEffect(() => {
-    detectUserLocation().then(geo => {
-      if (geo) setFormData(prev => ({ ...prev, country: geo.country_name }));
-    });
+    // Only fetch other location-based info if needed, or remove entirely if unused.
   }, []);
 
   const handleFileSelect = (file: File | null) => {
