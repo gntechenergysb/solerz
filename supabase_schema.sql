@@ -228,7 +228,7 @@ BEGIN
     END,
     CASE
       WHEN upper(COALESCE(NEW.raw_user_meta_data->>'role', 'SELLER')) = 'BUYER' THEN 'UNSUBSCRIBED'
-      ELSE 'STARTER'
+      ELSE 'UNSUBSCRIBED'
     END,
     NEW.raw_user_meta_data->>'handphone_no'
   );
