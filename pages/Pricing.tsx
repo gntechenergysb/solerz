@@ -200,7 +200,7 @@ const Pricing: React.FC = () => {
           navigate('/dashboard');
           return;
         }
-        
+
         // No active Stripe subscription -> Let it fall through to initiate Checkout below, 
         // to bind a credit card in Stripe for the free Starter plan.
       }
