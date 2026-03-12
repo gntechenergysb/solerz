@@ -350,25 +350,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...data
           }), 3500, 'db_update_profile');
 
-          // Safety net: ensure Seller accounts always get STARTER tier
-          // Uses backend endpoint to bypass RLS restrictions on the tier column
-          if (data.role !== 'BUYER') {
-            try {
-              const { data: sessionData } = await supabase.auth.getSession();
-              const accessToken = sessionData.session?.access_token;
-              if (accessToken) {
-                await fetch('/api/activate-starter', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`
-                  }
-                });
-              }
-            } catch (e) {
-              console.warn('activate-starter fallback failed (non-critical):', e);
-            }
-          }
         }
       }
 
