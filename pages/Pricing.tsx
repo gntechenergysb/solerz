@@ -262,9 +262,10 @@ const Pricing: React.FC = () => {
       if (!url) throw new Error('missing_checkout_url');
 
       window.location.href = url;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Stripe checkout error:', error);
-      toast.error('Unable to start checkout. Please try again.');
+      const msg = error?.message?.replace('Error: ', '') || 'Unable to start checkout. Please try again.';
+      toast.error(msg);
     } finally {
       setIsProcessing(false);
     }
