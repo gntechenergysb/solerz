@@ -523,7 +523,7 @@ const Pricing: React.FC = () => {
               <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
                 <div className="flex justify-between font-bold text-slate-900 text-lg">
                   <span>Total</span>
-                  <span>RM {currentPrice.toFixed(2)}</span>
+                  <span>USD {currentPrice.toFixed(2)}</span>
                 </div>
               </div>
 
