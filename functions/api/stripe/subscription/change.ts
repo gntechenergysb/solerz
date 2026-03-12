@@ -142,9 +142,9 @@ const tierRank = (tier: string) => {
 const getListingLimit = (tier: string) => {
   switch (tier) {
     case 'STARTER': return 3;
-    case 'PRO': return 10;
-    case 'ELITE': return 25;
-    case 'ENTERPRISE': return 80;
+    case 'PRO': return 30;
+    case 'ELITE': return 80;
+    case 'ENTERPRISE': return 200;
     default: return 0;
   }
 };

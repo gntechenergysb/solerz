@@ -38,9 +38,9 @@ const PLANS: Plan[] = [
     name: 'Pro',
     monthlyPrice: 59,
     yearlyPrice: 649,
-    listingLimit: 10,
+    listingLimit: 30,
     features: [
-      '10 Active Listings (30 days each)',
+      '30 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
       'Company Verification'
@@ -53,9 +53,9 @@ const PLANS: Plan[] = [
     name: 'Elite',
     monthlyPrice: 119,
     yearlyPrice: 1309,
-    listingLimit: 25,
+    listingLimit: 80,
     features: [
-      '25 Active Listings (30 days each)',
+      '80 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
       'Company Verification',
@@ -68,9 +68,9 @@ const PLANS: Plan[] = [
     name: 'Enterprise',
     monthlyPrice: 299,
     yearlyPrice: 3289,
-    listingLimit: 80,
+    listingLimit: 200,
     features: [
-      '80 Active Listings (30 days each)',
+      '200 Active Listings (30 days each)',
       'Basic View Counter',
       'Standard Visibility',
       'Company Verification',
@@ -142,37 +142,13 @@ const Pricing: React.FC = () => {
     const { disabled } = getPlanAction(plan);
     if (disabled) return;
 
-    // Starter is free — if user has no active Stripe sub, activate directly (no modal)
+    // Starter is free, but we now require company verification and a Stripe checkout to bind a card.
     if (plan.id === 'starter' && !isSubscribed) {
-      (async () => {
-        setIsProcessing(true);
-        try {
-          const { data: sessionData } = await supabase.auth.getSession();
-          const accessToken = sessionData.session?.access_token;
-          if (!accessToken) {
-            toast.error('Please login again.');
-            navigate('/login');
-            return;
-          }
-          const res = await fetch('/api/activate-starter', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`
-            }
-          });
-          const json = (await res.json().catch(() => null)) as any;
-          if (!res.ok) throw new Error(json?.error || 'Failed to activate Starter');
-          toast.success('Free Starter plan activated! You now have 3 listing slots.');
-          await refreshUser();
-          navigate('/dashboard');
-        } catch (e: any) {
-          console.error(e);
-          toast.error(e?.message || 'Failed to activate Starter plan. Please try again.');
-        } finally {
-          setIsProcessing(false);
-        }
-      })();
+      if (!user.is_verified || !user.company_reg_no) {
+        toast.error('You must complete your company profile and be verified to use the free Starter plan.');
+        return;
+      }
+      setSelectedPlan(plan);
       return;
     }
 
@@ -195,7 +171,12 @@ const Pricing: React.FC = () => {
 
       if (selectedPlan.id === 'starter') {
         if (currentTier === 'STARTER') {
-          toast('You are already on the free Starter plan.');
+          toast.error('You are already on the free Starter plan.');
+          return;
+        }
+
+        if (!user.is_verified || !user.company_reg_no) {
+          toast.error('You must complete your company profile and be verified to use the free Starter plan.');
           return;
         }
 
@@ -214,36 +195,17 @@ const Pricing: React.FC = () => {
           if (!res.ok) throw new Error(String(json?.error || 'cancel_failed'));
 
           toast.success('Your subscription will be canceled at the end of the billing period, reverting to free Starter.');
-        } else {
-          // No active Stripe subscription, set database tier via backend (no Stripe needed for free plan)
-          const { data: sessionData } = await supabase.auth.getSession();
-          const accessToken = sessionData.session?.access_token;
-          if (!accessToken) {
-            toast.error('Please login again.');
-            navigate('/login');
-            return;
-          }
-          const activateRes = await fetch('/api/activate-starter', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`
-            }
-          });
-          if (!activateRes.ok) {
-            const errJson = (await activateRes.json().catch(() => null)) as any;
-            throw new Error(errJson?.error || 'activate_failed');
-          }
-          toast.success('Successfully activated free Starter plan!');
+          await refreshUser();
+          setSelectedPlan(null);
+          navigate('/dashboard');
+          return;
         }
-
-        await refreshUser();
-        setSelectedPlan(null);
-        navigate('/dashboard');
-        return;
+        
+        // No active Stripe subscription -> Let it fall through to initiate Checkout below, 
+        // to bind a credit card in Stripe for the free Starter plan.
       }
 
-      // Reaching here means they selected a Paid Plan
+      // Reaching here means they selected a Paid Plan, OR they are subscribing to Starter (and need to bind card)
       if (hasActiveStripeSub && user.stripe_subscription_status !== 'canceled') {
         const res = await fetch('/api/stripe/subscription/change', {
           method: 'POST',
@@ -440,7 +402,7 @@ const Pricing: React.FC = () => {
             <div>
               <h3 className="text-2xl font-bold text-white mb-2">Enterprise Solutions</h3>
               <p className="text-slate-400 max-w-lg leading-relaxed text-sm md:text-base">
-                Need more than 80 listings? Contact us for a custom enterprise plan tailored to your business needs.
+                Need more than 200 listings? Contact us for a custom enterprise plan tailored to your business needs.
               </p>
             </div>
           </div>

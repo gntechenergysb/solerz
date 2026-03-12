@@ -95,10 +95,12 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     });
   }
 
-  // Fetch the existing profile to check for a stripe_customer_id
+  // Fetch the existing profile to check for a stripe_customer_id and verification for STARTER tier
   let stripeCustomerId = '';
+  let isVerified = false;
+  let companyRegNo = '';
   try {
-    const profileRes = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=stripe_customer_id&limit=1`, {
+    const profileRes = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=stripe_customer_id,is_verified,company_reg_no&limit=1`, {
       headers: {
         apikey: supabaseAnonKey,
         Authorization: `Bearer ${token}`,
@@ -107,19 +109,28 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     });
     if (profileRes.ok) {
       const profileJson = await profileRes.json().catch(() => []) as any[];
-      if (profileJson.length > 0 && profileJson[0].stripe_customer_id) {
-        stripeCustomerId = String(profileJson[0].stripe_customer_id).trim();
+      if (profileJson.length > 0) {
+        if (profileJson[0].stripe_customer_id) stripeCustomerId = String(profileJson[0].stripe_customer_id).trim();
+        if (profileJson[0].is_verified) isVerified = !!profileJson[0].is_verified;
+        if (profileJson[0].company_reg_no) companyRegNo = String(profileJson[0].company_reg_no).trim();
       }
     }
   } catch (e) {
-    console.log('Failed to fetch profile for stripe_customer_id in checkout', e);
+    console.log('Failed to fetch profile in checkout', e);
+  }
+
+  if (tier === 'STARTER' && (!isVerified || !companyRegNo)) {
+    return new Response(JSON.stringify({ error: 'You must complete your company profile and be verified to use the free Starter plan.' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   const amountMapUsd: Record<string, { monthly: number; yearly: number }> = {
-    STARTER: { monthly: 9, yearly: 99 },
-    PRO: { monthly: 29, yearly: 319 },
-    ELITE: { monthly: 49, yearly: 539 },
-    ENTERPRISE: { monthly: 129, yearly: 1419 }
+    STARTER: { monthly: 0, yearly: 0 },
+    PRO: { monthly: 59, yearly: 649 },
+    ELITE: { monthly: 119, yearly: 1309 },
+    ENTERPRISE: { monthly: 299, yearly: 3289 }
   };
 
   const planAmounts = amountMapUsd[tier];
@@ -148,6 +159,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
 
   sessionParams.set('payment_method_types[0]', 'card');
   sessionParams.set('mode', 'subscription');
+  sessionParams.set('payment_method_collection', 'always');
   sessionParams.set('success_url', `${origin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`);
   sessionParams.set('cancel_url', `${origin}/pricing?checkout_canceled=true`);
 

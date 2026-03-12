@@ -338,9 +338,9 @@ const getListingLimit = (tier: string): number => {
   switch (tier) {
     case 'UNSUBSCRIBED': return 0;
     case 'STARTER': return 3;
-    case 'PRO': return 10;
-    case 'ELITE': return 25;
-    case 'ENTERPRISE': return 80;
+    case 'PRO': return 30;
+    case 'ELITE': return 80;
+    case 'ENTERPRISE': return 200;
     default: return 0;
   }
 };
@@ -824,7 +824,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
       const productId = String(item?.price?.product || '').trim();
       const byPrice = await getTierFromCatalogId(env, priceId);
       const byProduct = byPrice ? null : await getTierFromCatalogId(env, productId);
-      newTier = byPrice || byProduct;
+      const byMetadata = normalizeTier(String(sub?.metadata?.tier || ''));
+      newTier = byPrice || byProduct || byMetadata;
 
       if (newTier) {
         // Fetch current tier to compare
