@@ -206,8 +206,7 @@ const HowItWorks: React.FC = () => {
           How Solerz Works
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto px-4">
-          The trusted platform for regional solar equipment trades (B2B, B2C, & C2C).
-          Discover how easy it is to transact safely on our platform.
+          The trusted platform for trading regional solar equipment. Discover how easy it is to transact safely.
         </p>
       </div>
 

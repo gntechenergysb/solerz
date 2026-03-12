@@ -1200,9 +1200,25 @@ const Marketplace: React.FC = () => {
       {/* Header Section */}
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Solar Equipment Hub</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">Buy & sell new and used solar gear from verified sellers.</p>
+          <div className="max-w-4xl pt-2 pb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter leading-tight pb-2">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300">
+                Buy & sell
+              </span>{' '}
+              <span className="text-slate-900 dark:text-slate-100">
+                solar gear
+              </span>{' '}
+              <br className="block md:hidden" />
+              <span className="text-slate-500 dark:text-slate-400 font-extrabold tracking-tight">
+                from{' '}
+              </span>
+              <span className="relative inline-block mt-1 md:mt-0">
+                <span className="absolute -inset-1.5 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl blur-md opacity-70"></span>
+                <span className="relative text-emerald-700 dark:text-emerald-300 underline decoration-emerald-500/30 decoration-2 md:decoration-4 underline-offset-4 md:underline-offset-[6px]">
+                  verified sellers.
+                </span>
+              </span>
+            </h1>
           </div>
         </div>
 
