@@ -391,6 +391,7 @@ const CreateListing: React.FC = () => {
                   </select>
                   <input
                     type="number"
+                    step="any"
                     placeholder="0.00"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -965,8 +966,30 @@ const CreateListing: React.FC = () => {
             </div>
           </div>
           {images.length > 0 && (
-            <div className="text-sm text-slate-600 dark:text-slate-300">
-              {images.length} file(s) selected
+            <div className="mt-4">
+              <div className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                {images.length} file(s) selected:
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {images.map((file, idx) => (
+                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 aspect-square bg-slate-100 dark:bg-slate-800">
+                    <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const newImages = [...images];
+                        newImages.splice(idx, 1);
+                        setImages(newImages);
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md w-7 h-7 hover:bg-red-600 z-10"
+                      title="Remove Image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -1072,7 +1095,7 @@ const Input: React.FC<{
       placeholder={placeholder}
       required={required}
       value={value}
-      step={step}
+      step={step !== undefined ? step : (type === "number" ? "any" : undefined)}
       min={min}
       max={max}
       onChange={(e) => onChange(e.target.value)}
