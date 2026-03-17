@@ -30,6 +30,7 @@ const CreateListing: React.FC = () => {
   const [locationCountry, setLocationCountry] = useState('All Countries');
   const [condition, setCondition] = useState<'New / Unused' | 'Used (Working)' | 'Refurbished (Tested)' | 'For Parts / Repair' | 'Scrap / Recycling'>('New / Unused');
   const [images, setImages] = useState<File[]>([]);
+  const [existingImagesUrl, setExistingImagesUrl] = useState<string[]>([]);
 
   // Dynamic Specs State
   const [specs, setSpecs] = useState<any>({});
@@ -139,6 +140,7 @@ const CreateListing: React.FC = () => {
         } as any);
         setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
         setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('All Countries'); setCondition('New / Unused'); setSpecs({ wattage: '550' });
+        setExistingImagesUrl([]);
       }
       return;
     }
@@ -172,6 +174,10 @@ const CreateListing: React.FC = () => {
         setLocationCountry(row.location_country || 'China');
         setCondition(((row as any).condition as any) || 'Used - Good');
         setSpecs((row.specs || {}) as any);
+        
+        // Filter out the 'No Image' placeholder if present
+        const imgs = (row.images_url || []).filter((u: string) => !u.includes('data:image/svg+xml'));
+        setExistingImagesUrl(imgs);
       } catch (e) {
         console.error(e);
         toast.error('Failed to load listing');
@@ -203,9 +209,9 @@ const CreateListing: React.FC = () => {
     if (!e.target.files) return;
 
     const filesArray: File[] = Array.from(e.target.files);
-    const totalCount = images.length + filesArray.length;
+    const totalCount = images.length + filesArray.length + existingImagesUrl.length;
     if (totalCount > 10) {
-      toast.error(`Max 10 images allowed. You already have ${images.length} images selected.`);
+      toast.error(`Max 10 images allowed. You already have ${images.length + existingImagesUrl.length} images selected.`);
       return;
     }
 
@@ -313,7 +319,7 @@ const CreateListing: React.FC = () => {
           location_country: locationCountry,
           location_state: locationCountry, // Backwards compatibility for DB
           datasheet_url: datasheetUrl,
-          images_url: hasNewImages ? (uploadedImageUrls.length ? uploadedImageUrls : existingListing.images_url) : existingListing.images_url,
+          images_url: existingImagesUrl.concat(uploadedImageUrls),
         };
 
         await db.updateListing(updated);
@@ -1059,14 +1065,34 @@ const CreateListing: React.FC = () => {
               <span className="text-xs">Max 10 images. Formats: JPG, PNG.</span>
             </div>
           </div>
-          {images.length > 0 && (
+          {(images.length > 0 || existingImagesUrl.length > 0) && (
             <div className="mt-4">
               <div className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-                {images.length} file(s) selected:
+                {images.length + existingImagesUrl.length} file(s) selected:
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {/* Existing Images */}
+                {existingImagesUrl.map((url, idx) => (
+                  <div key={`existing-${idx}`} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 aspect-square bg-slate-100 dark:bg-slate-800">
+                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const newExisting = [...existingImagesUrl];
+                        newExisting.splice(idx, 1);
+                        setExistingImagesUrl(newExisting);
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md w-7 h-7 hover:bg-red-600 z-10"
+                      title="Remove Image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                ))}
+                {/* Newly Uploaded Images */}
                 {images.map((file, idx) => (
-                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 aspect-square bg-slate-100 dark:bg-slate-800">
+                  <div key={`new-${idx}`} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 aspect-square bg-slate-100 dark:bg-slate-800">
                     <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button"
