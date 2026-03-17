@@ -437,9 +437,18 @@ const CreateListing: React.FC = () => {
         return (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Model" placeholder="" onChange={(v) => handleSpecChange('model', v)} />
-              <Input label="Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('capacity_kwh', Number(v))} />
-              <Input label="Nominal Voltage (V)" type="number" onChange={(v) => handleSpecChange('nominal_voltage', Number(v))} />
+              <Input label="Model" placeholder="" value={(specs as any).model || ''} onChange={(v) => handleSpecChange('model', v)} />
+              <Input label="Capacity (kWh)" type="number" value={(specs as any).capacity_kwh || ''} onChange={(v) => handleSpecChange('capacity_kwh', Number(v))} />
+              <Input label="Nominal Voltage (V)" type="number" value={(specs as any).nominal_voltage || ''} onChange={(v) => {
+                const volts = Number(v);
+                handleSpecChange('nominal_voltage', volts);
+                if (volts) {
+                  const chgA = (specs as any).max_charge_a;
+                  if (chgA) handleSpecChange('max_charge_kw', parseFloat(((volts * chgA) / 1000).toFixed(3)));
+                  const dchgA = (specs as any).max_discharge_a;
+                  if (dchgA) handleSpecChange('max_discharge_kw', parseFloat(((volts * dchgA) / 1000).toFixed(3)));
+                }
+              }} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Cycle Life" type="number" onChange={(v) => handleSpecChange('cycle_life', Number(v))} />
@@ -462,8 +471,22 @@ const CreateListing: React.FC = () => {
               <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Max Charge (kW)" type="number" onChange={(v) => handleSpecChange('max_charge_kw', Number(v))} />
-              <Input label="Max Discharge (kW)" type="number" onChange={(v) => handleSpecChange('max_discharge_kw', Number(v))} />
+              <Input label="Max Charge Current (A)" type="number" value={(specs as any).max_charge_a || ''} onChange={(v) => {
+                const amps = Number(v);
+                handleSpecChange('max_charge_a', amps);
+                const volts = (specs as any).nominal_voltage;
+                if (volts && amps) handleSpecChange('max_charge_kw', parseFloat(((volts * amps) / 1000).toFixed(3)));
+              }} />
+              <Input label="Max Discharge Current (A)" type="number" value={(specs as any).max_discharge_a || ''} onChange={(v) => {
+                const amps = Number(v);
+                handleSpecChange('max_discharge_a', amps);
+                const volts = (specs as any).nominal_voltage;
+                if (volts && amps) handleSpecChange('max_discharge_kw', parseFloat(((volts * amps) / 1000).toFixed(3)));
+              }} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Max Charge Power (kW)" type="number" value={(specs as any).max_charge_kw || ''} onChange={(v) => handleSpecChange('max_charge_kw', Number(v))} />
+              <Input label="Max Discharge Power (kW)" type="number" value={(specs as any).max_discharge_kw || ''} onChange={(v) => handleSpecChange('max_discharge_kw', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Depth of Discharge (%)" type="number" onChange={(v) => handleSpecChange('depth_of_discharge_pct', Number(v))} />
