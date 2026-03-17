@@ -398,12 +398,12 @@ const CreateListing: React.FC = () => {
         return (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Wattage (W)" type="number" onChange={(v) => handleSpecChange('wattage', Number(v))} required />
-              <Input label="Efficiency (%)" type="number" onChange={(v) => handleSpecChange('efficiency', Number(v))} required />
+              <Input label="Wattage (W)" type="number" value={(specs as any).wattage ?? ''} onChange={(v) => handleSpecChange('wattage', Number(v))} required />
+              <Input label="Efficiency (%)" type="number" value={(specs as any).efficiency ?? ''} onChange={(v) => handleSpecChange('efficiency', Number(v))} required />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Model" placeholder="" onChange={(v) => handleSpecChange('model', v)} />
-              <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+              <Input label="Model" placeholder="" value={(specs as any).model ?? ''} onChange={(v) => handleSpecChange('model', v)} />
+              <Input label="Product Warranty (Years)" type="number" value={(specs as any).warranty_years ?? ''} onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <MultiSelect
@@ -412,24 +412,24 @@ const CreateListing: React.FC = () => {
                 value={String((specs as any).cell_type || '')}
                 onChange={(v) => handleSpecChange('cell_type', v)}
               />
-              <Input label="Dimensions (mm)" placeholder="e.g. 2278x1134x30" onChange={(v) => handleSpecChange('dimensions', v)} required />
+              <Input label="Dimensions (mm)" placeholder="e.g. 2278x1134x30" value={(specs as any).dimensions ?? ''} onChange={(v) => handleSpecChange('dimensions', v)} required />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Voc (V)" type="number" onChange={(v) => handleSpecChange('voc_v', Number(v))} />
-              <Input label="Isc (A)" type="number" onChange={(v) => handleSpecChange('isc_a', Number(v))} />
+              <Input label="Voc (V)" type="number" value={(specs as any).voc_v ?? ''} onChange={(v) => handleSpecChange('voc_v', Number(v))} />
+              <Input label="Isc (A)" type="number" value={(specs as any).isc_a ?? ''} onChange={(v) => handleSpecChange('isc_a', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Vmp (V)" type="number" onChange={(v) => handleSpecChange('vmp_v', Number(v))} />
-              <Input label="Imp (A)" type="number" onChange={(v) => handleSpecChange('imp_a', Number(v))} />
+              <Input label="Vmp (V)" type="number" value={(specs as any).vmp_v ?? ''} onChange={(v) => handleSpecChange('vmp_v', Number(v))} />
+              <Input label="Imp (A)" type="number" value={(specs as any).imp_a ?? ''} onChange={(v) => handleSpecChange('imp_a', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Max System Voltage (V)" type="number" onChange={(v) => handleSpecChange('max_system_voltage_v', Number(v))} />
-              <Input label="Max Fuse Rating (A)" type="number" onChange={(v) => handleSpecChange('max_fuse_rating_a', Number(v))} />
+              <Input label="Max System Voltage (V)" type="number" value={(specs as any).max_system_voltage_v ?? ''} onChange={(v) => handleSpecChange('max_system_voltage_v', Number(v))} />
+              <Input label="Max Fuse Rating (A)" type="number" value={(specs as any).max_fuse_rating_a ?? ''} onChange={(v) => handleSpecChange('max_fuse_rating_a', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Temp Coeff Pmax (%/°C)" type="number" step="0.001" min="-1" max="0" onChange={(v) => handleSpecChange('temp_coeff_pmax_pct_per_c', Number(v))} />
-              <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
+              <Input label="Temp Coeff Pmax (%/°C)" type="number" step="0.001" min="-1" max="0" value={(specs as any).temp_coeff_pmax_pct_per_c ?? ''} onChange={(v) => handleSpecChange('temp_coeff_pmax_pct_per_c', Number(v))} />
+              <Input label="Weight (kg)" type="number" value={(specs as any).weight_kg ?? ''} onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
             </div>
           </>
         );
@@ -437,7 +437,7 @@ const CreateListing: React.FC = () => {
         return (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Model" placeholder="" onChange={(v) => handleSpecChange('model', v)} />
+              <Input label="Model" placeholder="" value={(specs as any).model ?? ''} onChange={(v) => handleSpecChange('model', v)} />
               <MultiSelect
                 label="Inverter Type (Multiple)"
                 options={['String', 'Micro', 'Microinverter', 'Hybrid', 'Off-Grid', 'Grid-Tied', 'Central']}
@@ -472,29 +472,29 @@ const CreateListing: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
-                <select onChange={(e) => handleSpecChange('phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+                <select value={String((specs as any).phase || 'Single')} onChange={(e) => handleSpecChange('phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
                   <option value="Single">Single Phase</option>
                   <option value="Three">Three Phase</option>
                 </select>
               </div>
-              <Input label="Max Input Voltage (V)" type="number" onChange={(v) => handleSpecChange('max_input_voltage', Number(v))} />
+              <Input label="Max Input Voltage (V)" type="number" value={(specs as any).max_input_voltage ?? ''} onChange={(v) => handleSpecChange('max_input_voltage', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Efficiency (%)" type="number" onChange={(v) => handleSpecChange('efficiency', Number(v))} />
-              <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+              <Input label="Efficiency (%)" type="number" value={(specs as any).efficiency ?? ''} onChange={(v) => handleSpecChange('efficiency', Number(v))} />
+              <Input label="Product Warranty (Years)" type="number" value={(specs as any).warranty_years ?? ''} onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Rated AC Power (kW)" type="number" onChange={(v) => handleSpecChange('rated_ac_power_kw', Number(v))} />
-              <Input label="Max AC Power (kW)" type="number" onChange={(v) => handleSpecChange('max_ac_power_kw', Number(v))} />
+              <Input label="Rated AC Power (kW)" type="number" value={(specs as any).rated_ac_power_kw ?? ''} onChange={(v) => handleSpecChange('rated_ac_power_kw', Number(v))} />
+              <Input label="Max AC Power (kW)" type="number" value={(specs as any).max_ac_power_kw ?? ''} onChange={(v) => handleSpecChange('max_ac_power_kw', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="MPPT Count" type="number" onChange={(v) => handleSpecChange('mppt_count', Number(v))} />
-              <Input label="Max DC Power (kW)" type="number" onChange={(v) => handleSpecChange('max_dc_power_kw', Number(v))} />
+              <Input label="MPPT Count" type="number" value={(specs as any).mppt_count ?? ''} onChange={(v) => handleSpecChange('mppt_count', Number(v))} />
+              <Input label="Max DC Power (kW)" type="number" value={(specs as any).max_dc_power_kw ?? ''} onChange={(v) => handleSpecChange('max_dc_power_kw', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Protection Rating" placeholder="e.g. IP65" onChange={(v) => handleSpecChange('protection_rating', v)} />
-              <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
+              <Input label="Protection Rating" placeholder="e.g. IP65" value={(specs as any).protection_rating ?? ''} onChange={(v) => handleSpecChange('protection_rating', v)} />
+              <Input label="Weight (kg)" type="number" value={(specs as any).weight_kg ?? ''} onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
             </div>
           </>
         );
@@ -516,7 +516,7 @@ const CreateListing: React.FC = () => {
               }} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Cycle Life" type="number" onChange={(v) => handleSpecChange('cycle_life', Number(v))} />
+              <Input label="Cycle Life" type="number" value={(specs as any).cycle_life ?? ''} onChange={(v) => handleSpecChange('cycle_life', Number(v))} />
               <MultiSelect
                 label="Type (Multiple)"
                 options={['Rack-mounted', 'Wall-mounted', 'Portable', 'Container', 'Floor-standing', 'All-in-one']}
@@ -532,8 +532,8 @@ const CreateListing: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Usable Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('usable_capacity_kwh', Number(v))} />
-              <Input label="Product Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+              <Input label="Usable Capacity (kWh)" type="number" value={(specs as any).usable_capacity_kwh ?? ''} onChange={(v) => handleSpecChange('usable_capacity_kwh', Number(v))} />
+              <Input label="Product Warranty (Years)" type="number" value={(specs as any).warranty_years ?? ''} onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Max Charge Current (A)" type="number" value={(specs as any).max_charge_a || ''} onChange={(v) => {
@@ -554,12 +554,12 @@ const CreateListing: React.FC = () => {
               <Input label="Max Discharge Power (kW)" type="number" value={(specs as any).max_discharge_kw || ''} onChange={(v) => handleSpecChange('max_discharge_kw', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Depth of Discharge (%)" type="number" onChange={(v) => handleSpecChange('depth_of_discharge_pct', Number(v))} />
-              <Input label="Protection Rating" placeholder="e.g. IP55" onChange={(v) => handleSpecChange('protection_rating', v)} />
+              <Input label="Depth of Discharge (%)" type="number" value={(specs as any).depth_of_discharge_pct ?? ''} onChange={(v) => handleSpecChange('depth_of_discharge_pct', Number(v))} />
+              <Input label="Protection Rating" placeholder="e.g. IP55" value={(specs as any).protection_rating ?? ''} onChange={(v) => handleSpecChange('protection_rating', v)} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Dimensions (mm)" placeholder="e.g. 500x650x200" onChange={(v) => handleSpecChange('dimensions', v)} />
-              <Input label="Weight (kg)" type="number" onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
+              <Input label="Dimensions (mm)" placeholder="e.g. 500x650x200" value={(specs as any).dimensions ?? ''} onChange={(v) => handleSpecChange('dimensions', v)} />
+              <Input label="Weight (kg)" type="number" value={(specs as any).weight_kg ?? ''} onChange={(v) => handleSpecChange('weight_kg', Number(v))} />
             </div>
           </>
         );
@@ -600,11 +600,11 @@ const CreateListing: React.FC = () => {
                   <option value="THWN-2">THWN-2</option>
                 </select>
               </div>
-              <Input label="Size (mm²)" type="number" onChange={(v) => handleSpecChange('size_mm2', Number(v))} />
+              <Input label="Size (mm²)" type="number" value={(specs as any).size_mm2 ?? ''} onChange={(v) => handleSpecChange('size_mm2', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Cores" type="number" onChange={(v) => handleSpecChange('cores', Number(v))} />
-              <Input label="Length (m)" type="number" onChange={(v) => handleSpecChange('length_m', Number(v))} />
+              <Input label="Cores" type="number" value={(specs as any).cores ?? ''} onChange={(v) => handleSpecChange('cores', Number(v))} />
+              <Input label="Length (m)" type="number" value={(specs as any).length_m ?? ''} onChange={(v) => handleSpecChange('length_m', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -679,11 +679,11 @@ const CreateListing: React.FC = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <Input label="Poles" type="number" placeholder="Enter 0 if no poles" onChange={(v) => handleSpecChange('poles', Number(v))} />
+              <Input label="Poles" type="number" placeholder="Enter 0 if no poles" value={(specs as any).poles ?? ''} onChange={(v) => handleSpecChange('poles', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('rated_current_a', Number(v))} />
-              <Input label="Rated Voltage (V)" type="number" onChange={(v) => handleSpecChange('rated_voltage_v', Number(v))} />
+              <Input label="Rated Current (A)" type="number" value={(specs as any).rated_current_a ?? ''} onChange={(v) => handleSpecChange('rated_current_a', Number(v))} />
+              <Input label="Rated Voltage (V)" type="number" value={(specs as any).rated_voltage_v ?? ''} onChange={(v) => handleSpecChange('rated_voltage_v', Number(v))} />
             </div>
           </>
         );
@@ -742,11 +742,11 @@ const CreateListing: React.FC = () => {
                   <option value="Any">Any / Not Applicable</option>
                 </select>
               </div>
-              <Input label="Warranty (Years)" type="number" onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
+              <Input label="Warranty (Years)" type="number" value={(specs as any).warranty_years ?? ''} onChange={(v) => handleSpecChange('warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Wind Load (m/s)" type="number" onChange={(v) => handleSpecChange('wind_load_ms', Number(v))} />
-              <Input label="Snow Load (kN/m²)" type="number" onChange={(v) => handleSpecChange('snow_load_knm2', Number(v))} />
+              <Input label="Wind Load (m/s)" type="number" value={(specs as any).wind_load_ms ?? ''} onChange={(v) => handleSpecChange('wind_load_ms', Number(v))} />
+              <Input label="Snow Load (kN/m²)" type="number" value={(specs as any).snow_load_knm2 ?? ''} onChange={(v) => handleSpecChange('snow_load_knm2', Number(v))} />
             </div>
           </>
         );
@@ -754,11 +754,11 @@ const CreateListing: React.FC = () => {
         return (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Accessory Type" placeholder="e.g. Optimizer, Smart Meter, MC4 Connector" onChange={(v) => handleSpecChange('type', v)} />
-              <Input label="Compatible Brand(s)" placeholder="" onChange={(v) => handleSpecChange('compatibility', v)} />
+              <Input label="Accessory Type" placeholder="e.g. Optimizer, Smart Meter, MC4 Connector" value={(specs as any).type ?? ''} onChange={(v) => handleSpecChange('type', v)} />
+              <Input label="Compatible Brand(s)" placeholder="" value={(specs as any).compatibility ?? ''} onChange={(v) => handleSpecChange('compatibility', v)} />
             </div>
             <div className="grid grid-cols-1 gap-4">
-              <Input label="Key Specification" placeholder="e.g. 600W Max DC Input, 100A Range" onChange={(v) => handleSpecChange('key_spec', v)} />
+              <Input label="Key Specification" placeholder="e.g. 600W Max DC Input, 100A Range" value={(specs as any).key_spec ?? ''} onChange={(v) => handleSpecChange('key_spec', v)} />
             </div>
           </>
         );
@@ -780,7 +780,7 @@ const CreateListing: React.FC = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <Input label="Total System Capacity (kWp)" type="number" onChange={(v) => handleSpecChange('total_capacity_kwp', Number(v))} />
+              <Input label="Total System Capacity (kWp)" type="number" value={(specs as any).total_capacity_kwp ?? ''} onChange={(v) => handleSpecChange('total_capacity_kwp', Number(v))} />
             </div>
 
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-6 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">Components Included (Required)</h3>
@@ -789,8 +789,8 @@ const CreateListing: React.FC = () => {
               <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Solar Panels</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input label="Brand & Model" placeholder="" onChange={(v) => handleSpecChange('panel_brand', v)} required />
-                  <Input label="Individual Wattage (W)" type="number" onChange={(v) => handleSpecChange('panel_wattage_w', Number(v))} required />
+                  <Input label="Brand & Model" placeholder="" value={(specs as any).panel_brand ?? ''} onChange={(v) => handleSpecChange('panel_brand', v)} required list="user-brands" />
+                  <Input label="Individual Wattage (W)" type="number" value={(specs as any).panel_wattage_w ?? ''} onChange={(v) => handleSpecChange('panel_wattage_w', Number(v))} required />
                   <MultiSelect
                     label="Cell Type"
                     options={['Monocrystalline', 'Polycrystalline', 'N-type', 'P-type', 'IBC', 'ABC', 'TOPCon', 'HJT', 'PERC', 'Bifacial', 'Monofacial', 'Thin-Film', 'Standard Rigid', 'Flexible', 'BIPV', 'Shingled']}
@@ -803,8 +803,8 @@ const CreateListing: React.FC = () => {
               <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Inverter</h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Input label="Brand & Model" placeholder="" onChange={(v) => handleSpecChange('inverter_brand', v)} required />
-                  <Input label="Rated Power (kW)" type="number" onChange={(v) => handleSpecChange('inverter_rated_power_kw', Number(v))} required />
+                  <Input label="Brand & Model" placeholder="" value={(specs as any).inverter_brand ?? ''} onChange={(v) => handleSpecChange('inverter_brand', v)} required list="user-brands" />
+                  <Input label="Rated Power (kW)" type="number" value={(specs as any).inverter_rated_power_kw ?? ''} onChange={(v) => handleSpecChange('inverter_rated_power_kw', Number(v))} required />
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phase</label>
                     <select value={String((specs as any).inverter_phase || '')} onChange={(e) => handleSpecChange('inverter_phase', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" required>
@@ -825,8 +825,8 @@ const CreateListing: React.FC = () => {
               <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Battery Storage</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input label="Brand & Model" placeholder="" onChange={(v) => handleSpecChange('battery_brand', v)} />
-                  <Input label="Capacity (kWh)" type="number" onChange={(v) => handleSpecChange('battery_capacity_kwh', Number(v))} />
+                  <Input label="Brand & Model" placeholder="" value={(specs as any).battery_brand ?? ''} onChange={(v) => handleSpecChange('battery_brand', v)} list="user-brands" />
+                  <Input label="Capacity (kWh)" type="number" value={(specs as any).battery_capacity_kwh ?? ''} onChange={(v) => handleSpecChange('battery_capacity_kwh', Number(v))} />
                   <MultiSelect
                     label="Technology"
                     options={['LiFePO4', 'NMC', 'LTO', 'Lead-Acid', 'AGM', 'Gel', 'Sodium-Ion', 'Flow', 'Other']}
@@ -839,7 +839,7 @@ const CreateListing: React.FC = () => {
               <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Mounting</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input label="Brand" placeholder="" onChange={(v) => handleSpecChange('mounting_brand', v)} required />
+                  <Input label="Brand" placeholder="" value={(specs as any).mounting_brand ?? ''} onChange={(v) => handleSpecChange('mounting_brand', v)} required list="user-brands" />
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mounting Type</label>
                     <select value={String((specs as any).mounting_type || '')} onChange={(e) => handleSpecChange('mounting_type', e.target.value)} className="w-full border border-slate-300 dark:border-slate-700 rounded-md p-2 text-sm focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" required>
@@ -861,8 +861,8 @@ const CreateListing: React.FC = () => {
               <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">DC Cable & Protective</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input label="Cable Brand" placeholder="" onChange={(v) => handleSpecChange('cable_brand', v)} required />
-                  <Input label="Cable Size (mm²)" type="number" onChange={(v) => handleSpecChange('cable_size_mm2', Number(v))} required />
+                  <Input label="Cable Brand" placeholder="" value={(specs as any).cable_brand ?? ''} onChange={(v) => handleSpecChange('cable_brand', v)} required list="user-brands" />
+                  <Input label="Cable Size (mm²)" type="number" value={(specs as any).cable_size_mm2 ?? ''} onChange={(v) => handleSpecChange('cable_size_mm2', Number(v))} required />
                   <MultiSelect
                     label="Cable Type"
                     options={['PV1-F', 'H1Z2Z2-K', 'USE-2', 'PV Wire']}
@@ -875,26 +875,26 @@ const CreateListing: React.FC = () => {
 
                   {/* Breaker */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <Input label="Breaker Brand" placeholder="" onChange={(v) => handleSpecChange('protective_breaker_brand', v)} />
-                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_breaker_rated_current_a', Number(v))} />
+                    <Input label="Breaker Brand" placeholder="" value={(specs as any).protective_breaker_brand ?? ''} onChange={(v) => handleSpecChange('protective_breaker_brand', v)} list="user-brands" />
+                    <Input label="Rated Current (A)" type="number" value={(specs as any).protective_breaker_rated_current_a ?? ''} onChange={(v) => handleSpecChange('protective_breaker_rated_current_a', Number(v))} />
                   </div>
 
                   {/* SPD */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <Input label="SPD Brand" placeholder="" onChange={(v) => handleSpecChange('protective_spd_brand', v)} />
-                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_spd_rated_current_a', Number(v))} />
+                    <Input label="SPD Brand" placeholder="" value={(specs as any).protective_spd_brand ?? ''} onChange={(v) => handleSpecChange('protective_spd_brand', v)} list="user-brands" />
+                    <Input label="Rated Current (A)" type="number" value={(specs as any).protective_spd_rated_current_a ?? ''} onChange={(v) => handleSpecChange('protective_spd_rated_current_a', Number(v))} />
                   </div>
 
                   {/* Fuse */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <Input label="Fuse Brand" placeholder="" onChange={(v) => handleSpecChange('protective_fuse_brand', v)} />
-                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_fuse_rated_current_a', Number(v))} />
+                    <Input label="Fuse Brand" placeholder="" value={(specs as any).protective_fuse_brand ?? ''} onChange={(v) => handleSpecChange('protective_fuse_brand', v)} list="user-brands" />
+                    <Input label="Rated Current (A)" type="number" value={(specs as any).protective_fuse_rated_current_a ?? ''} onChange={(v) => handleSpecChange('protective_fuse_rated_current_a', Number(v))} />
                   </div>
 
                   {/* Others */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <Input label="Others Brand / Component" placeholder="" onChange={(v) => handleSpecChange('protective_others_brand', v)} />
-                    <Input label="Rated Current (A)" type="number" onChange={(v) => handleSpecChange('protective_others_rated_current_a', Number(v))} />
+                    <Input label="Others Brand / Component" placeholder="" value={(specs as any).protective_others_brand ?? ''} onChange={(v) => handleSpecChange('protective_others_brand', v)} list="user-brands" />
+                    <Input label="Rated Current (A)" type="number" value={(specs as any).protective_others_rated_current_a ?? ''} onChange={(v) => handleSpecChange('protective_others_rated_current_a', Number(v))} />
                   </div>
                 </div>
               </div>
@@ -902,12 +902,12 @@ const CreateListing: React.FC = () => {
 
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-6 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">Warranties (Years)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Workmanship" type="number" onChange={(v) => handleSpecChange('workmanship_warranty_years', Number(v))} />
-              <Input label="Panel Product" type="number" onChange={(v) => handleSpecChange('panel_power_warranty_years', Number(v))} />
+              <Input label="Workmanship" type="number" value={(specs as any).workmanship_warranty_years ?? ''} onChange={(v) => handleSpecChange('workmanship_warranty_years', Number(v))} />
+              <Input label="Panel Product" type="number" value={(specs as any).panel_power_warranty_years ?? ''} onChange={(v) => handleSpecChange('panel_power_warranty_years', Number(v))} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <Input label="Panel Performance" type="number" onChange={(v) => handleSpecChange('panel_performance_warranty_years', Number(v))} />
-              <Input label="Other" placeholder="e.g. 10 years Inverter warranrty" onChange={(v) => handleSpecChange('other_warranty', v)} />
+              <Input label="Panel Performance" type="number" value={(specs as any).panel_performance_warranty_years ?? ''} onChange={(v) => handleSpecChange('panel_performance_warranty_years', Number(v))} />
+              <Input label="Other" placeholder="e.g. 10 years Inverter warranrty" value={(specs as any).other_warranty ?? ''} onChange={(v) => handleSpecChange('other_warranty', v)} />
             </div>
           </>
         );
