@@ -37,6 +37,43 @@ const CreateListing: React.FC = () => {
   const location = useLocation();
   const isDemo = editId?.startsWith('demo') || location.search.includes('demo=true');
 
+  // Brands Autocomplete
+  const [userBrands, setUserBrands] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const localBrands = JSON.parse(localStorage.getItem('user_brands') || '[]');
+      setUserBrands(localBrands);
+
+      if (user && !isDemo) {
+        let cancelled = false;
+        db.getListingsBySellerId(user.id).then(mine => {
+          if (cancelled) return;
+          if (mine && mine.length > 0) {
+            const brands = new Set<string>(localBrands);
+            mine.forEach(l => {
+              if (l.brand && l.brand !== 'Full System Package' && l.brand.trim() !== '') {
+                brands.add(l.brand.trim());
+              }
+              if (l.specs && typeof l.specs === 'object') {
+                const specProps = ['panel_brand', 'inverter_brand', 'battery_brand', 'mounting_brand', 'cable_brand', 'protective_breaker_brand', 'protective_spd_brand', 'protective_fuse_brand', 'protective_others_brand'];
+                specProps.forEach(p => {
+                  const b = (l.specs as any)[p];
+                  if (b && typeof b === 'string' && b.trim() !== '') brands.add(b.trim());
+                });
+              }
+            });
+            const finalBrands = Array.from(brands).sort((a, b) => a.localeCompare(b));
+            setUserBrands(finalBrands);
+            localStorage.setItem('user_brands', JSON.stringify(finalBrands));
+          }
+        }).catch(console.error);
+        return () => { cancelled = true; };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [user, isDemo]);
+
   if (!isDemo && !isAuthenticated) return <Navigate to="/login" />;
   if (!isDemo && user && user.tier === 'UNSUBSCRIBED') {
     toast.error("Please subscribe to a plan before posting.");
@@ -280,6 +317,20 @@ const CreateListing: React.FC = () => {
         };
 
         await db.updateListing(updated);
+        
+        try {
+          const allBrandsToSave = new Set<string>(userBrands);
+          if (brand && brand !== 'Full System Package' && brand.trim() !== '') allBrandsToSave.add(brand.trim());
+          const specProps = ['panel_brand', 'inverter_brand', 'battery_brand', 'mounting_brand', 'cable_brand', 'protective_breaker_brand', 'protective_spd_brand', 'protective_fuse_brand', 'protective_others_brand'];
+          specProps.forEach(p => {
+            const b = (specs as any)[p];
+            if (b && typeof b === 'string' && b.trim() !== '') allBrandsToSave.add(b.trim());
+          });
+          const updatedBrands = Array.from(allBrandsToSave).sort((a, b) => a.localeCompare(b));
+          setUserBrands(updatedBrands);
+          localStorage.setItem('user_brands', JSON.stringify(updatedBrands));
+        } catch(e) {}
+
         toast.success('Listing updated!');
         navigate('/dashboard');
         return;
@@ -312,6 +363,20 @@ const CreateListing: React.FC = () => {
       if (!ok) {
         throw new Error('createListing_failed');
       }
+
+      try {
+        const allBrandsToSave = new Set<string>(userBrands);
+        if (brand && brand !== 'Full System Package' && brand.trim() !== '') allBrandsToSave.add(brand.trim());
+        const specProps = ['panel_brand', 'inverter_brand', 'battery_brand', 'mounting_brand', 'cable_brand', 'protective_breaker_brand', 'protective_spd_brand', 'protective_fuse_brand', 'protective_others_brand'];
+        specProps.forEach(p => {
+          const b = (specs as any)[p];
+          if (b && typeof b === 'string' && b.trim() !== '') allBrandsToSave.add(b.trim());
+        });
+        const updatedBrands = Array.from(allBrandsToSave).sort((a, b) => a.localeCompare(b));
+        setUserBrands(updatedBrands);
+        localStorage.setItem('user_brands', JSON.stringify(updatedBrands));
+      } catch(e) {}
+
       toast.success("Listing published successfully!");
       navigate('/dashboard');
     } catch (error) {
@@ -858,6 +923,12 @@ const CreateListing: React.FC = () => {
     <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
       <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">{isEditMode ? 'Edit Listing' : 'List New Equipment'}</h1>
 
+      <datalist id="user-brands">
+        {userBrands.map(b => (
+          <option key={b} value={b} />
+        ))}
+      </datalist>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Core Info */}
         <div className="space-y-4">
@@ -939,7 +1010,7 @@ const CreateListing: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {category !== 'Full System' && (
-              <Input label="Brand" placeholder="" value={brand} onChange={setBrand} required={category !== 'Full System'} />
+              <Input label="Brand" placeholder="" value={brand} onChange={setBrand} required={category !== 'Full System'} list="user-brands" />
             )}
             <Input label="Min Order Qty (MOQ)" type="number" placeholder="1" value={moq} onChange={setMoq} required />
           </div>
@@ -1109,11 +1180,13 @@ const Input: React.FC<{
   min?: string | number;
   max?: string | number;
   onChange: (val: string) => void;
-}> = ({ label, type = "text", placeholder, required, value, step, min, max, onChange }) => (
+  list?: string;
+}> = ({ label, type = "text", placeholder, required, value, step, min, max, onChange, list }) => (
   <div>
     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{label}</label>
     <input
       type={type}
+      list={list}
       className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary outline-none transition-all bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
       placeholder={placeholder}
       required={required}
