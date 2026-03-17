@@ -92,7 +92,7 @@ const Marketplace: React.FC = () => {
   // Filters
   const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || 'All Countries');
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || 'All Locations');
   const [selectedState, setSelectedState] = useState(searchParams.get('state') || '');
   const [selectedCondition, setSelectedCondition] = useState(searchParams.get('condition') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
@@ -323,7 +323,7 @@ const Marketplace: React.FC = () => {
     if (isLoadingMore || !hasMore) return;
 
     // Don't load more if we're using random listings (default query without filters)
-    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Countries' && !selectedBrand && !minPrice && !maxPrice;
+    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Locations' && !selectedBrand && !minPrice && !maxPrice;
     if (isDefaultQuery) {
       // For random listings, fetch a fresh batch incrementally
       setIsLoadingMore(true);
@@ -349,7 +349,7 @@ const Marketplace: React.FC = () => {
         to,
         marketplaceLayer: 'verified',
         searchQuery,
-        country: selectedCountry === 'All Countries' ? '' : selectedCountry,
+        country: selectedCountry === 'All Locations' ? '' : selectedCountry,
         state: selectedState,
         condition: selectedCondition,
         category: selectedCategory,
@@ -1238,7 +1238,7 @@ const Marketplace: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            {/* Country Dropdown */}
+            {/* Stock Location Dropdown */}
             <div className="relative w-full sm:min-w-[160px]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MapPin className="h-4 w-4 text-slate-500" />
@@ -1250,7 +1250,7 @@ const Marketplace: React.FC = () => {
                   setSelectedCountry(e.target.value);
                 }}
               >
-                <option value="">All Countries</option>
+                <option value="All Locations">All Locations</option>
                 {GLOBAL_LOCATIONS.map(loc => (
                   <option key={loc} value={loc}>{loc}</option>
                 ))}

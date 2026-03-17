@@ -1,12 +1,11 @@
 export const GLOBAL_LOCATIONS: string[] = [
     'Australia',
     'China',
-    'Indonesia',
+    'Europe',
+    'India',
     'Malaysia',
-    'Myanmar',
-    'Philippines',
-    'Singapore',
     'Thailand',
+    'USA',
     'Vietnam'
 ];
 

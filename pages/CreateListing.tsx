@@ -27,7 +27,7 @@ const CreateListing: React.FC = () => {
   const [price, setPrice] = useState('');
   const [moq, setMoq] = useState('1');
   const [currency, setCurrency] = useState('USD');
-  const [locationCountry, setLocationCountry] = useState('All Countries');
+  const [locationCountry, setLocationCountry] = useState('China');
   const [condition, setCondition] = useState<'New / Unused' | 'Used (Working)' | 'Refurbished (Tested)' | 'For Parts / Repair' | 'Scrap / Recycling'>('New / Unused');
   const [images, setImages] = useState<File[]>([]);
   const [existingImagesUrl, setExistingImagesUrl] = useState<string[]>([]);
@@ -139,7 +139,7 @@ const CreateListing: React.FC = () => {
           specs: { wattage: '550' }, images_url: []
         } as any);
         setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
-        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('All Countries'); setCondition('New / Unused'); setSpecs({ wattage: '550' });
+        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('China'); setCondition('New / Unused'); setSpecs({ wattage: '550' });
         setExistingImagesUrl([]);
       }
       return;
@@ -968,18 +968,12 @@ const CreateListing: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
-              <select
+              <MultiSelect
+                label="Stock Location (Multiple)"
+                options={GLOBAL_LOCATIONS}
                 value={locationCountry}
-                onChange={(e) => setLocationCountry(e.target.value)}
-                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 mb-3"
-              >
-                <option value="All Countries">All Countries</option>
-                {GLOBAL_LOCATIONS.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-                <option value="Other Location">Other Location</option>
-              </select>
+                onChange={(v) => setLocationCountry(v)}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Condition</label>
