@@ -277,7 +277,7 @@ const Marketplace: React.FC = () => {
         let data: Listing[];
         if (isDefaultQuery && !searchQuery && !selectedState && !selectedCategory && !selectedCondition) {
           // Use optimized random listings for homepage (minimal Supabase traffic)
-          data = await db.getRandomListings(12, 'verified');
+          data = await db.getLatestListings(12, 'verified');
           setHasMore(true);
         } else {
           // Use full query for filtered searches
@@ -328,7 +328,7 @@ const Marketplace: React.FC = () => {
       // For random listings, fetch a fresh batch incrementally
       setIsLoadingMore(true);
       try {
-        const data = await db.getRandomListings(12, 'verified');
+        const data = await db.getLatestListings(12, 'verified');
         const next = dedupeById([...listings, ...data]);
         setListings(next);
         setPage(page + 1);
