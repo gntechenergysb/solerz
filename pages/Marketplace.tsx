@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
-import { GLOBAL_LOCATIONS } from '../utils/countries';
+import { STOCK_LOCATIONS } from '../utils/countries';
 import { detectUserLocation } from '../utils/geo';
 import ProductCard from '../components/ProductCard';
 import CompareModal from '../components/CompareModal';
@@ -92,7 +92,7 @@ const Marketplace: React.FC = () => {
   // Filters
   const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || 'All Countries');
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get('country') || 'All Stock Locations');
   const [selectedState, setSelectedState] = useState(searchParams.get('state') || '');
   const [selectedCondition, setSelectedCondition] = useState(searchParams.get('condition') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
@@ -214,7 +214,7 @@ const Marketplace: React.FC = () => {
     // Sync core filters to URL
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
-    if (selectedCountry && selectedCountry !== 'All Countries') params.set('country', selectedCountry);
+    if (selectedCountry && selectedCountry !== 'All Stock Locations') params.set('country', selectedCountry);
     if (selectedState) params.set('state', selectedState);
     if (selectedCondition) params.set('condition', selectedCondition);
     if (selectedCategory) params.set('category', selectedCategory);
@@ -229,7 +229,7 @@ const Marketplace: React.FC = () => {
 
   useEffect(() => {
     const cacheKey = `marketplace_cache_v1_${sortBy}`;
-    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Countries' && !selectedBrand && !minPrice && !maxPrice;
+    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Stock Locations' && !selectedBrand && !minPrice && !maxPrice;
 
     const inferCategory = (q: string) => {
       const s = (q || '').toLowerCase();
@@ -267,7 +267,7 @@ const Marketplace: React.FC = () => {
           db.trackSearchEvent({
             searchQuery,
             category: cat,
-            country: selectedCountry === 'All Countries' ? '' : selectedCountry,
+            country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
             state: selectedState,
             condition: selectedCondition,
             marketplaceLayer: 'verified'
@@ -286,7 +286,7 @@ const Marketplace: React.FC = () => {
             to: 11,
             marketplaceLayer: 'verified',
             searchQuery,
-            country: selectedCountry === 'All Countries' ? '' : selectedCountry,
+            country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
             state: selectedState,
             condition: selectedCondition,
             category: selectedCategory,
@@ -323,7 +323,7 @@ const Marketplace: React.FC = () => {
     if (isLoadingMore || !hasMore) return;
 
     // Don't load more if we're using random listings (default query without filters)
-    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Countries' && !selectedBrand && !minPrice && !maxPrice;
+    const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Stock Locations' && !selectedBrand && !minPrice && !maxPrice;
     if (isDefaultQuery) {
       // For random listings, fetch a fresh batch incrementally
       setIsLoadingMore(true);
@@ -349,7 +349,7 @@ const Marketplace: React.FC = () => {
         to,
         marketplaceLayer: 'verified',
         searchQuery,
-        country: selectedCountry === 'All Countries' ? '' : selectedCountry,
+        country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
         state: selectedState,
         condition: selectedCondition,
         category: selectedCategory,
@@ -1250,8 +1250,8 @@ const Marketplace: React.FC = () => {
                   setSelectedCountry(e.target.value);
                 }}
               >
-                <option value="">All Countries</option>
-                {GLOBAL_LOCATIONS.map(loc => (
+                <option value="">All Stock Locations</option>
+                {STOCK_LOCATIONS.map(loc => (
                   <option key={loc} value={loc}>{loc}</option>
                 ))}
               </select>

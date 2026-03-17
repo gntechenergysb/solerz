@@ -3,7 +3,7 @@ import { useAuth } from '../services/authContext';
 import { db } from '../services/db';
 import { useNavigate, Navigate, useParams, useLocation } from 'react-router-dom';
 import { CATEGORIES, MALAYSIAN_STATES } from '../constants';
-import { GLOBAL_LOCATIONS, CURRENCIES } from '../utils/countries';
+import { STOCK_LOCATIONS, CURRENCIES } from '../utils/countries';
 import { detectUserLocation } from '../utils/geo';
 import { Listing } from '../types';
 import toast from 'react-hot-toast';
@@ -27,7 +27,7 @@ const CreateListing: React.FC = () => {
   const [price, setPrice] = useState('');
   const [moq, setMoq] = useState('1');
   const [currency, setCurrency] = useState('USD');
-  const [locationCountry, setLocationCountry] = useState('All Countries');
+  const [locationCountry, setLocationCountry] = useState('All Stock Locations');
   const [condition, setCondition] = useState<'New / Unused' | 'Used (Working)' | 'Refurbished (Tested)' | 'For Parts / Repair' | 'Scrap / Recycling'>('New / Unused');
   const [images, setImages] = useState<File[]>([]);
   const [existingImagesUrl, setExistingImagesUrl] = useState<string[]>([]);
@@ -135,11 +135,11 @@ const CreateListing: React.FC = () => {
       if (editId === 'demo-1') {
         setExistingListing({
           id: editId, seller_id: 'demo-seller', title: 'Demo Solar Panel 550W', brand: 'Jinko',
-          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'All Countries', location_state: '', condition: 'New / Unused',
+          category: 'Panels', price: 650, moq: 1, currency: 'USD', location_country: 'All Stock Locations', location_state: '', condition: 'New / Unused',
           specs: { wattage: '550' }, images_url: []
         } as any);
         setCategory('Panels'); setTitle('Demo Solar Panel 550W'); setBrand('Jinko'); setDatasheetUrl('https://www.jinkosolar.com/uploads/550W-datasheet.pdf');
-        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('All Countries'); setCondition('New / Unused'); setSpecs({ wattage: '550' });
+        setPrice('650'); setMoq('1'); setCurrency('USD'); setLocationCountry('All Stock Locations'); setCondition('New / Unused'); setSpecs({ wattage: '550' });
         setExistingImagesUrl([]);
       }
       return;
@@ -974,8 +974,8 @@ const CreateListing: React.FC = () => {
                 onChange={(e) => setLocationCountry(e.target.value)}
                 className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 mb-3"
               >
-                <option value="All Countries">All Countries</option>
-                {GLOBAL_LOCATIONS.map(loc => (
+                <option value="All Stock Locations">All Stock Locations</option>
+                {STOCK_LOCATIONS.map(loc => (
                   <option key={loc} value={loc}>{loc}</option>
                 ))}
                 <option value="Other Location">Other Location</option>
