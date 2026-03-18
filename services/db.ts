@@ -1,8 +1,8 @@
 import { Listing, Profile } from '../types';
 import { supabase } from './supabaseClient';
 
-const sellerSelectWithPhone = 'company_name, is_verified, seller_type, handphone_no, email, business_address, company_reg_no, avatar_url';
-const sellerSelectNoPhone = 'company_name, is_verified, seller_type, email, business_address, company_reg_no, avatar_url';
+const sellerSelectWithPhone = 'company_name, is_verified, seller_type, handphone_no, email, business_address, company_reg_no';
+const sellerSelectNoPhone = 'company_name, is_verified, seller_type, email, business_address, company_reg_no';
 
 const isMissingHandphoneNoError = (error: any) => {
   const msg = String(error?.message || '');
@@ -26,13 +26,13 @@ const enrichListingsWithSeller = async (listings: any[]): Promise<Listing[]> => 
 
     ({ data: sellers, error } = await supabase
       .from('profiles_public')
-      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, company_reg_no, avatar_url')
+      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, company_reg_no')
       .in('id', missingSellerIds));
 
     if (error && isMissingHandphoneNoError(error)) {
       const retry = await supabase
         .from('profiles_public')
-        .select('id, company_name, is_verified, seller_type, email, business_address, company_reg_no, avatar_url')
+        .select('id, company_name, is_verified, seller_type, email, business_address, company_reg_no')
         .in('id', missingSellerIds);
       sellers = retry.data;
     }
@@ -52,8 +52,7 @@ const enrichListingsWithSeller = async (listings: any[]): Promise<Listing[]> => 
       seller_phone: s?.handphone_no || '',
       seller_email: s?.email || '',
       seller_business_address: s?.business_address || '',
-      seller_company_reg_no: s?.company_reg_no || '',
-      seller_avatar_url: s?.avatar_url || ''
+      seller_company_reg_no: s?.company_reg_no || ''
     } as Listing;
   });
 };
@@ -578,14 +577,14 @@ export const db = {
   getPublicProfile: async (id: string): Promise<any | null> => {
     let { data, error } = await supabase
       .from('profiles_public')
-      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, country, company_reg_no, avatar_url')
+      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, country, company_reg_no')
       .eq('id', id)
       .single();
 
     if (error && isMissingHandphoneNoError(error)) {
       const retry = await supabase
         .from('profiles_public')
-        .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no, avatar_url')
+        .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no')
         .eq('id', id)
         .single();
       data = retry.data as any;

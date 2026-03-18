@@ -484,16 +484,8 @@ const ProductDetails: React.FC = () => {
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-wide uppercase">About the Supplier</h3>
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 font-bold text-slate-500 dark:text-slate-300 overflow-hidden">
-                {user ? (
-                  listing.seller_avatar_url ? (
-                    <img src={listing.seller_avatar_url} alt={listing.seller_name} className="w-full h-full object-cover" />
-                  ) : (
-                    listing.seller_name?.[0]?.toUpperCase() || 'S'
-                  )
-                ) : (
-                  <Lock className="h-5 w-5" />
-                )}
+              <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 font-bold text-slate-500 dark:text-slate-300">
+                {user ? (listing.seller_name?.[0]?.toUpperCase() || 'S') : <Lock className="h-5 w-5" />}
               </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-2 mb-1">
@@ -552,16 +544,8 @@ const ProductDetails: React.FC = () => {
             {/* Seller Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600 overflow-hidden`}>
-                  {user ? (
-                    listing.seller_avatar_url ? (
-                      <img src={listing.seller_avatar_url} alt={listing.seller_name} className="w-full h-full object-cover" />
-                    ) : (
-                      listing.seller_name?.charAt(0) || 'S'
-                    )
-                  ) : (
-                    <Lock className="h-4 w-4" />
-                  )}
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600`}>
+                  {user ? (listing.seller_name?.charAt(0) || 'S') : <Lock className="h-4 w-4" />}
                 </div>
                 <div>
                   <p

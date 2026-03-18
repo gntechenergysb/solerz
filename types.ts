@@ -269,7 +269,6 @@ export interface Listing {
   seller_email?: string; // Joined field (public)
   seller_business_address?: string; // Joined field (public)
   seller_company_reg_no?: string; // Joined field (public)
-  seller_avatar_url?: string; // Joined field (public)
   title: string;
   category: Category;
   brand: string;
