@@ -86,24 +86,12 @@ const SupplierProfile: React.FC = () => {
 
     return (
         <div className="bg-slate-50 dark:bg-slate-950 pb-20 min-h-screen">
-            {/* Immersive Hero Banner Area */}
-            <div className="w-full bg-slate-900 relative h-[180px] md:h-[260px]">
-                {/* Background Video/Image Cover */}
-                <div className="absolute inset-0 overflow-hidden">
-                    {/* Using a premium solar facility image as default cover */}
-                    <img
-                        src="https://images.unsplash.com/photo-1509391366360-120021b33924?auto=format&fit=crop&w=2000&q=80"
-                        alt="Company Cover"
-                        className="w-full h-full object-cover opacity-80"
-                        onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                        }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent"></div>
-                </div>
+            {/* Clean Header - No Cover Image */}
+            <div className="w-full bg-slate-900 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900"></div>
 
-                <div className="absolute inset-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full flex items-end pb-6">
-                    <div className="flex flex-col md:flex-row items-center md:items-end gap-6 w-full text-center md:text-left z-10 translate-y-10 md:translate-y-12">
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 md:py-16">
+                    <div className="flex flex-col md:flex-row items-center md:items-center gap-6 w-full text-center md:text-left z-10">
                         {/* Avatar */}
                         <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl shadow-xl flex items-center justify-center text-4xl md:text-5xl font-black text-slate-800 border-4 border-white/50 flex-shrink-0 overflow-hidden backdrop-blur-md">
                             {user ? (
@@ -178,7 +166,7 @@ const SupplierProfile: React.FC = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-24 md:mt-20">
+            <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                     {/* Left Column: Stats & Products */}
