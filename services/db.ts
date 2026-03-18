@@ -375,6 +375,35 @@ export const db = {
     });
   },
 
+  // Lightweight homepage query - no seller join, minimal fields (fast!)
+  getLatestListingsMinimal: async (limit: number = 12, marketplaceLayer: 'verified' | 'community' = 'verified'): Promise<Partial<Listing>[]> => {
+    const nowIso = new Date().toISOString();
+    const isVerifiedListing = marketplaceLayer === 'verified';
+
+    const { data, error } = await supabase
+      .from('listings')
+      .select('id, title, category, brand, condition, price, currency, moq, location_country, images_url, specs, is_verified_listing, is_sold, created_at')
+      .eq('is_hidden', false)
+      .eq('is_sold', false)
+      .eq('is_verified_listing', isVerifiedListing)
+      .gt('active_until', nowIso)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching minimal listings:', error);
+      return [];
+    }
+
+    // Transform to match Listing shape (with seller info missing, that's ok for cards)
+    return (data || []).map((row: any) => ({
+      ...row,
+      seller_name: null,
+      seller_type: null,
+      is_verified_seller: null,
+    })) as Partial<Listing>[];
+  },
+
   getListingById: async (id: string): Promise<Listing | null> => {
     let { data, error } = await supabase
       .from('listings')

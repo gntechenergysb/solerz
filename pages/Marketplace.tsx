@@ -276,8 +276,9 @@ const Marketplace: React.FC = () => {
 
         let data: Listing[];
         if (isDefaultQuery && !searchQuery && !selectedState && !selectedCategory && !selectedCondition) {
-          // Use optimized random listings for homepage (minimal Supabase traffic)
-          data = await db.getLatestListings(12, 'verified');
+          // Use lightweight minimal query for homepage (no seller join, much faster)
+          const minimalData = await db.getLatestListingsMinimal(12, 'verified');
+          data = minimalData as Listing[];
           setHasMore(true);
         } else {
           // Use full query for filtered searches
