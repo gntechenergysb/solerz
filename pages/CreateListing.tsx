@@ -967,19 +967,28 @@ const CreateListing: React.FC = () => {
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
-              <select
+            <div className="z-20">
+              <MultiSelect
+                label="Location (Multiple)"
+                options={['All Stock Locations', ...STOCK_LOCATIONS, 'Other Location']}
                 value={locationCountry}
-                onChange={(e) => setLocationCountry(e.target.value)}
-                className="w-full border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 focus:ring-primary focus:border-primary bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 mb-3"
-              >
-                <option value="All Stock Locations">All Stock Locations</option>
-                {STOCK_LOCATIONS.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-                <option value="Other Location">Other Location</option>
-              </select>
+                onChange={(v) => {
+                  const items = v.split(',').filter(Boolean);
+                  if (items.includes('All Stock Locations') && items.length > 1) {
+                    // If they just added something else, remove "All Stock Locations"
+                    if (items[items.length - 1] !== 'All Stock Locations') {
+                      setLocationCountry(items.filter(i => i !== 'All Stock Locations').join(','));
+                    } else {
+                      // If they just added "All Stock Locations", make it the only one
+                      setLocationCountry('All Stock Locations');
+                    }
+                  } else if (items.length === 0) {
+                    setLocationCountry('All Stock Locations');
+                  } else {
+                    setLocationCountry(v);
+                  }
+                }}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Condition</label>

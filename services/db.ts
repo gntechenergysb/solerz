@@ -159,7 +159,7 @@ export const db = {
         .gt('active_until', nowIso);
 
       if (country) {
-        q = q.eq('location_country', country);
+        q = q.ilike('location_country', `%${country}%`);
       }
       if (state) {
         q = q.eq('location_state', state);
