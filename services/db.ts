@@ -151,6 +151,14 @@ export const db = {
 
     const isVerifiedListing = marketplaceLayer === 'verified';
 
+    const toPgTextArrayLiteral = (items: string[]) => {
+      const escaped = items
+        .map((s) => String(s ?? ''))
+        .filter((s) => s.length > 0)
+        .map((s) => `"${s.replace(/\\/g, '\\\\').replace(/\"/g, '\\"')}"`);
+      return `{${escaped.join(',')}}`;
+    };
+
     const buildQuery = (base: any) => {
       let q = base
         .eq('is_hidden', false)
@@ -159,7 +167,12 @@ export const db = {
         .gt('active_until', nowIso);
 
       if (country) {
-        q = q.ilike('location_country', `%${country}%`);
+        // Match either:
+        // 1) legacy single location_country == country
+        // 2) global listings location_country == 'All Stock Locations'
+        // 3) multi-location array contains country
+        const arr = toPgTextArrayLiteral([country]);
+        q = q.or(`location_country.eq.${country},location_country.eq.All Stock Locations,location_countries.cs.${arr}`);
       }
       if (state) {
         q = q.eq('location_state', state);
@@ -437,7 +450,9 @@ export const db = {
         brand: listing.brand,
         condition: listing.condition,
         price: listing.price,
+        location_country: listing.location_country,
         location_state: listing.location_state,
+        location_countries: (listing as any).location_countries ?? null,
         specs: listing.specs,
         images_url: listing.images_url,
         // Add other updatable fields as needed

@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS public.listings (
     currency TEXT DEFAULT 'USD',
     location_country TEXT DEFAULT 'United States',
     location_state TEXT NOT NULL,
+    location_countries TEXT[] DEFAULT NULL,
     images_url TEXT[] DEFAULT '{}',
     datasheet_url TEXT,
     is_verified_listing BOOLEAN DEFAULT FALSE,
@@ -123,6 +124,15 @@ DO $$
 BEGIN
   BEGIN
     ALTER TABLE public.listings ADD COLUMN IF NOT EXISTS condition TEXT;
+  EXCEPTION WHEN others THEN
+    NULL;
+  END;
+END $$;
+
+DO $$
+BEGIN
+  BEGIN
+    ALTER TABLE public.listings ADD COLUMN IF NOT EXISTS location_countries TEXT[] DEFAULT NULL;
   EXCEPTION WHEN others THEN
     NULL;
   END;

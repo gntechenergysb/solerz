@@ -171,10 +171,16 @@ const CreateListing: React.FC = () => {
         setPrice(String(row.price ?? ''));
         setMoq(String(row.moq ?? '1'));
         setCurrency(row.currency || 'USD');
-        setLocationCountry(row.location_country || 'China');
+        if (row.location_country === 'All Stock Locations') {
+          setLocationCountry('All Stock Locations');
+        } else if (Array.isArray((row as any).location_countries) && (row as any).location_countries.length) {
+          setLocationCountry((row as any).location_countries.join(','));
+        } else {
+          setLocationCountry(row.location_country || 'China');
+        }
         setCondition(((row as any).condition as any) || 'Used - Good');
         setSpecs((row.specs || {}) as any);
-        
+
         // Filter out the 'No Image' placeholder if present
         const imgs = (row.images_url || []).filter((u: string) => !u.includes('data:image/svg+xml'));
         setExistingImagesUrl(imgs);
@@ -306,6 +312,13 @@ const CreateListing: React.FC = () => {
           throw new Error('edit_missing_listing');
         }
 
+        const selectedLocations = locationCountry
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+          .filter(s => s !== 'All Stock Locations');
+        const locationCountriesArray = selectedLocations.filter(s => STOCK_LOCATIONS.includes(s));
+
         const updated: Listing = {
           ...existingListing,
           title,
@@ -316,14 +329,15 @@ const CreateListing: React.FC = () => {
           price: parseFloat(price),
           moq: parseInt(moq) || 1,
           currency,
-          location_country: locationCountry,
-          location_state: locationCountry, // Backwards compatibility for DB
+          location_country: locationCountry === 'All Stock Locations' ? 'All Stock Locations' : (selectedLocations[0] || locationCountry),
+          location_state: locationCountry === 'All Stock Locations' ? 'All Stock Locations' : (selectedLocations[0] || locationCountry), // Backwards compatibility for DB
+          location_countries: locationCountry === 'All Stock Locations' ? null : (locationCountriesArray.length ? locationCountriesArray : null),
           datasheet_url: datasheetUrl,
           images_url: existingImagesUrl.concat(uploadedImageUrls),
         };
 
         await db.updateListing(updated);
-        
+
         try {
           const allBrandsToSave = new Set<string>(userBrands);
           if (brand && brand !== 'Full System Package' && brand.trim() !== '') allBrandsToSave.add(brand.trim());
@@ -346,6 +360,13 @@ const CreateListing: React.FC = () => {
         ? uploadedImageUrls
         : ['data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="800" height="600" fill="%23f1f5f9"/%3E%3Ctext x="400" y="300" font-family="Arial" font-size="32" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E'];
 
+      const selectedLocations = locationCountry
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter(s => s !== 'All Stock Locations');
+      const locationCountriesArray = selectedLocations.filter(s => STOCK_LOCATIONS.includes(s));
+
       const listingData = {
         seller_id: user!.id,
         title,
@@ -356,8 +377,9 @@ const CreateListing: React.FC = () => {
         price: parseFloat(price),
         moq: parseInt(moq) || 1,
         currency,
-        location_country: locationCountry,
-        location_state: locationCountry, // Backwards compatibility for DB
+        location_country: locationCountry === 'All Stock Locations' ? 'All Stock Locations' : (selectedLocations[0] || locationCountry),
+        location_state: locationCountry === 'All Stock Locations' ? 'All Stock Locations' : (selectedLocations[0] || locationCountry), // Backwards compatibility for DB
+        location_countries: locationCountry === 'All Stock Locations' ? null : (locationCountriesArray.length ? locationCountriesArray : null),
         datasheet_url: datasheetUrl,
         images_url: imageUrls,
         is_sold: false,

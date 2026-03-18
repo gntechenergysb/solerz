@@ -279,6 +279,7 @@ export interface Listing {
   currency: string;
   location_country: string;
   location_state: string;
+  location_countries?: string[] | null;
   images_url: string[];
   datasheet_url?: string;
   active_until: string;
