@@ -36,8 +36,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     listing = (data && data[0]) || null;
   }
 
+  let priceStr = '';
+  if (typeof listing?.price === 'number') {
+    priceStr = `[${listing.currency || 'USD'} ${listing.price}] `;
+  }
+
   const title = listing?.title
-    ? `${listing.title} | Solerz`
+    ? `${priceStr}${listing.title} | Solerz`
     : 'Solerz | Solar Equipment Listings';
 
   const descParts: string[] = [];
@@ -70,15 +75,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
-    `<meta property="og:type" content="${listing ? 'product.item' : 'website'}" />`,
+    `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
     `<meta property="og:url" content="${escapeHtml(canonical)}" />`,
     `<meta property="og:image" content="${escapeHtml(ogImage)}" />`,
     `<meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />`,
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
     `<meta property="og:locale" content="en_US" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapeHtml(title)}" />`,
