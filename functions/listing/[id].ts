@@ -79,9 +79,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     }
   }
 
+  const cta = "Sign up for free! Sellers get 3 free listings with a Starter account.";
   const finalDesc = descParts.length > 0
-    ? descParts.join(' • ')
-    : 'Browse global solar equipment listings.';
+    ? `${descParts.join(' • ')} • ${cta}`
+    : `Browse global solar equipment listings. ${cta}`;
   const description = descParts.length
     ? `Solar listing on Solerz: ${finalDesc}`
     : finalDesc;

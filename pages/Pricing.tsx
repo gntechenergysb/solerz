@@ -357,7 +357,7 @@ const Pricing: React.FC = () => {
                   <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/50 mt-4 shadow-sm">
                     <BarChart2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      {plan.id === 'pro' ? 'Basic Analytics Dashboard' : 'Market Price Benchmarking'}
+                      Basic Analytics Dashboard
                     </span>
                   </div>
                 )}
