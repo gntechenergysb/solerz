@@ -60,6 +60,25 @@ const ProductDetails: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
+    if (!id) return;
+    // Ensure product photos are visible first on mobile navigation
+    const scrollTop = () => {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+    };
+    scrollTop();
+    const raf = window.requestAnimationFrame(scrollTop);
+    const t = window.setTimeout(scrollTop, 50);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+  }, [id]);
+
+  useEffect(() => {
     if (!listing?.seller_id) return;
 
     const REPS_CACHE_TTL_MS = 10 * 60 * 1000;
