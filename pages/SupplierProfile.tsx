@@ -16,7 +16,6 @@ const SupplierProfile: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [salesReps, setSalesReps] = useState<SalesRepresentative[]>([]);
     const [avatarFailed, setAvatarFailed] = useState(false);
-    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
     const fetchSupplierData = useCallback(async (force: boolean = false) => {
         if (!id) return;
@@ -50,7 +49,6 @@ const SupplierProfile: React.FC = () => {
 
         const hasCachedCore = !!(cachedProfile && cachedListings);
         if (!hasCachedCore || shouldForce) {
-            if (shouldForce) setIsManualRefreshing(true);
             setLoading(true);
         }
 
@@ -76,7 +74,6 @@ const SupplierProfile: React.FC = () => {
             console.error("Error loading supplier", error);
         } finally {
             setLoading(false);
-            setIsManualRefreshing(false);
         }
 
         if (!cachedReps || shouldForce) {
@@ -226,20 +223,6 @@ const SupplierProfile: React.FC = () => {
 
             {/* Main Content Area */}
             <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-24 md:mt-20">
-                <div className="flex items-center justify-end mb-4">
-                    <button
-                        type="button"
-                        onClick={() => fetchSupplierData(true)}
-                        disabled={isManualRefreshing}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors ${isManualRefreshing
-                            ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
-                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }`}
-                        title="Refresh supplier data"
-                    >
-                        {isManualRefreshing ? 'Refreshing...' : 'Refresh'}
-                    </button>
-                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                     {/* Left Column: Stats & Products */}

@@ -88,7 +88,6 @@ const Marketplace: React.FC = () => {
   const [page, setPage] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const fetchSeqRef = useRef(0);
 
@@ -274,9 +273,6 @@ const Marketplace: React.FC = () => {
     }
 
     const mySeq = ++fetchSeqRef.current;
-    if (shouldForce) {
-      setIsManualRefreshing(true);
-    }
     setIsLoading(true);
     try {
       if (!isDefaultQuery) {
@@ -330,7 +326,6 @@ const Marketplace: React.FC = () => {
     } finally {
       if (fetchSeqRef.current === mySeq) {
         setIsLoading(false);
-        setIsManualRefreshing(false);
       }
     }
   }, [sortBy, searchQuery, selectedState, selectedCategory, selectedCondition, selectedCountry, selectedBrand, minPrice, maxPrice, includePOA]);
@@ -1239,20 +1234,6 @@ const Marketplace: React.FC = () => {
                 </span>
               </span>
             </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fetchListingsNow(true)}
-              disabled={isManualRefreshing}
-              className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors ${isManualRefreshing
-                ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
-                : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              title="Refresh listings"
-            >
-              {isManualRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
           </div>
         </div>
 
