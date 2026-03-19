@@ -1,14 +1,38 @@
 import { Listing, Profile } from '../types';
 import { supabase } from './supabaseClient';
 
-const sellerSelectWithPhone = 'company_name, is_verified, seller_type, handphone_no, email, business_address, company_reg_no, avatar_url';
-const sellerSelectNoPhone = 'company_name, is_verified, seller_type, email, business_address, company_reg_no, avatar_url';
+const buildSellerSelect = (opts: { withPhone: boolean; withAvatar: boolean }) => {
+  const fields = [
+    'company_name',
+    'is_verified',
+    'seller_type',
+    ...(opts.withPhone ? ['handphone_no'] : []),
+    'email',
+    'business_address',
+    'company_reg_no',
+    ...(opts.withAvatar ? ['avatar_url'] : [])
+  ];
+  return fields.join(', ');
+};
+
+const sellerSelectWithPhone = buildSellerSelect({ withPhone: true, withAvatar: true });
+const sellerSelectNoPhone = buildSellerSelect({ withPhone: false, withAvatar: true });
 
 const isMissingHandphoneNoError = (error: any) => {
   const msg = String(error?.message || '');
   return (error?.code === '42703' && msg.includes('handphone_no')) || msg.includes('handphone_no');
 };
 
+const isMissingAvatarUrlError = (error: any) => {
+  const msg = String(error?.message || '');
+  return (error?.code === '42703' && msg.includes('avatar_url')) || msg.includes('avatar_url');
+};
+
+const getSellerSelectForError = (error: any, base: { withPhone: boolean; withAvatar: boolean }) => {
+  const withPhone = isMissingHandphoneNoError(error) ? false : base.withPhone;
+  const withAvatar = isMissingAvatarUrlError(error) ? false : base.withAvatar;
+  return buildSellerSelect({ withPhone, withAvatar });
+};
 const enrichListingsWithSeller = async (listings: any[]): Promise<Listing[]> => {
   const missingSellerIds = Array.from(
     new Set(
@@ -29,10 +53,11 @@ const enrichListingsWithSeller = async (listings: any[]): Promise<Listing[]> => 
       .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, company_reg_no, avatar_url')
       .in('id', missingSellerIds));
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await supabase
         .from('profiles_public')
-        .select('id, company_name, is_verified, seller_type, email, business_address, company_reg_no, avatar_url')
+        .select(`id, ${retrySelect}`)
         .in('id', missingSellerIds);
       sellers = retry.data;
     }
@@ -65,10 +90,11 @@ export const db = {
       .select(`*, seller:profiles_public(${sellerSelectWithPhone})`)
       .order('created_at', { ascending: false });
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await supabase
         .from('listings')
-        .select(`*, seller:profiles_public(${sellerSelectNoPhone})`)
+        .select(`*, seller:profiles_public(${retrySelect})`)
         .order('created_at', { ascending: false });
       listings = retry.data;
       error = retry.error;
@@ -236,11 +262,12 @@ export const db = {
         .select(`*, seller:profiles_public(${sellerSelectWithPhone})`)
     );
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await buildQuery(
         supabase
           .from('listings')
-          .select(`*, seller:profiles_public(${sellerSelectNoPhone})`)
+          .select(`*, seller:profiles_public(${retrySelect})`)
       );
       listings = retry.data;
       error = retry.error;
@@ -277,10 +304,11 @@ export const db = {
       .select(`*, seller:profiles_public(${sellerSelectWithPhone})`)
       .in('id', ids);
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await supabase
         .from('listings')
-        .select(`*, seller:profiles_public(${sellerSelectNoPhone})`)
+        .select(`*, seller:profiles_public(${retrySelect})`)
         .in('id', ids);
       listings = retry.data;
       error = retry.error;
@@ -317,10 +345,11 @@ export const db = {
       .eq('seller_id', sellerId)
       .order('created_at', { ascending: false });
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await supabase
         .from('listings')
-        .select(`*, seller:profiles_public(${sellerSelectNoPhone})`)
+        .select(`*, seller:profiles_public(${retrySelect})`)
         .eq('seller_id', sellerId)
         .order('created_at', { ascending: false });
       listings = retry.data;
@@ -412,10 +441,11 @@ export const db = {
       .eq('id', id)
       .single();
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await supabase
         .from('listings')
-        .select(`*, seller:profiles_public(${sellerSelectNoPhone})`)
+        .select(`*, seller:profiles_public(${retrySelect})`)
         .eq('id', id)
         .single();
       data = retry.data;
@@ -582,10 +612,11 @@ export const db = {
       .eq('id', id)
       .single();
 
-    if (error && isMissingHandphoneNoError(error)) {
+    if (error && (isMissingHandphoneNoError(error) || isMissingAvatarUrlError(error))) {
+      const retrySelect = getSellerSelectForError(error, { withPhone: true, withAvatar: true });
       const retry = await supabase
         .from('profiles_public')
-        .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no, avatar_url')
+        .select(`id, country, ${retrySelect}`)
         .eq('id', id)
         .single();
       data = retry.data as any;
