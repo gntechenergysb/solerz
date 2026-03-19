@@ -14,6 +14,7 @@ const SupplierProfile: React.FC = () => {
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
     const [salesReps, setSalesReps] = useState<SalesRepresentative[]>([]);
+    const [avatarFailed, setAvatarFailed] = useState(false);
 
 
     useEffect(() => {
@@ -107,8 +108,13 @@ const SupplierProfile: React.FC = () => {
                         {/* Avatar */}
                         <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-2xl shadow-xl flex items-center justify-center text-4xl md:text-5xl font-black text-slate-800 border-4 border-white/50 flex-shrink-0 overflow-hidden backdrop-blur-md">
                             {user ? (
-                                profile.avatar_url ? (
-                                    <img src={profile.avatar_url} alt={supplierName} className="w-full h-full object-cover" />
+                                profile.avatar_url && !avatarFailed ? (
+                                    <img
+                                        src={profile.avatar_url}
+                                        alt={supplierName}
+                                        className="w-full h-full object-cover"
+                                        onError={() => setAvatarFailed(true)}
+                                    />
                                 ) : (
                                     initial
                                 )
