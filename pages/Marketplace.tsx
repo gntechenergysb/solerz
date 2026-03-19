@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { db } from '../services/db';
 import { Listing } from '../types';
 import { MALAYSIAN_STATES, CATEGORIES } from '../constants';
 import { STOCK_LOCATIONS } from '../utils/countries';
 import { detectUserLocation } from '../utils/geo';
+import { readCache, writeCache } from '../utils/cache';
 import ProductCard from '../components/ProductCard';
 import CompareModal from '../components/CompareModal';
 import toast from 'react-hot-toast';
@@ -78,12 +79,16 @@ const MOUNTING_MATERIALS = ['Aluminum', 'Galvanized Steel', 'Stainless Steel', '
 const MOUNTING_ROOF_TYPES = ['Corrugated', 'Trapezoidal', 'Tile', 'Standing Seam', 'Flat Roof', 'Any'];
 
 const Marketplace: React.FC = () => {
+  const MARKETPLACE_CACHE_TTL_MS = 3 * 60 * 1000;
+  const BRANDS_CACHE_TTL_MS = 15 * 60 * 1000;
+
   const [listings, setListings] = useState<Listing[]>([]);
   const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const fetchSeqRef = useRef(0);
 
@@ -207,7 +212,19 @@ const Marketplace: React.FC = () => {
 
   useEffect(() => {
     // Only fetch brands when category changes or on mount to populate Any Category
-    db.getUniqueBrandsByCategory(selectedCategory).then(setAvailableBrands);
+    const cacheKey = `brands_cache_v1_${selectedCategory || 'all'}`;
+    const cached = readCache<string[]>(cacheKey, BRANDS_CACHE_TTL_MS);
+    if (cached && cached.length > 0) {
+      setAvailableBrands(cached);
+      return;
+    }
+
+    db.getUniqueBrandsByCategory(selectedCategory).then((brands) => {
+      setAvailableBrands(brands);
+      if (brands && brands.length > 0) {
+        writeCache(cacheKey, brands);
+      }
+    });
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -227,9 +244,16 @@ const Marketplace: React.FC = () => {
     setSearchParams(params, { replace: true });
   }, [searchQuery, selectedCountry, selectedState, selectedCondition, selectedCategory, selectedBrand, sortBy, minPrice, maxPrice, includePOA, setSearchParams]);
 
-  useEffect(() => {
-    const cacheKey = `marketplace_cache_v1_${sortBy}`;
+  const fetchListingsNow = useCallback(async (force: boolean = false) => {
+    const navEntry = (typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function')
+      ? (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
+      : undefined;
+    const isReload = navEntry?.type === 'reload';
+    const shouldForce = force || isReload;
+
+    const cacheKey = `marketplace_cache_v2_${sortBy}`;
     const isDefaultQuery = !searchQuery.trim() && !selectedState && !selectedCategory && !selectedCondition && selectedCountry === 'All Stock Locations' && !selectedBrand && !minPrice && !maxPrice;
+    const cached = (!shouldForce && isDefaultQuery) ? readCache<{ listings: Listing[]; hasMore: boolean }>(cacheKey, MARKETPLACE_CACHE_TTL_MS) : null;
 
     const inferCategory = (q: string) => {
       const s = (q || '').toLowerCase();
@@ -240,85 +264,80 @@ const Marketplace: React.FC = () => {
       return '';
     };
 
-    if (isDefaultQuery) {
-      try {
-        const raw = sessionStorage.getItem(cacheKey);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed?.listings)) {
-            setListings(dedupeById(parsed.listings));
-            setPage(0);
-            setHasMore(!!parsed.hasMore);
-            setIsLoading(false);
-          }
-        }
-      } catch {
-        // ignore cache errors
-      }
+    const hasCached = !!(cached && Array.isArray(cached.listings));
+    if (hasCached && !shouldForce) {
+      setListings(dedupeById(cached.listings));
+      setPage(0);
+      setHasMore(!!cached.hasMore);
+      setIsLoading(false);
+      return;
     }
 
     const mySeq = ++fetchSeqRef.current;
-    const fetchListings = async () => {
-      setIsLoading(true);
-      try {
-        if (!isDefaultQuery) {
-          const inferred = inferCategory(searchQuery);
-          const cat = selectedCategory || inferred;
-          db.trackSearchEvent({
-            searchQuery,
-            category: cat,
-            country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
-            state: selectedState,
-            condition: selectedCondition,
-            marketplaceLayer: 'verified'
-          });
-        }
-
-        let data: Listing[];
-        if (isDefaultQuery && !searchQuery && !selectedState && !selectedCategory && !selectedCondition) {
-          // Use lightweight minimal query for homepage (no seller join, much faster)
-          const minimalData = await db.getLatestListingsMinimal(12, 'verified');
-          data = minimalData as Listing[];
-          setHasMore(true);
-        } else {
-          // Use full query for filtered searches
-          data = await db.getMarketplaceListings({
-            from: 0,
-            to: 11,
-            marketplaceLayer: 'verified',
-            searchQuery,
-            country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
-            state: selectedState,
-            condition: selectedCondition,
-            category: selectedCategory,
-            brand: selectedBrand,
-            minPrice: minPrice ? Number(minPrice) : undefined,
-            maxPrice: maxPrice ? Number(maxPrice) : undefined,
-            includePOA: includePOA,
-            sortBy: sortBy as any
-          });
-          setHasMore(data.length > 11);
-        }
-
-        if (fetchSeqRef.current !== mySeq) return;
-        const pageRows = data.slice(0, 12);
-        const next = dedupeById(pageRows);
-        setListings(next);
-        setPage(0);
-
-        if (isDefaultQuery) {
-          try {
-            sessionStorage.setItem(cacheKey, JSON.stringify({ listings: next, hasMore: true }));
-          } catch {
-            // ignore cache errors
-          }
-        }
-      } finally {
-        if (fetchSeqRef.current === mySeq) setIsLoading(false);
+    if (shouldForce) {
+      setIsManualRefreshing(true);
+    }
+    setIsLoading(true);
+    try {
+      if (!isDefaultQuery) {
+        const inferred = inferCategory(searchQuery);
+        const cat = selectedCategory || inferred;
+        db.trackSearchEvent({
+          searchQuery,
+          category: cat,
+          country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
+          state: selectedState,
+          condition: selectedCondition,
+          marketplaceLayer: 'verified'
+        });
       }
-    };
-    fetchListings();
-  }, [sortBy, searchQuery, selectedCountry, selectedState, selectedCategory, selectedCondition, selectedBrand, minPrice, maxPrice, includePOA]);
+
+      let data: Listing[];
+      if (isDefaultQuery && !searchQuery && !selectedState && !selectedCategory && !selectedCondition) {
+        // Use lightweight minimal query for homepage (no seller join, much faster)
+        const minimalData = await db.getLatestListingsMinimal(12, 'verified');
+        data = minimalData as Listing[];
+        setHasMore(true);
+      } else {
+        // Use full query for filtered searches
+        data = await db.getMarketplaceListings({
+          from: 0,
+          to: 11,
+          marketplaceLayer: 'verified',
+          searchQuery,
+          country: selectedCountry === 'All Stock Locations' ? '' : selectedCountry,
+          state: selectedState,
+          condition: selectedCondition,
+          category: selectedCategory,
+          brand: selectedBrand,
+          minPrice: minPrice ? Number(minPrice) : undefined,
+          maxPrice: maxPrice ? Number(maxPrice) : undefined,
+          includePOA: includePOA,
+          sortBy: sortBy as any
+        });
+        setHasMore(data.length > 11);
+      }
+
+      if (fetchSeqRef.current !== mySeq) return;
+      const pageRows = data.slice(0, 12);
+      const next = dedupeById(pageRows);
+      setListings(next);
+      setPage(0);
+
+      if (isDefaultQuery) {
+        writeCache(cacheKey, { listings: next, hasMore: true });
+      }
+    } finally {
+      if (fetchSeqRef.current === mySeq) {
+        setIsLoading(false);
+        setIsManualRefreshing(false);
+      }
+    }
+  }, [sortBy, searchQuery, selectedState, selectedCategory, selectedCondition, selectedCountry, selectedBrand, minPrice, maxPrice, includePOA]);
+
+  useEffect(() => {
+    fetchListingsNow(false);
+  }, [fetchListingsNow]);
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;
@@ -329,7 +348,7 @@ const Marketplace: React.FC = () => {
       // For random listings, fetch a fresh batch incrementally
       setIsLoadingMore(true);
       try {
-        const data = await db.getLatestListings(12, 'verified');
+        const data = await db.getLatestListingsMinimal(12, 'verified');
         const next = dedupeById([...listings, ...data]);
         setListings(next);
         setPage(page + 1);
@@ -1220,6 +1239,20 @@ const Marketplace: React.FC = () => {
                 </span>
               </span>
             </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fetchListingsNow(true)}
+              disabled={isManualRefreshing}
+              className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors ${isManualRefreshing
+                ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
+                : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              title="Refresh listings"
+            >
+              {isManualRefreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
           </div>
         </div>
 

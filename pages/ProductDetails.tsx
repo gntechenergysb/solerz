@@ -5,6 +5,7 @@ import { Listing, SalesRepresentative } from '../types';
 import { MapPin, MessageSquare, ShieldCheck, ArrowLeft, Calendar, FileText, Check, AlertTriangle, Clock, Lock, Bookmark, Phone, Mail, MessageCircle, Send, Linkedin, Facebook, Twitter, Instagram, Video, Hash, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../services/authContext';
+import { readCache, writeCache } from '../utils/cache';
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,30 +21,64 @@ const ProductDetails: React.FC = () => {
   const [sellerAvatarFailed, setSellerAvatarFailed] = useState(false);
 
   useEffect(() => {
-    const fetchListing = async () => {
-      if (id) {
-        const data = await db.getListingById(id);
-        if (data && data.seller_id) {
-          const reps = await db.getSalesReps(data.seller_id);
-          setSalesReps(reps || []);
-        }
-        setListing(data);
+    if (!id) return;
 
-        const fallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-        const videoUrl = data?.specs?.video_url as string | undefined;
-        if (videoUrl) {
-          setActiveMedia({ type: 'video', url: videoUrl });
-        } else {
-          const first = (data && Array.isArray(data.images_url) && data.images_url.length > 0) ? data.images_url[0] : '';
-          setActiveMedia({ type: 'image', url: first || fallback });
-        }
+    const LISTING_CACHE_TTL_MS = 5 * 60 * 1000;
+    const cacheKey = `listing_detail_v1_${id}`;
+    const cached = readCache<Listing>(cacheKey, LISTING_CACHE_TTL_MS);
 
-        db.updateViewCount(id);
+    const initMedia = (data: Listing | null) => {
+      const fallback = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+      const videoUrl = data?.specs?.video_url as string | undefined;
+      if (videoUrl) {
+        setActiveMedia({ type: 'video', url: videoUrl });
+      } else {
+        const first = (data && Array.isArray(data.images_url) && data.images_url.length > 0) ? data.images_url[0] : '';
+        setActiveMedia({ type: 'image', url: first || fallback });
       }
+    };
+
+    if (cached) {
+      setListing(cached);
+      initMedia(cached);
+      setLoading(false);
+      db.updateViewCount(id);
+      return;
+    }
+
+    const fetchListing = async () => {
+      setLoading(true);
+      const data = await db.getListingById(id);
+      setListing(data);
+      initMedia(data);
+      if (data) writeCache(cacheKey, data);
+      db.updateViewCount(id);
       setLoading(false);
     };
+
     fetchListing();
   }, [id]);
+
+  useEffect(() => {
+    if (!listing?.seller_id) return;
+
+    const REPS_CACHE_TTL_MS = 10 * 60 * 1000;
+    const cacheKey = `sales_reps_v1_${listing.seller_id}`;
+    const cached = readCache<SalesRepresentative[]>(cacheKey, REPS_CACHE_TTL_MS);
+
+    if (cached && cached.length > 0) {
+      setSalesReps(cached);
+      return;
+    }
+
+    const fetchReps = async () => {
+      const reps = await db.getSalesReps(listing.seller_id);
+      setSalesReps(reps || []);
+      if (reps && reps.length > 0) writeCache(cacheKey, reps);
+    };
+
+    fetchReps();
+  }, [listing?.seller_id]);
 
   useEffect(() => {
     const run = async () => {

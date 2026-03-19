@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db } from '../services/db';
 import { Listing, SalesRepresentative } from '../types';
@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard';
 import { MapPin, CheckCircle, Mail, Phone, ExternalLink, ShieldCheck, Users, MessageSquare, MessageCircle, Send, Linkedin, Facebook, Twitter, Instagram, Video, Hash, PlayCircle, Info, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../services/authContext';
+import { readCache, writeCache } from '../utils/cache';
 
 const SupplierProfile: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -15,43 +16,83 @@ const SupplierProfile: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [salesReps, setSalesReps] = useState<SalesRepresentative[]>([]);
     const [avatarFailed, setAvatarFailed] = useState(false);
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-
-    useEffect(() => {
+    const fetchSupplierData = useCallback(async (force: boolean = false) => {
         if (!id) return;
 
-        const fetchSupplierData = async () => {
+        const navEntry = (typeof performance !== 'undefined' && typeof performance.getEntriesByType === 'function')
+            ? (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)
+            : undefined;
+        const isReload = navEntry?.type === 'reload';
+        const shouldForce = force || isReload;
+
+        const PROFILE_CACHE_TTL_MS = 10 * 60 * 1000;
+        const LISTINGS_CACHE_TTL_MS = 5 * 60 * 1000;
+        const REPS_CACHE_TTL_MS = 10 * 60 * 1000;
+
+        const profileCacheKey = `supplier_profile_v1_${id}`;
+        const listingsCacheKey = `supplier_listings_v1_${id}`;
+        const repsCacheKey = `supplier_reps_v1_${id}`;
+
+        const cachedProfile = !shouldForce ? readCache<any>(profileCacheKey, PROFILE_CACHE_TTL_MS) : null;
+        const cachedListings = !shouldForce ? readCache<Listing[]>(listingsCacheKey, LISTINGS_CACHE_TTL_MS) : null;
+        const cachedReps = !shouldForce ? readCache<SalesRepresentative[]>(repsCacheKey, REPS_CACHE_TTL_MS) : null;
+
+        if (cachedProfile) setProfile(cachedProfile);
+        if (cachedListings) {
+            const activePublicListings = (cachedListings || []).filter(
+                (l) => !l.is_hidden && !l.is_paused && !l.is_sold
+            );
+            setListings(activePublicListings);
+        }
+        if (cachedReps) setSalesReps(cachedReps);
+
+        const hasCachedCore = !!(cachedProfile && cachedListings);
+        if (!hasCachedCore || shouldForce) {
+            if (shouldForce) setIsManualRefreshing(true);
             setLoading(true);
-            try {
-                const [profileData, supplierListings, repsData] = await Promise.all([
-                    db.getPublicProfile(id),
-                    db.getListingsBySellerId(id),
-                    db.getSalesReps(id)
-                ]);
+        }
 
-                if (profileData) {
-                    setProfile(profileData);
-                } else {
-                    toast.error("Supplier not found.");
-                }
+        try {
+            const [profileData, supplierListings] = await Promise.all([
+                cachedProfile ? Promise.resolve(cachedProfile) : db.getPublicProfile(id),
+                cachedListings ? Promise.resolve(cachedListings) : db.getListingsBySellerIdPublicMinimal(id)
+            ]);
 
-                setSalesReps(repsData || []);
-
-                // Filter out hidden or sold listings for public view
-                const activePublicListings = (supplierListings || []).filter(
-                    (l) => !l.is_hidden && !l.is_paused && !l.is_sold
-                );
-                setListings(activePublicListings);
-
-            } catch (error) {
-                console.error("Error loading supplier", error);
-            } finally {
-                setLoading(false);
+            if (profileData) {
+                setProfile(profileData);
+                writeCache(profileCacheKey, profileData);
+            } else {
+                toast.error("Supplier not found.");
             }
-        };
 
-        fetchSupplierData();
+            const activePublicListings = (supplierListings || []).filter(
+                (l) => !l.is_hidden && !l.is_paused && !l.is_sold
+            );
+            setListings(activePublicListings);
+            writeCache(listingsCacheKey, supplierListings || []);
+        } catch (error) {
+            console.error("Error loading supplier", error);
+        } finally {
+            setLoading(false);
+            setIsManualRefreshing(false);
+        }
+
+        if (!cachedReps || shouldForce) {
+            try {
+                const repsData = await db.getSalesReps(id);
+                setSalesReps(repsData || []);
+                if (repsData && repsData.length > 0) writeCache(repsCacheKey, repsData);
+            } catch (error) {
+                console.error("Error loading sales reps", error);
+            }
+        }
     }, [id]);
+
+    useEffect(() => {
+        fetchSupplierData(false);
+    }, [fetchSupplierData]);
 
     if (loading) {
         return (
@@ -185,6 +226,20 @@ const SupplierProfile: React.FC = () => {
 
             {/* Main Content Area */}
             <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-24 md:mt-20">
+                <div className="flex items-center justify-end mb-4">
+                    <button
+                        type="button"
+                        onClick={() => fetchSupplierData(true)}
+                        disabled={isManualRefreshing}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors ${isManualRefreshing
+                            ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 border-slate-200 dark:border-slate-800 cursor-not-allowed'
+                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            }`}
+                        title="Refresh supplier data"
+                    >
+                        {isManualRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                     {/* Left Column: Stats & Products */}

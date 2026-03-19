@@ -379,6 +379,22 @@ export const db = {
     return enrichListingsWithSeller(listings || []);
   },
 
+  // Public minimal listings by seller (no seller join) for supplier profile
+  getListingsBySellerIdPublicMinimal: async (sellerId: string): Promise<Listing[]> => {
+    const { data: listings, error } = await supabase
+      .from('listings')
+      .select('id, seller_id, title, category, brand, condition, specs, price, moq, currency, location_country, images_url, is_verified_listing, is_sold, is_hidden, is_paused, active_until, created_at')
+      .eq('seller_id', sellerId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching public minimal listings by seller:', error);
+      return [];
+    }
+
+    return (listings || []) as Listing[];
+  },
+
   // Minimal version for Dashboard - only fetches essential fields (much faster)
   getListingsBySellerIdMinimal: async (sellerId: string): Promise<Partial<Listing>[]> => {
     const { data: listings, error } = await supabase
