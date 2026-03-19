@@ -577,14 +577,14 @@ export const db = {
   getPublicProfile: async (id: string): Promise<any | null> => {
     let { data, error } = await supabase
       .from('profiles_public')
-      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, country, company_reg_no')
+      .select('id, company_name, is_verified, seller_type, handphone_no, email, business_address, country, company_reg_no, avatar_url')
       .eq('id', id)
       .single();
 
     if (error && isMissingHandphoneNoError(error)) {
       const retry = await supabase
         .from('profiles_public')
-        .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no')
+        .select('id, company_name, is_verified, seller_type, email, business_address, country, company_reg_no, avatar_url')
         .eq('id', id)
         .single();
       data = retry.data as any;

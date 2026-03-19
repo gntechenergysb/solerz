@@ -10,6 +10,7 @@ const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
+  const [sellerAvatarUrl, setSellerAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video', url: string }>({ type: 'image', url: '' });
   const [salesReps, setSalesReps] = useState<SalesRepresentative[]>([]);
@@ -25,6 +26,14 @@ const ProductDetails: React.FC = () => {
         if (data && data.seller_id) {
           const reps = await db.getSalesReps(data.seller_id);
           setSalesReps(reps || []);
+
+          try {
+            const p = await db.getPublicProfile(data.seller_id);
+            const url = (p as any)?.avatar_url;
+            setSellerAvatarUrl(typeof url === 'string' && url.trim().length > 0 ? url : null);
+          } catch {
+            setSellerAvatarUrl(null);
+          }
         }
         setListing(data);
 
@@ -484,8 +493,16 @@ const ProductDetails: React.FC = () => {
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-wide uppercase">About the Supplier</h3>
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 font-bold text-slate-500 dark:text-slate-300">
-                {user ? (listing.seller_name?.[0]?.toUpperCase() || 'S') : <Lock className="h-5 w-5" />}
+              <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 font-bold text-slate-500 dark:text-slate-300 overflow-hidden">
+                {user ? (
+                  sellerAvatarUrl ? (
+                    <img src={sellerAvatarUrl} alt={listing.seller_name || 'Supplier'} className="w-full h-full object-cover" />
+                  ) : (
+                    listing.seller_name?.[0]?.toUpperCase() || 'S'
+                  )
+                ) : (
+                  <Lock className="h-5 w-5" />
+                )}
               </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-2 mb-1">
@@ -544,8 +561,16 @@ const ProductDetails: React.FC = () => {
             {/* Seller Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600`}>
-                  {user ? (listing.seller_name?.charAt(0) || 'S') : <Lock className="h-4 w-4" />}
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold shadow-sm bg-white dark:bg-slate-800 text-emerald-600 overflow-hidden`}>
+                  {user ? (
+                    sellerAvatarUrl ? (
+                      <img src={sellerAvatarUrl} alt={listing.seller_name || 'Supplier'} className="w-full h-full object-cover" />
+                    ) : (
+                      listing.seller_name?.charAt(0) || 'S'
+                    )
+                  ) : (
+                    <Lock className="h-4 w-4" />
+                  )}
                 </div>
                 <div>
                   <p
