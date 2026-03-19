@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.profiles_public (
     is_verified BOOLEAN DEFAULT FALSE,
     seller_type TEXT DEFAULT 'INDIVIDUAL',
     handphone_no TEXT,
+    avatar_url TEXT,
     business_address TEXT,
     company_reg_no TEXT,  -- Company/Business Registration Number (international)
     country TEXT,
@@ -50,6 +51,7 @@ BEGIN
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS seller_type TEXT DEFAULT 'INDIVIDUAL';
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS handphone_no TEXT;
+    ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS avatar_url TEXT;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS business_address TEXT;
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS company_reg_no TEXT;  -- International company reg number
     ALTER TABLE public.profiles_public ADD COLUMN IF NOT EXISTS country TEXT;
@@ -605,14 +607,15 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no, updated_at)
-  VALUES (NEW.id, NEW.email, NEW.company_name, NEW.is_verified, NEW.seller_type, NEW.handphone_no, NEW.business_address, NEW.company_reg_no, NOW())
+  INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, avatar_url, business_address, company_reg_no, updated_at)
+  VALUES (NEW.id, NEW.email, NEW.company_name, NEW.is_verified, NEW.seller_type, NEW.handphone_no, NEW.avatar_url, NEW.business_address, NEW.company_reg_no, NOW())
   ON CONFLICT (id) DO UPDATE
   SET email = EXCLUDED.email,
       company_name = EXCLUDED.company_name,
       is_verified = EXCLUDED.is_verified,
       seller_type = EXCLUDED.seller_type,
       handphone_no = EXCLUDED.handphone_no,
+      avatar_url = EXCLUDED.avatar_url,
       business_address = EXCLUDED.business_address,
       company_reg_no = EXCLUDED.company_reg_no,
       updated_at = NOW();
@@ -623,11 +626,11 @@ $$;
 
 DROP TRIGGER IF EXISTS trg_sync_profiles_public ON public.profiles;
 CREATE TRIGGER trg_sync_profiles_public
-AFTER INSERT OR UPDATE OF email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no ON public.profiles
+AFTER INSERT OR UPDATE OF email, company_name, is_verified, seller_type, handphone_no, avatar_url, business_address, company_reg_no ON public.profiles
 FOR EACH ROW EXECUTE FUNCTION public.sync_profiles_public();
 
-INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no, updated_at)
-SELECT id, email, company_name, is_verified, seller_type, handphone_no, business_address, company_reg_no, NOW()
+INSERT INTO public.profiles_public (id, email, company_name, is_verified, seller_type, handphone_no, avatar_url, business_address, company_reg_no, updated_at)
+SELECT id, email, company_name, is_verified, seller_type, handphone_no, avatar_url, business_address, company_reg_no, NOW()
 FROM public.profiles
 ON CONFLICT (id) DO UPDATE
 SET email = EXCLUDED.email,
@@ -635,6 +638,7 @@ SET email = EXCLUDED.email,
     is_verified = EXCLUDED.is_verified,
     seller_type = EXCLUDED.seller_type,
     handphone_no = EXCLUDED.handphone_no,
+    avatar_url = EXCLUDED.avatar_url,
     business_address = EXCLUDED.business_address,
     company_reg_no = EXCLUDED.company_reg_no,
     updated_at = NOW();
