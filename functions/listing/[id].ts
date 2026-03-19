@@ -19,7 +19,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   // Always return index.html (SPA) but with OG tags injected so crawlers can preview.
   let baseHtml = await fetchIndexHtml(env, origin);
+  
+  // Remove existing SEO meta tags to prevent duplicates that confuse Facebook and other crawlers
   baseHtml = baseHtml.replace(/<title>[\s\S]*?<\/title>/i, '');
+  baseHtml = baseHtml.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
+  baseHtml = baseHtml.replace(/<meta[^>]*property="og:[^>]*>/gi, '');
+  baseHtml = baseHtml.replace(/<meta[^>]*property="twitter:[^>]*>/gi, '');
+  baseHtml = baseHtml.replace(/<meta[^>]*name="twitter:[^>]*>/gi, '');
 
   let listing: Listing | null = null;
   if (id) {
@@ -49,28 +55,70 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     : finalDesc;
 
   const canonical = `${origin}/listing/${encodeURIComponent(id)}`;
-  const ogImage = listing?.images_url?.[0] || `${origin}/icon.png`;
+  
+  // Ensure the OG Image is an absolute URL
+  let ogImage = `${origin}/icon.png`;
+  if (listing?.images_url && listing.images_url.length > 0) {
+    try {
+      ogImage = new URL(listing.images_url[0], origin).href;
+    } catch (e) {
+      // ignore
+    }
+  }
 
   const head = [
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
-    `<meta property="og:type" content="website" />`,
+    `<meta property="og:type" content="${listing ? 'product.item' : 'website'}" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
     `<meta property="og:url" content="${escapeHtml(canonical)}" />`,
     `<meta property="og:image" content="${escapeHtml(ogImage)}" />`,
+    `<meta property="og:image:secure_url" content="${escapeHtml(ogImage)}" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
-    `<meta property="og:locale" content="en_MY" />`,
+    `<meta property="og:locale" content="en_US" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapeHtml(title)}" />`,
     `<meta name="twitter:description" content="${escapeHtml(description)}" />`,
     `<meta name="twitter:image" content="${escapeHtml(ogImage)}" />`
-  ].join('\n');
+  ];
 
-  const html = injectHead(baseHtml, head);
+  if (listing && typeof listing.price === 'number') {
+    head.push(`<meta property="product:price:amount" content="${listing.price}" />`);
+    head.push(`<meta property="product:price:currency" content="${escapeHtml(listing.currency || 'USD')}" />`);
+  }
+
+  // Generate JSON-LD for better SEO
+  const jsonLd = listing ? {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": listing.title,
+    "image": listing.images_url || undefined,
+    "description": description,
+    "brand": {
+      "@type": "Brand",
+      "name": listing.brand || "Unspecified"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": canonical,
+      "priceCurrency": listing.currency || "USD",
+      "price": listing.price || 0,
+      "itemCondition": listing.condition?.toLowerCase().includes("new") 
+        ? "https://schema.org/NewCondition" 
+        : "https://schema.org/UsedCondition",
+      "availability": "https://schema.org/InStock"
+    }
+  } : null;
+
+  if (jsonLd) {
+    head.push(`<script type="application/ld+json">\n${JSON.stringify(jsonLd)}\n</script>`);
+  }
+
+  const html = injectHead(baseHtml, head.join('\n'));
 
   return new Response(html, {
     headers: {
