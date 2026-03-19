@@ -10,7 +10,10 @@ type Listing = {
   price?: number;
   currency?: string;
   location_state?: string;
+  location_country?: string;
   images_url?: string[];
+  moq?: number;
+  specs?: any;
 };
 
 export const onRequest: PagesFunction<Env> = async ({ request, env, params }) => {
@@ -31,26 +34,50 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   if (id) {
     const { data } = await supabaseRestGet<Listing[]>(
       env,
-      `listings?id=eq.${encodeURIComponent(id)}&select=id,title,brand,category,condition,price,currency,location_state,images_url&limit=1`
+      `listings?id=eq.${encodeURIComponent(id)}&select=id,title,brand,category,condition,price,currency,location_state,location_country,images_url,moq,specs&limit=1`
     );
     listing = (data && data[0]) || null;
   }
 
   let priceStr = '';
   if (typeof listing?.price === 'number') {
-    priceStr = `[${listing.currency || 'USD'} ${listing.price}] `;
+    priceStr = `${listing?.currency || 'USD'} ${listing.price}`;
   }
+  let moqStr = '';
+  if (typeof listing?.moq === 'number') {
+    moqStr = `MOQ: ${listing.moq}`;
+  }
+  
+  let prefixParts = [priceStr, moqStr].filter(Boolean);
+  let prefix = prefixParts.length ? `[${prefixParts.join(' | ')}] ` : '';
+
+  const loc = [listing?.location_state, listing?.location_country].filter(Boolean).join(', ');
+  let suffix = loc ? ` | ${loc}` : '';
 
   const title = listing?.title
-    ? `${priceStr}${listing.title} | Solerz`
+    ? `${prefix}${listing.title}${suffix}`
     : 'Solerz | Solar Equipment Listings';
 
   const descParts: string[] = [];
   if (listing?.brand) descParts.push(listing.brand);
   if (listing?.category) descParts.push(listing.category);
   if (listing?.condition) descParts.push(listing.condition);
-  if (typeof listing?.price === 'number') descParts.push(`${listing.currency || 'USD'} ${listing.price}`);
-  if (listing?.location_state) descParts.push(listing.location_state);
+  
+  if (listing?.specs) {
+    const s = listing.specs;
+    const specList: string[] = [];
+    if (s.wattage) specList.push(`${s.wattage}W`);
+    if (s.efficiency) specList.push(`${s.efficiency}% Eff`);
+    if (s.capacity_kwh) specList.push(`${s.capacity_kwh}kWh`);
+    if (s.cycle_life) specList.push(`${s.cycle_life} Cycles`);
+    if (s.battery_technology) specList.push(s.battery_technology);
+    if (s.inverter_type) specList.push(s.inverter_type);
+    if (s.phase) specList.push(`${s.phase} Phase`);
+    if (s.mounting_type) specList.push(s.mounting_type);
+    if (specList.length > 0) {
+      descParts.push(`Specs: ${specList.join(', ')}`);
+    }
+  }
 
   const finalDesc = descParts.length > 0
     ? descParts.join(' • ')
