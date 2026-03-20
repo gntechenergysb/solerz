@@ -107,6 +107,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   const head = [
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
+    ...(ogImage !== `${origin}/icon.png` ? [`<link rel="preload" as="image" href="${escapeHtml(ogImage)}" fetchpriority="high" />`] : []),
     `<meta name="description" content="${escapeHtml(description)}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="Solerz" />`,

@@ -163,7 +163,8 @@ const ProductDetails: React.FC = () => {
                 src={activeMedia.url}
                 alt={listing.title}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
                 onError={() => setActiveMedia({ type: 'image', url: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"%3E%3Crect width="1200" height="900" fill="%23f1f5f9"/%3E%3Ctext x="600" y="450" font-family="Arial" font-size="48" fill="%2394a3b8" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E' })}
               />
             )}

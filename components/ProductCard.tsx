@@ -8,9 +8,10 @@ interface ProductCardProps {
   listing: Listing;
   onCompareToggle?: (listing: Listing, e: React.MouseEvent) => void;
   isCompared?: boolean;
+  priority?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isCompared }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isCompared, priority }) => {
   const { user } = useAuth();
   const isSold = listing.is_sold;
   const isVerified = listing.is_verified_listing;
@@ -60,7 +61,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing, onCompareToggle, isC
             src={imgSrc}
             alt={listing.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             onError={() => setImgSrc(fallbackImage)}
           />
 

@@ -176,8 +176,6 @@ export const db = {
     const sortBy = params?.sortBy ?? 'latest';
     const nowIso = new Date().toISOString();
 
-    const isVerifiedListing = marketplaceLayer === 'verified';
-
     const toPgTextArrayLiteral = (items: string[]) => {
       const escaped = items
         .map((s) => String(s ?? ''))
@@ -190,7 +188,6 @@ export const db = {
       let q = base
         .eq('is_hidden', false)
         .eq('is_sold', false)
-        .eq('is_verified_listing', isVerifiedListing)
         .gt('active_until', nowIso);
 
       if (country) {
@@ -424,14 +421,12 @@ export const db = {
   // Lightweight homepage query - no seller join, minimal fields (fast!)
   getLatestListingsMinimal: async (limit: number = 12, marketplaceLayer: 'verified' | 'community' = 'verified'): Promise<Partial<Listing>[]> => {
     const nowIso = new Date().toISOString();
-    const isVerifiedListing = marketplaceLayer === 'verified';
 
     const { data, error } = await supabase
       .from('listings')
       .select('id, title, category, brand, condition, price, currency, moq, location_country, images_url, specs, is_verified_listing, is_sold, created_at')
       .eq('is_hidden', false)
       .eq('is_sold', false)
-      .eq('is_verified_listing', isVerifiedListing)
       .gt('active_until', nowIso)
       .order('created_at', { ascending: false })
       .limit(limit);
