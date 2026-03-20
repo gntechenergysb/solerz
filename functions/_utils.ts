@@ -7,6 +7,7 @@ export type Env = {
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_CATALOG_PRODUCT_IDS_JSON?: string;
+  RESEND_API_KEY?: string;
   ASSETS: Fetcher;
 };
 

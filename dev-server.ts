@@ -208,6 +208,98 @@ const handleSubscriptionSync = async (req: http.IncomingMessage, res: http.Serve
   }));
 };
 
+// ============================================================================
+// LOCALHOST OFFLINE ADMIN MOCK: Send Email via Resend
+// bypassing browser CORS
+// ============================================================================
+const handleSendEmail = async (req: http.IncomingMessage, res: http.ServerResponse) => {
+  const token = getToken(req);
+
+  if (!token) {
+    res.writeHead(401, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({ error: 'Missing auth token' }));
+    return;
+  }
+
+  const { email, companyName, isVerified } = await parseBody(req) as { email: string; companyName?: string; isVerified: boolean };
+
+  if (!email) {
+    res.writeHead(400, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({ error: 'Missing target email' }));
+    return;
+  }
+
+  const resendApiKey = process.env.VITE_RESEND_API_KEY || process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.warn("No RESEND_API_KEY config found in .env.local! Fake success output.");
+    res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({ success: true, message: 'Fake success (missing RESEND_API_KEY)' }));
+    return;
+  }
+
+  let subject = '';
+  let html = '';
+
+  const escapeHtmlStrict = (str: string) => str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag as any] || tag)
+  );
+
+  if (isVerified) {
+    subject = '🎉 Solerz: Your Seller Account is Verified!';
+    html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <h2>Congratulations, ${escapeHtmlStrict(companyName || 'Valued Partner')}!</h2>
+        <p>We are thrilled to let you know that your seller account on <strong>Solerz</strong> has been successfully reviewed and verified.</p>
+        <p>Your listings now feature the exclusive <strong>VERIFIED SUPPLIER</strong> badge, boosting your credibility and visibility to buyers globally.</p>
+        <p>Log in now to manage your inventory and connect with new buyers:</p>
+        <p><a href="https://solerz.com/dashboard" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Go to Dashboard</a></p>
+        <br/>
+        <p>Best regards,<br/>The Solerz Team</p>
+      </div>
+    `;
+  } else {
+    subject = '⚠️ Solerz: Verification Revoked';
+    html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <h2>Notice for ${escapeHtmlStrict(companyName || 'Seller')}</h2>
+        <p>Your seller verification status on <strong>Solerz</strong> has been revoked. Your listings will no longer carry the verified badge.</p>
+        <p>If you believe this was a mistake, please reply to this email or contact support.</p>
+        <br/>
+        <p>Best regards,<br/>The Solerz Team</p>
+      </div>
+    `;
+  }
+
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Solerz Team <info@solerz.com>', // MUST BE VERIFIED ON RESEND
+        to: email,
+        subject,
+        html
+      })
+    });
+
+    if (!resendRes.ok) {
+      const errorText = await resendRes.text();
+      res.writeHead(500, { 'Content-Type': 'application/json', ...corsHeaders });
+      res.end(JSON.stringify({ error: 'Resend Error: ' + errorText }));
+      return;
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({ success: true }));
+  } catch (err: any) {
+    res.writeHead(500, { 'Content-Type': 'application/json', ...corsHeaders });
+    res.end(JSON.stringify({ error: err.message }));
+  }
+};
+
 // Server
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
@@ -232,6 +324,8 @@ const server = http.createServer(async (req, res) => {
       await handleSubscriptionCancel(req, res);
     } else if (url.pathname === '/api/stripe/subscription/sync' && req.method === 'GET') {
       await handleSubscriptionSync(req, res);
+    } else if (url.pathname === '/api/send-verification-email' && req.method === 'POST') {
+      await handleSendEmail(req, res);
     } else {
       res.writeHead(404, { 'Content-Type': 'application/json', ...corsHeaders });
       res.end(JSON.stringify({ error: 'Not found' }));

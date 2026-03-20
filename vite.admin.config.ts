@@ -9,7 +9,13 @@ export default defineConfig(() => {
     base: './',
     server: {
       port: 3002,
-      host: '0.0.0.0'
+      host: '0.0.0.0',
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8788',
+          changeOrigin: true,
+        },
+      },
     },
     plugins: [react()],
     resolve: {

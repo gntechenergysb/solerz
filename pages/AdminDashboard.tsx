@@ -250,6 +250,27 @@ const AdminDashboard: React.FC = () => {
 
             toast.success(isVerified ? "User Verified Successfully" : "Verification Revoked");
 
+            // Trigger Email Notification
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    fetch('/api/send-verification-email', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: profile.email,
+                            companyName: profile.company_name,
+                            isVerified
+                        })
+                    }).catch(err => console.error('Failed to send email notification:', err));
+                }
+            } catch (err) {
+                console.error("Session error during email dispatch:", err);
+            }
+
             // Optimistic update
             setProfiles(prev => prev.map(p =>
                 p.id === profile.id ? { ...p, is_verified: isVerified } : p
