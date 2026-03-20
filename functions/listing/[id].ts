@@ -11,6 +11,7 @@ type Listing = {
   currency?: string;
   location_state?: string;
   location_country?: string;
+  location_countries?: string[];
   images_url?: string[];
   moq?: number;
   specs?: any;
@@ -34,7 +35,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   if (id) {
     const { data } = await supabaseRestGet<Listing[]>(
       env,
-      `listings?id=eq.${encodeURIComponent(id)}&select=id,title,brand,category,condition,price,currency,location_state,location_country,images_url,moq,specs&limit=1`
+      `listings?id=eq.${encodeURIComponent(id)}&select=id,title,brand,category,condition,price,currency,location_state,location_country,location_countries,images_url,moq,specs&limit=1`
     );
     listing = (data && data[0]) || null;
   }
@@ -51,7 +52,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   let prefixParts = [priceStr, moqStr].filter(Boolean);
   let prefix = prefixParts.length ? `[${prefixParts.join(' | ')}] ` : '';
 
-  const loc = [listing?.location_state, listing?.location_country].filter(Boolean).join(', ');
+  let locParts = listing?.location_countries?.length 
+    ? listing.location_countries 
+    : [listing?.location_state, listing?.location_country].filter(Boolean);
+  
+  const loc = Array.from(new Set(locParts)).join(', ');
   let suffix = loc ? ` | ${loc}` : '';
 
   const title = listing?.title
