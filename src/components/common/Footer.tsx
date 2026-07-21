@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-zinc-400">
-          <p>© {new Date().getFullYear()} Solerz Inc. Minimalist Specific Yield ($\text{kWh/kWp}$) Benchmark Platform.</p>
+          <p>© {new Date().getFullYear()} Solerz Inc. Minimalist Specific Yield (kWh/kWp) Benchmark Platform.</p>
           <div className="flex items-center gap-2 font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>API Operational</span>
