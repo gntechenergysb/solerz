@@ -1,38 +1,35 @@
-export interface SolarSystem {
+export interface Profile {
   id: string;
-  name: string;
-  capacitykWp: number; // e.g. 5.5 kWp
-  location: string;
-  installDate: string;
-  panelBrand?: string;
-  inverterModel?: string;
+  username: string;
+  display_name: string;
+  avatar_url?: string;
+  city_region: string;
+  system_kwp: number;
+  equipment_brand: string;
+  role: 'consumer' | 'installer' | 'supplier';
+  created_at: string;
 }
 
-export interface CheckInRecord {
+export interface CheckIn {
   id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  systemName: string;
-  capacitykWp: number;
-  dailyKWh: number;
-  co2SavedKg: number;
-  treesEquivalent: number;
-  checkInDate: string; // YYYY-MM-DD
-  checkInTime: string; // HH:mm
-  location: string;
-  photoUrl?: string;
-  note?: string;
-  weather: 'sunny' | 'partly_cloudy' | 'cloudy' | 'rainy';
-  likesCount: number;
+  user_id: string;
+  check_in_date: string;
+  kwh_generated: number;
+  system_kwp: number;
+  efficiency_kwh_per_kwp: number;
+  image_url?: string;
+  notes?: string;
+  created_at: string;
+  profiles?: Profile;
+  flex_count?: number;
+  user_has_flexed?: boolean;
 }
 
-export interface CheckInFormData {
-  systemName: string;
-  capacitykWp: number;
-  dailyKWh: number;
-  location: string;
-  photoUrl?: string;
-  note?: string;
-  weather: 'sunny' | 'partly_cloudy' | 'cloudy' | 'rainy';
+export interface Comment {
+  id: string;
+  check_in_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: Profile;
 }

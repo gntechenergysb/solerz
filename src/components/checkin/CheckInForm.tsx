@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Sun, MapPin, Zap, Camera, Leaf, Sparkles, CheckCircle2, CloudSun, Cloud, CloudRain } from 'lucide-react';
-import { CheckInFormData } from '../../types/checkin';
-import { calculateCO2Reduction, calculateTreesEquivalent } from '../../utils/carbon';
+import React, { useState, useEffect } from 'react';
+import { Sun, Zap, Camera, Leaf, Sparkles, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../../services/supabaseClient';
+import { compressImageToWebP } from '../../services/imageCompression';
 import toast from 'react-hot-toast';
 
 interface CheckInFormProps {
@@ -9,50 +9,94 @@ interface CheckInFormProps {
 }
 
 export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
-  const [formData, setFormData] = useState<CheckInFormData>({
-    systemName: '頂樓太陽能案場',
-    capacitykWp: 10.5,
-    dailyKWh: 52.0,
-    location: '屏東縣 萬丹鄉',
-    photoUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&q=80&w=800',
-    note: '陽光充足，發電效率極佳！',
-    weather: 'sunny'
-  });
+  const [kwh, setKwh] = useState<string>('');
+  const [kwp, setKwp] = useState<string>('5.0');
+  const [notes, setNotes] = useState<string>('');
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const [photoPreview, setPhotoPreview] = useState<string>(
-    'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&q=80&w=800'
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Load user's system_kwp from profile on mount
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('system_kwp')
+          .eq('id', user.id)
+          .single();
+        if (profile?.system_kwp) {
+          setKwp(String(profile.system_kwp));
+        }
+      }
+    })();
+  }, []);
 
-  // Live Carbon Stats
-  const co2Saved = calculateCO2Reduction(formData.dailyKWh || 0);
-  const treesEquiv = calculateTreesEquivalent(co2Saved);
+  // Live computed efficiency
+  const kwhNum = parseFloat(kwh) || 0;
+  const kwpNum = parseFloat(kwp) || 1;
+  const efficiency = kwpNum > 0 ? (kwhNum / kwpNum).toFixed(3) : '0.000';
+  const co2Saved = (kwhNum * 0.495).toFixed(2);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setPhotoPreview(result);
-        setFormData(prev => ({ ...prev, photoUrl: result }));
-      };
-      reader.readAsDataURL(file);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      try {
+        const compressed = await compressImageToWebP(selectedFile);
+        setFile(compressed);
+        setPreviewUrl(URL.createObjectURL(compressed));
+      } catch {
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile));
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setMessage(null);
 
-    if (!formData.dailyKWh || formData.dailyKWh <= 0) {
-      toast.error('請輸入有效的今日太陽能發電度數 (kWh)');
-      return;
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('請先登入帳號以進行打卡');
 
-    setIsSubmitting(true);
+      let uploadedImageUrl = '';
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const uploadRes = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const uploadResult = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadResult.error || '圖片上傳失敗');
+        uploadedImageUrl = uploadResult.url;
+      }
+
+      const { error } = await supabase.from('check_ins').insert({
+        user_id: user.id,
+        check_in_date: new Date().toISOString().slice(0, 10),
+        kwh_generated: parseFloat(kwh),
+        system_kwp: parseFloat(kwp),
+        image_url: uploadedImageUrl || null,
+        notes: notes || null,
+      });
+
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('您今日已經完成打卡囉！每人每天限打卡一次。');
+        }
+        throw error;
+      }
+
+      setMessage({ type: 'success', text: '打卡成功！已將您的數據更新至排行榜。' });
+
       toast.custom((t) => (
         <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-slate-900 border border-emerald-500/40 shadow-2xl rounded-2xl p-4 flex items-start gap-4 text-white`}>
           <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400">
@@ -61,16 +105,24 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
           <div>
             <h4 className="font-bold text-emerald-400 text-base">太陽能打卡成功！🎉</h4>
             <p className="text-xs text-slate-300 mt-1">
-              今日發電 <span className="font-bold text-amber-300">{formData.dailyKWh} kWh</span>，成功為地球減少 <span className="font-bold text-emerald-300">{co2Saved} kg CO₂</span> 排放！
+              今日發電 <span className="font-bold text-amber-300">{kwh} kWh</span>，
+              效率 <span className="font-bold text-cyan-300">{efficiency} kWh/kWp</span>，
+              減碳 <span className="font-bold text-emerald-300">{co2Saved} kg CO₂</span>！
             </p>
           </div>
         </div>
       ), { duration: 4000 });
 
-      if (onSuccess) {
-        onSuccess();
-      }
-    }, 600);
+      setKwh('');
+      setNotes('');
+      setFile(null);
+      setPreviewUrl(null);
+      if (onSuccess) onSuccess();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || '發生未知錯誤' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -86,16 +138,27 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
         </div>
         <div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-            每日太陽能發電打卡
+            ☀️ 今日發電打卡
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            記錄今日案場發電量，同步解鎖綠電成就與排行榜積分
+            輸入發電量與系統容量，即時計算效率 (kWh/kWp) 並登上排行榜
           </p>
         </div>
       </div>
 
+      {/* Status Message */}
+      {message && (
+        <div className={`p-3 rounded-xl mb-5 text-sm font-medium relative ${
+          message.type === 'success'
+            ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
+            : 'bg-red-500/15 border border-red-500/30 text-red-300'
+        }`}>
+          {message.text}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6 relative">
-        {/* Real-time Carbon & Power Saving Widget */}
+        {/* Real-time Stats Widget */}
         <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-950 to-amber-950/60 border border-emerald-500/30 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400">
@@ -104,7 +167,19 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
             <div>
               <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-medium">今日發電量</span>
               <span className="text-xl font-black text-amber-300 font-mono">
-                {formData.dailyKWh || 0} <span className="text-xs font-normal text-slate-400">kWh</span>
+                {kwhNum || 0} <span className="text-xs font-normal text-slate-400">kWh</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-medium">特定發電效率</span>
+              <span className="text-xl font-black text-cyan-300 font-mono">
+                {efficiency} <span className="text-xs font-normal text-slate-400">kWh/kWp</span>
               </span>
             </div>
           </div>
@@ -120,162 +195,80 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
               </span>
             </div>
           </div>
-
-          <div className="flex items-center gap-3 border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-medium">相當於造樹</span>
-              <span className="text-xl font-black text-cyan-300 font-mono">
-                {treesEquiv} <span className="text-xs font-normal text-slate-400">棵/年</span>
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Inputs Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* System Name */}
+          {/* Daily kWh generated */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              太陽能系統/案場名稱 *
+              今日發電量 (kWh/度) *
             </label>
             <input
-              type="text"
+              type="number"
+              step="0.01"
               required
-              value={formData.systemName}
-              onChange={e => setFormData({ ...formData, systemName: e.target.value })}
-              placeholder="例：頂樓光電系統 1號機"
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm"
+              placeholder="例如: 24.5"
+              value={kwh}
+              onChange={(e) => setKwh(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-amber-300 font-bold placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-lg font-mono"
             />
           </div>
 
           {/* System Capacity */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              裝置容量 (kWp) *
+              系統總容量 (kWp) *
             </label>
             <input
               type="number"
-              step="0.1"
+              step="0.01"
               required
-              value={formData.capacitykWp || ''}
-              onChange={e => setFormData({ ...formData, capacitykWp: parseFloat(e.target.value) || 0 })}
-              placeholder="例：10.5"
+              placeholder="例如: 5.0"
+              value={kwp}
+              onChange={(e) => setKwp(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm font-mono"
             />
           </div>
-
-          {/* Daily kWh generated */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              今日總發電量 (kWh/度) *
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                step="0.1"
-                required
-                value={formData.dailyKWh || ''}
-                onChange={e => setFormData({ ...formData, dailyKWh: parseFloat(e.target.value) || 0 })}
-                placeholder="例：52.5"
-                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-amber-300 font-bold placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-base font-mono pr-14"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">
-                度 (kWh)
-              </span>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              案場地理位置
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={formData.location}
-                onChange={e => setFormData({ ...formData, location: e.target.value })}
-                placeholder="例：屏東縣 萬丹鄉"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm"
-              />
-              <MapPin className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            </div>
-          </div>
         </div>
 
-        {/* Weather Selector */}
+        {/* Photo Upload */}
         <div>
           <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            今日天候狀況
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { key: 'sunny', label: '烈日晴空', icon: Sun, color: 'text-amber-400 border-amber-500/40 bg-amber-500/10' },
-              { key: 'partly_cloudy', label: '多雲時晴', icon: CloudSun, color: 'text-yellow-300 border-yellow-500/40 bg-yellow-500/10' },
-              { key: 'cloudy', label: '陰天遮日', icon: Cloud, color: 'text-slate-300 border-slate-700 bg-slate-800/50' },
-              { key: 'rainy', label: '陰雨綿綿', icon: CloudRain, color: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/10' }
-            ].map(item => {
-              const Icon = item.icon;
-              const selected = formData.weather === item.key;
-              return (
-                <button
-                  type="button"
-                  key={item.key}
-                  onClick={() => setFormData({ ...formData, weather: item.key as any })}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                    selected
-                      ? `${item.color} shadow-lg ring-1 ring-amber-400/50`
-                      : 'border-slate-800 text-slate-400 hover:bg-slate-800/40'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Photo Upload Simulation */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            案場/電表現場打卡照片 (可選)
+            App 截圖證明 (自動壓縮為 WebP)
           </label>
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            {photoPreview && (
+            {previewUrl && (
               <div className="relative w-full sm:w-36 h-24 rounded-2xl overflow-hidden border border-slate-800 group">
-                <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                <img src={previewUrl} alt="壓縮預覽" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs text-white">
-                  預覽照片
+                  壓縮預覽
                 </div>
               </div>
             )}
             <label className="w-full sm:flex-1 cursor-pointer border-2 border-dashed border-slate-800 hover:border-amber-400/50 rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-300 transition-all bg-slate-950/50">
               <Camera className="w-6 h-6 text-amber-400" />
               <span className="text-xs font-medium">點擊選擇照片或拍照上傳</span>
-              <span className="text-[10px] text-slate-500">支援 JPG, PNG, WEBP 格式</span>
+              <span className="text-[10px] text-slate-500">支援 JPG, PNG, WEBP · 自動壓縮為 WebP</span>
               <input
                 type="file"
                 accept="image/*"
-                onChange={handlePhotoChange}
+                onChange={handleFileChange}
                 className="hidden"
               />
             </label>
           </div>
         </div>
 
-        {/* Note */}
+        {/* Notes */}
         <div>
           <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            今日發電心得 / 現場備註
+            今日發電備註 (可選)
           </label>
           <textarea
             rows={2}
-            value={formData.note}
-            onChange={e => setFormData({ ...formData, note: e.target.value })}
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
             placeholder="寫下今日太陽能運轉狀況或經驗心得..."
             className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm resize-none"
           />
@@ -284,15 +277,15 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 text-slate-950 font-extrabold text-base tracking-wide hover:brightness-110 shadow-xl shadow-amber-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+          disabled={submitting}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 text-slate-950 font-extrabold text-base tracking-wide hover:brightness-110 shadow-xl shadow-amber-500/20 active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isSubmitting ? (
+          {submitting ? (
             <div className="w-6 h-6 border-3 border-slate-950 border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <Sun className="w-5 h-5 fill-slate-950" />
-              <span>確認發電打卡並上傳成就</span>
+              <span>提交打卡並進入排行榜</span>
             </>
           )}
         </button>
