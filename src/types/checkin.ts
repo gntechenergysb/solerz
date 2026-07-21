@@ -3,6 +3,7 @@ export interface Profile {
   username: string;
   display_name: string;
   avatar_url?: string;
+  country_code: string;
   city_region: string;
   system_kwp: number;
   equipment_brand: string;

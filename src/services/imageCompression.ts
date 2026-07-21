@@ -1,5 +1,5 @@
 /**
- * 前端 Canvas 圖片壓縮工具，將圖片壓至 WebP 格式 (~30KB - 50KB)
+ * Compresses an image file on the client canvas to WebP format (~30KB-50KB).
  */
 export async function compressImageToWebP(
   file: File,
@@ -31,7 +31,7 @@ export async function compressImageToWebP(
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        return reject(new Error('無法獲取 Canvas 2D 內容'));
+        return reject(new Error('Canvas context unavailable'));
       }
 
       ctx.drawImage(image, 0, 0, width, height);
@@ -39,7 +39,7 @@ export async function compressImageToWebP(
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            return reject(new Error('圖片轉換 WebP 失敗'));
+            return reject(new Error('Failed to convert image to WebP'));
           }
 
           const compressedFile = new File(

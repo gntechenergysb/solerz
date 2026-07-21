@@ -1,44 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Sun, Zap, Camera, Leaf, Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { compressImageToWebP } from '../../services/imageCompression';
-import toast from 'react-hot-toast';
+import { Upload, Zap, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
 
-interface CheckInFormProps {
-  onSuccess?: () => void;
-}
-
-export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
+export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const [kwh, setKwh] = useState<string>('');
   const [kwp, setKwp] = useState<string>('5.0');
-  const [notes, setNotes] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  // Load user's system_kwp from profile on mount
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('system_kwp')
-          .eq('id', user.id)
-          .single();
-        if (profile?.system_kwp) {
-          setKwp(String(profile.system_kwp));
-        }
-      }
-    })();
-  }, []);
-
-  // Live computed efficiency
-  const kwhNum = parseFloat(kwh) || 0;
-  const kwpNum = parseFloat(kwp) || 1;
-  const efficiency = kwpNum > 0 ? (kwhNum / kwpNum).toFixed(3) : '0.000';
-  const co2Saved = (kwhNum * 0.495).toFixed(2);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,7 +18,7 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
         const compressed = await compressImageToWebP(selectedFile);
         setFile(compressed);
         setPreviewUrl(URL.createObjectURL(compressed));
-      } catch {
+      } catch (err) {
         setFile(selectedFile);
         setPreviewUrl(URL.createObjectURL(selectedFile));
       }
@@ -61,7 +32,7 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('請先登入帳號以進行打卡');
+      if (!user) throw new Error('Please log in to submit your daily generation.');
 
       let uploadedImageUrl = '';
 
@@ -75,7 +46,7 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
         });
 
         const uploadResult = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadResult.error || '圖片上傳失敗');
+        if (!uploadRes.ok) throw new Error(uploadResult.error || 'Failed to upload screenshot.');
         uploadedImageUrl = uploadResult.url;
       }
 
@@ -85,209 +56,141 @@ export const CheckInForm: React.FC<CheckInFormProps> = ({ onSuccess }) => {
         kwh_generated: parseFloat(kwh),
         system_kwp: parseFloat(kwp),
         image_url: uploadedImageUrl || null,
-        notes: notes || null,
       });
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('您今日已經完成打卡囉！每人每天限打卡一次。');
+          throw new Error('You have already logged your generation for today!');
         }
         throw error;
       }
 
-      setMessage({ type: 'success', text: '打卡成功！已將您的數據更新至排行榜。' });
-
-      toast.custom((t) => (
-        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-slate-900 border border-emerald-500/40 shadow-2xl rounded-2xl p-4 flex items-start gap-4 text-white`}>
-          <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="font-bold text-emerald-400 text-base">太陽能打卡成功！🎉</h4>
-            <p className="text-xs text-slate-300 mt-1">
-              今日發電 <span className="font-bold text-amber-300">{kwh} kWh</span>，
-              效率 <span className="font-bold text-cyan-300">{efficiency} kWh/kWp</span>，
-              減碳 <span className="font-bold text-emerald-300">{co2Saved} kg CO₂</span>！
-            </p>
-          </div>
-        </div>
-      ), { duration: 4000 });
-
+      setMessage({ type: 'success', text: 'Check-in logged! You are now live on the arena board.' });
       setKwh('');
-      setNotes('');
       setFile(null);
       setPreviewUrl(null);
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || '發生未知錯誤' });
+      setMessage({ type: 'error', text: err.message || 'An unexpected error occurred.' });
     } finally {
       setSubmitting(false);
     }
   };
 
-  return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-amber-950/20 relative overflow-hidden">
-      {/* Background Accent Gradients */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+  const calculatedYield =
+    parseFloat(kwh) > 0 && parseFloat(kwp) > 0
+      ? (parseFloat(kwh) / parseFloat(kwp)).toFixed(2)
+      : '0.00';
 
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6 relative">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/30">
-          <Sun className="w-7 h-7" />
+  return (
+    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl text-slate-100 relative overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+          <Zap className="w-6 h-6 fill-amber-400"/>
         </div>
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-            ☀️ 今日發電打卡
+          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            Daily Solar Check-In
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
-            輸入發電量與系統容量，即時計算效率 (kWh/kWp) 並登上排行榜
-          </p>
+          <p className="text-xs text-slate-400">Log today's yield to claim your rank</p>
         </div>
       </div>
 
-      {/* Status Message */}
       {message && (
-        <div className={`p-3 rounded-xl mb-5 text-sm font-medium relative ${
-          message.type === 'success'
-            ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
-            : 'bg-red-500/15 border border-red-500/30 text-red-300'
-        }`}>
-          {message.text}
+        <div
+          className={`p-3.5 rounded-xl mb-6 flex items-center gap-3 text-xs font-medium border ${
+            message.type === 'success'
+              ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/50'
+              : 'bg-rose-950/40 text-rose-300 border-rose-800/50'
+          }`}
+        >
+          {message.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0"/>
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0"/>
+          )}
+          <span>{message.text}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 relative">
-        {/* Real-time Stats Widget */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-950 to-amber-950/60 border border-emerald-500/30 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400">
-              <Zap className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-medium">今日發電量</span>
-              <span className="text-xl font-black text-amber-300 font-mono">
-                {kwhNum || 0} <span className="text-xs font-normal text-slate-400">kWh</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-medium">特定發電效率</span>
-              <span className="text-xl font-black text-cyan-300 font-mono">
-                {efficiency} <span className="text-xs font-normal text-slate-400">kWh/kWp</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Leaf className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-medium">預計減碳量</span>
-              <span className="text-xl font-black text-emerald-400 font-mono">
-                {co2Saved} <span className="text-xs font-normal text-slate-400">kg CO₂</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Inputs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Daily kWh generated */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              今日發電量 (kWh/度) *
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              Today's Yield (kWh) *
             </label>
             <input
               type="number"
               step="0.01"
               required
-              placeholder="例如: 24.5"
+              placeholder="e.g. 28.5"
               value={kwh}
               onChange={(e) => setKwh(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-amber-300 font-bold placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-lg font-mono"
+              className="w-full px-3.5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all placeholder:font-normal placeholder:text-slate-600"
             />
           </div>
 
-          {/* System Capacity */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              系統總容量 (kWp) *
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+              System Size (kWp) *
             </label>
             <input
               type="number"
               step="0.01"
               required
-              placeholder="例如: 5.0"
+              placeholder="e.g. 6.4"
               value={kwp}
               onChange={(e) => setKwp(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm font-mono"
+              className="w-full px-3.5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all placeholder:font-normal placeholder:text-slate-600"
             />
           </div>
         </div>
 
-        {/* Photo Upload */}
+        {/* Live Specific Yield Preview */}
+        <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+          <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-400"/>
+            Estimated Specific Yield:
+          </span>
+          <span className="text-sm font-black text-amber-400">
+            {calculatedYield} <span className="text-xs text-slate-500 font-normal">kWh/kWp</span>
+          </span>
+        </div>
+
+        {/* Screenshot Proof Dropzone */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            App 截圖證明 (自動壓縮為 WebP)
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            App Proof Screenshot (Optional)
           </label>
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            {previewUrl && (
-              <div className="relative w-full sm:w-36 h-24 rounded-2xl overflow-hidden border border-slate-800 group">
-                <img src={previewUrl} alt="壓縮預覽" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs text-white">
-                  壓縮預覽
-                </div>
+          <div className="relative border border-dashed border-slate-700 hover:border-slate-500 rounded-xl p-4 text-center bg-slate-800/30 hover:bg-slate-800/60 transition-all">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {previewUrl ? (
+              <div className="space-y-1.5">
+                <img src={previewUrl} alt="Preview" className="max-h-28 mx-auto rounded-lg object-cover" />
+                <p className="text-[11px] text-amber-400 font-medium">Auto-compressed WebP format</p>
+              </div>
+            ) : (
+              <div className="space-y-1 text-slate-400">
+                <Upload className="w-6 h-6 mx-auto text-slate-500"/>
+                <p className="text-xs font-medium">Click or drop inverter app screenshot</p>
               </div>
             )}
-            <label className="w-full sm:flex-1 cursor-pointer border-2 border-dashed border-slate-800 hover:border-amber-400/50 rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-amber-300 transition-all bg-slate-950/50">
-              <Camera className="w-6 h-6 text-amber-400" />
-              <span className="text-xs font-medium">點擊選擇照片或拍照上傳</span>
-              <span className="text-[10px] text-slate-500">支援 JPG, PNG, WEBP · 自動壓縮為 WebP</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
           </div>
         </div>
 
-        {/* Notes */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-            今日發電備註 (可選)
-          </label>
-          <textarea
-            rows={2}
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder="寫下今日太陽能運轉狀況或經驗心得..."
-            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all text-sm resize-none"
-          />
-        </div>
-
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 text-slate-950 font-extrabold text-base tracking-wide hover:brightness-110 shadow-xl shadow-amber-500/20 active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold rounded-xl shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50 tracking-wide text-sm"
         >
-          {submitting ? (
-            <div className="w-6 h-6 border-3 border-slate-950 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Sun className="w-5 h-5 fill-slate-950" />
-              <span>提交打卡並進入排行榜</span>
-            </>
-          )}
+          {submitting ? 'Compressing & Submitting...' : 'LOG GENERATION & ENTER ARENA'}
         </button>
       </form>
     </div>

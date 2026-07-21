@@ -10,7 +10,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
       return new Response(
-        JSON.stringify({ error: 'Content-Type 必須為 multipart/form-data' }),
+        JSON.stringify({ error: 'Content-Type must be multipart/form-data' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -20,22 +20,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (!file) {
       return new Response(
-        JSON.stringify({ error: '未提供圖片檔案' }),
+        JSON.stringify({ error: 'No image file provided' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     if (!file.type.startsWith('image/')) {
       return new Response(
-        JSON.stringify({ error: '上傳檔案非有效圖片' }),
+        JSON.stringify({ error: 'Invalid file type. Image required.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // 限制壓縮後上限為 2MB
     if (file.size > 2 * 1024 * 1024) {
       return new Response(
-        JSON.stringify({ error: '檔案大小超過 2MB 限制' }),
+        JSON.stringify({ error: 'File size exceeds 2MB limit' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -66,7 +65,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   } catch (err: any) {
     return new Response(
-      JSON.stringify({ error: '伺服器內部錯誤', details: err.message }),
+      JSON.stringify({ error: 'Internal Server Error', details: err.message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
