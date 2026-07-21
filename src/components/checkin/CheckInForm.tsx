@@ -32,7 +32,7 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Please log in to submit your daily generation.');
+      if (!user) throw new Error('Please sign in to log your daily generation.');
 
       let uploadedImageUrl = '';
 
@@ -46,7 +46,7 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
         });
 
         const uploadResult = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadResult.error || 'Failed to upload screenshot.');
+        if (!uploadRes.ok) throw new Error(uploadResult.error || 'Failed to upload image.');
         uploadedImageUrl = uploadResult.url;
       }
 
@@ -60,12 +60,12 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('You have already logged your generation for today!');
+          throw new Error('You have already submitted a check-in for today.');
         }
         throw error;
       }
 
-      setMessage({ type: 'success', text: 'Check-in logged! You are now live on the arena board.' });
+      setMessage({ type: 'success', text: 'Check-in logged successfully.' });
       setKwh('');
       setFile(null);
       setPreviewUrl(null);
@@ -83,42 +83,40 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
       : '0.00';
 
   return (
-    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl text-slate-100 relative overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
-          <Zap className="w-6 h-6 fill-amber-400"/>
+    <div className="bg-zinc-900/50 border border-zinc-800/80 p-6 rounded-2xl text-zinc-100 shadow-sm">
+      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800/80">
+        <div className="p-2 bg-zinc-800 border border-zinc-700/60 rounded-lg text-amber-400">
+          <Zap className="w-4 h-4 fill-amber-400/20" />
         </div>
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            Daily Solar Check-In
+          <h2 className="text-base font-semibold text-white tracking-tight">
+            Daily Generation Entry
           </h2>
-          <p className="text-xs text-slate-400">Log today's yield to claim your rank</p>
+          <p className="text-xs text-zinc-400">Log today's kWh to update your Specific Yield ranking</p>
         </div>
       </div>
 
       {message && (
         <div
-          className={`p-3.5 rounded-xl mb-6 flex items-center gap-3 text-xs font-medium border ${
+          className={`p-3 rounded-xl mb-5 flex items-center gap-2.5 text-xs font-medium border ${
             message.type === 'success'
-              ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/50'
-              : 'bg-rose-950/40 text-rose-300 border-rose-800/50'
+              ? 'bg-emerald-950/30 text-emerald-300 border-emerald-800/40'
+              : 'bg-rose-950/30 text-rose-300 border-rose-800/40'
           }`}
         >
           {message.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0"/>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0"/>
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
           )}
           <span>{message.text}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
               Today's Yield (kWh) *
             </label>
             <input
@@ -128,13 +126,13 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
               placeholder="e.g. 28.5"
               value={kwh}
               onChange={(e) => setKwh(e.target.value)}
-              className="w-full px-3.5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all placeholder:font-normal placeholder:text-slate-600"
+              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-semibold text-sm focus:outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600 placeholder:font-normal font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-              System Size (kWp) *
+            <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+              System Capacity (kWp) *
             </label>
             <input
               type="number"
@@ -143,28 +141,28 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
               placeholder="e.g. 6.4"
               value={kwp}
               onChange={(e) => setKwp(e.target.value)}
-              className="w-full px-3.5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all placeholder:font-normal placeholder:text-slate-600"
+              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-semibold text-sm focus:outline-none focus:border-zinc-500 transition-colors placeholder:text-zinc-600 placeholder:font-normal font-mono"
             />
           </div>
         </div>
 
         {/* Live Specific Yield Preview */}
-        <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
-          <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-amber-400"/>
-            Estimated Specific Yield:
+        <div className="bg-zinc-950 border border-zinc-800/80 rounded-xl p-3 flex items-center justify-between">
+          <span className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            Computed Specific Yield:
           </span>
-          <span className="text-sm font-black text-amber-400">
-            {calculatedYield} <span className="text-xs text-slate-500 font-normal">kWh/kWp</span>
+          <span className="text-sm font-semibold font-mono text-white">
+            {calculatedYield} <span className="text-xs text-zinc-400 font-normal">kWh/kWp</span>
           </span>
         </div>
 
-        {/* Screenshot Proof Dropzone */}
+        {/* Proof Screenshot */}
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-            App Proof Screenshot (Optional)
+          <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+            Inverter App Screenshot (Optional)
           </label>
-          <div className="relative border border-dashed border-slate-700 hover:border-slate-500 rounded-xl p-4 text-center bg-slate-800/30 hover:bg-slate-800/60 transition-all">
+          <div className="relative border border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl p-4 text-center bg-zinc-950/40 transition-colors">
             <input
               type="file"
               accept="image/*"
@@ -172,14 +170,15 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
             {previewUrl ? (
-              <div className="space-y-1.5">
-                <img src={previewUrl} alt="Preview" className="max-h-28 mx-auto rounded-lg object-cover" />
-                <p className="text-[11px] text-amber-400 font-medium">Auto-compressed WebP format</p>
+              <div className="space-y-1">
+                <img src={previewUrl} alt="Preview" className="max-h-24 mx-auto rounded-lg object-cover border border-zinc-800" />
+                <p className="text-[10px] text-zinc-400 font-mono">WebP compressed</p>
               </div>
             ) : (
-              <div className="space-y-1 text-slate-400">
-                <Upload className="w-6 h-6 mx-auto text-slate-500"/>
-                <p className="text-xs font-medium">Click or drop inverter app screenshot</p>
+              <div className="space-y-1 text-zinc-400">
+                <Upload className="w-5 h-5 mx-auto text-zinc-400" />
+                <p className="text-xs font-medium text-zinc-300">Upload inverter app proof</p>
+                <p className="text-[10px] text-zinc-400">JPG, PNG or WebP</p>
               </div>
             )}
           </div>
@@ -188,9 +187,9 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold rounded-xl shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50 tracking-wide text-sm"
+          className="w-full py-2.5 px-4 bg-white text-zinc-950 hover:bg-zinc-200 font-semibold rounded-xl transition-all disabled:opacity-50 tracking-wide text-xs uppercase shadow-sm mt-2 cursor-pointer"
         >
-          {submitting ? 'Compressing & Submitting...' : 'LOG GENERATION & ENTER ARENA'}
+          {submitting ? 'Submitting...' : 'Log Generation & Update Ranking'}
         </button>
       </form>
     </div>
