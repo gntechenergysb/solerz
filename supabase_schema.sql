@@ -90,7 +90,7 @@ BEGIN
     )
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'username', 'solar_owner_' || SUBSTRING(NEW.id::text FROM 1 FOR 6)),
+        COALESCE(NEW.raw_user_meta_data->>'username', 'solar_owner_' || REPLACE(NEW.id::text, '-', '')),
         COALESCE(NEW.raw_user_meta_data->>'display_name', 'Solar Owner'),
         NEW.raw_user_meta_data->>'avatar_url',
         COALESCE(NEW.raw_user_meta_data->>'country_code', 'US'),
@@ -99,7 +99,8 @@ BEGIN
         COALESCE(NEW.raw_user_meta_data->>'panel_brand', 'Jinko Solar'),
         COALESCE(NEW.raw_user_meta_data->>'inverter_brand', 'SolarEdge'),
         FALSE
-    );
+    )
+    ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

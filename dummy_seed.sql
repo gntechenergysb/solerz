@@ -59,7 +59,18 @@ DECLARE
 BEGIN
     -- 0. Insert Dummy Auth Users into auth.users (to satisfy foreign key constraint profiles_id_fkey)
     INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-    SELECT p, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'dummy_' || p || '@solerz-dummy.internal', '$2a$10$dummyhashplaceholder', NOW(), '{"provider":"email","providers":["email"]}', '{}', NOW(), NOW()
+    SELECT 
+        p, 
+        '00000000-0000-0000-0000-000000000000', 
+        'authenticated', 
+        'authenticated', 
+        'dummy_' || REPLACE(p::text, '-', '') || '@solerz-dummy.internal', 
+        '$2a$10$dummyhashplaceholder', 
+        NOW(), 
+        '{"provider":"email","providers":["email"]}'::jsonb, 
+        jsonb_build_object('username', 'usr_' || REPLACE(p::text, '-', '')), 
+        NOW(), 
+        NOW()
     FROM unnest(ARRAY[
         p001, p002, p003, p004, p005, p006, p007, p008, p009, p010,
         p011, p012, p013, p014, p015, p016, p017, p018, p019, p020,
@@ -177,7 +188,17 @@ BEGIN
         (p098, 'medellin_sun', 'Camilo Torres', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', 'CO', 'Medellín', 6.40, 'Jinko Solar', 'Deye', 'consumer', TRUE),
         (p099, 'aalborg_pv', 'Christian Larsen', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', 'DK', 'Aalborg', 4.30, 'REC Group', 'SolarEdge', 'consumer', TRUE),
         (p100, 'turku_sol', 'Matti Nygård', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150', 'FI', 'Turku', 4.00, 'Solarwatt', 'Fronius', 'consumer', TRUE)
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE SET 
+        username = EXCLUDED.username, 
+        display_name = EXCLUDED.display_name, 
+        avatar_url = EXCLUDED.avatar_url, 
+        country_code = EXCLUDED.country_code, 
+        city_region = EXCLUDED.city_region, 
+        system_kwp = EXCLUDED.system_kwp, 
+        panel_brand = EXCLUDED.panel_brand, 
+        inverter_brand = EXCLUDED.inverter_brand, 
+        role = EXCLUDED.role, 
+        is_dummy = EXCLUDED.is_dummy;
 
     -- 2. Insert 100 Matching Daily Check-ins with Realistic Specific Yields (3.20 - 6.10 kWh/kWp)
     INSERT INTO public.check_ins (user_id, check_in_date, kwh_generated, system_kwp, notes, is_dummy, created_at)
