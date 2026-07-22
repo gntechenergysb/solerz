@@ -92,7 +92,7 @@ BEGIN
         (p030, 'bogota_sun', 'Alejandro Rodriguez', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150', 'CO', 'Bogotá', 6.80, 'JA Solar', 'Solax Power', 'consumer', TRUE),
         (p031, 'copenhagen_pv', 'Mikkel Jensen', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150', 'DK', 'Copenhagen', 4.50, 'Phono Solar', 'Danfoss', 'consumer', TRUE),
         (p032, 'helsinki_sun', 'Jonne Virtanen', 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=150', 'FI', 'Helsinki', 3.90, 'Meyer Burger', 'Fronius', 'consumer', TRUE),
-        (p033, 'dublin_pv', 'Connor O\'Connor', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150', 'IE', 'Dublin', 4.10, 'REC Group', 'SolarEdge', 'consumer', TRUE),
+        (p033, 'dublin_pv', 'Connor O''Connor', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150', 'IE', 'Dublin', 4.10, 'REC Group', 'SolarEdge', 'consumer', TRUE),
         (p034, 'lisbon_sol', 'Joao Silva', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', 'PT', 'Lisbon', 7.10, 'Solarwatt', 'SMA Solar Technology', 'consumer', TRUE),
         (p035, 'athens_sun', 'Nikos Papadopoulos', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', 'GR', 'Athens', 8.60, 'Luxor Solar', 'Sungrow', 'consumer', TRUE),
         (p036, 'vienna_pv', 'Florian Hofer', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150', 'AT', 'Vienna', 5.60, 'Sonnenkraft', 'Fronius', 'consumer', TRUE),
@@ -340,7 +340,7 @@ VALUES
     (
         'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380109', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380009',
         'Single panel bird dropping causing 33% string power drop - Bypass Diode Failure?',
-        'A single pigeon dropping on one cell drops my string output from 3000W to 2000W. Why isn\'t the Schottky bypass diode bypassing the shaded cell sub-string?',
+        'A single pigeon dropping on one cell drops my string output from 3000W to 2000W. Why isn''t the Schottky bypass diode bypassing the shaded cell sub-string?',
         'troubleshooting', 27, TRUE, NOW() - INTERVAL '1 day'
     ),
     -- 10
@@ -515,7 +515,7 @@ VALUES
     (
         'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380134', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380034',
         'Hyundai Energy Solutions M6 Shingled Module Hot-Spot Immunity Explanation',
-        'How does Hyundai\'s shingled cell architecture (connected with electrically conductive adhesive without ribbon wires) prevent hot-spot damage under partial shade?',
+        'How does Hyundai''s shingled cell architecture (connected with electrically conductive adhesive without ribbon wires) prevent hot-spot damage under partial shade?',
         'hardware', 27, TRUE, NOW() - INTERVAL '10 days'
     ),
     -- 35
@@ -690,7 +690,7 @@ VALUES
     -- 9
     (
         'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380109', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380003', -- Shane (Pro AU)
-        'Standard 60-cell panels have 3 bypass diodes, each protecting a 20-cell sub-string. A bird dropping over a single cell forces its sub-string diode to conduct, cutting 1/3 of the panel\'s voltage (~12V). On a short 8-panel string, losing 12V drops total string MPPT voltage below optimal inverter window!',
+        'Standard 60-cell panels have 3 bypass diodes, each protecting a 20-cell sub-string. A bird dropping over a single cell forces its sub-string diode to conduct, cutting 1/3 of the panel''s voltage (~12V). On a short 8-panel string, losing 12V drops total string MPPT voltage below optimal inverter window!',
         TRUE, NOW() - INTERVAL '1 day'
     ),
     -- 10
@@ -900,7 +900,7 @@ VALUES
     -- 44
     (
         'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380144', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380041', -- Rashid (AE)
-        'A red bar in SolarEdge portal means the panel\'s DC output power exceeded the maximum rated input capacity of that optimizer model (e.g. 420W panel paired with a P401 400W optimizer), causing DC power clipping at the optimizer level.',
+        'A red bar in SolarEdge portal means the panel''s DC output power exceeded the maximum rated input capacity of that optimizer model (e.g. 420W panel paired with a P401 400W optimizer), causing DC power clipping at the optimizer level.',
         TRUE, NOW() - INTERVAL '12 days'
     ),
     -- 45
