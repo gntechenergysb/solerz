@@ -57,6 +57,23 @@ DECLARE
     p097 UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380097'; p098 UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380098';
     p099 UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380099'; p100 UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380100';
 BEGIN
+    -- 0. Insert Dummy Auth Users into auth.users (to satisfy foreign key constraint profiles_id_fkey)
+    INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+    SELECT p, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'dummy_' || p || '@solerz-dummy.internal', '$2a$10$dummyhashplaceholder', NOW(), '{"provider":"email","providers":["email"]}', '{}', NOW(), NOW()
+    FROM unnest(ARRAY[
+        p001, p002, p003, p004, p005, p006, p007, p008, p009, p010,
+        p011, p012, p013, p014, p015, p016, p017, p018, p019, p020,
+        p021, p022, p023, p024, p025, p026, p027, p028, p029, p030,
+        p031, p032, p033, p034, p035, p036, p037, p038, p039, p040,
+        p041, p042, p043, p044, p045, p046, p047, p048, p049, p050,
+        p051, p052, p053, p054, p055, p056, p057, p058, p059, p060,
+        p061, p062, p063, p064, p065, p066, p067, p068, p069, p070,
+        p071, p072, p073, p074, p075, p076, p077, p078, p079, p080,
+        p081, p082, p083, p084, p085, p086, p087, p088, p089, p090,
+        p091, p092, p093, p094, p095, p096, p097, p098, p099, p100
+    ]) AS p
+    ON CONFLICT (id) DO NOTHING;
+
     -- 1. Insert 100 Global Dummy Profiles
     INSERT INTO public.profiles (id, username, display_name, avatar_url, country_code, city_region, system_kwp, panel_brand, inverter_brand, role, is_dummy)
     VALUES
