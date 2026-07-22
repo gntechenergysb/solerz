@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { GLOBAL_COUNTRIES, TOP_INVERTER_BRANDS, TOP_PANEL_BRANDS } from '../../utils/equipment';
-import { X, Lock } from 'lucide-react';
+import { TurnstileWidget } from './TurnstileWidget';
+import { X, Lock, ShieldCheck } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,8 +19,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
   const [systemKwp, setSystemKwp] = useState('6.0');
   const [panelBrand, setPanelBrand] = useState('Jinko Solar');
   const [inverterBrand, setInverterBrand] = useState('Enphase Energy');
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string) || '';
 
   if (!isOpen) return null;
 
@@ -30,13 +34,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
 
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          options: {
+            captchaToken: captchaToken || undefined,
+          },
+        });
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            captchaToken: captchaToken || undefined,
             data: {
               display_name: displayName || 'Solar Owner',
               country_code: countryCode,
@@ -53,6 +64,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
     } catch (err: any) {
       if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
         setErrorMsg('Network Error: Unable to reach Supabase server. Please verify your internet connection or VITE_SUPABASE_URL in .env.local.');
+      } else if (err.message?.toLowerCase().includes('no captcha_token found')) {
+        setErrorMsg('Captcha verification required by Supabase. Please complete the Turnstile anti-bot challenge below or configure VITE_TURNSTILE_SITE_KEY in .env.local.');
       } else {
         setErrorMsg(err.message || 'Authentication failed');
       }
@@ -63,7 +76,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative text-slate-100">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative text-slate-100 max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800/50"
@@ -82,7 +95,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-rose-950/50 border border-rose-800/50 rounded-xl text-xs text-rose-300 mb-4">
+          <div className="p-3 bg-rose-950/50 border border-rose-800/50 rounded-xl text-xs text-rose-300 mb-4 leading-relaxed">
             {errorMsg}
           </div>
         )}
@@ -175,6 +188,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
                 </div>
               </div>
             </>
+          )}
+
+          {/* Turnstile Anti-Bot Captcha Widget */}
+          {turnstileSiteKey && (
+            <div className="pt-2">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 mb-1.5">
+                <ShieldCheck className="w-3.5 h-3.5"/>
+                <span>Anti-Bot Verification</span>
+              </div>
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                onToken={setCaptchaToken}
+                className="flex justify-center my-2"
+              />
+            </div>
           )}
 
           <button
