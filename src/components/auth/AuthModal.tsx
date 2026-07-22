@@ -51,7 +51,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
       onClose();
       window.location.reload();
     } catch (err: any) {
-      setErrorMsg(err.message || 'Authentication failed');
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        setErrorMsg('Network Error: Unable to reach Supabase server. Please verify your internet connection or VITE_SUPABASE_URL in .env.local.');
+      } else {
+        setErrorMsg(err.message || 'Authentication failed');
+      }
     } finally {
       setLoading(false);
     }

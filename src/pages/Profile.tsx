@@ -22,48 +22,53 @@ export const ProfilePage: React.FC = () => {
 
   const fetchProfileData = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
 
-    if (!user) {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileData) setProfile(profileData as Profile);
+
+      // Fetch user's check-ins
+      const { data: checkInsData } = await supabase
+        .from('check_ins')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('check_in_date', { ascending: false })
+        .limit(20);
+
+      if (checkInsData) {
+        const checkins = checkInsData as CheckIn[];
+        setRecentCheckIns(checkins);
+
+        const totalKWh = checkins.reduce((acc, c) => acc + Number(c.kwh_generated), 0);
+        const efficiencies = checkins.map(c => Number(c.efficiency_kwh_per_kwp));
+        const avgEff = efficiencies.length > 0 ? efficiencies.reduce((a, b) => a + b, 0) / efficiencies.length : 0;
+        const bestEff = efficiencies.length > 0 ? Math.max(...efficiencies) : 0;
+
+        setStats({
+          totalKWh,
+          totalCheckIns: checkins.length,
+          avgEfficiency: Number(avgEff.toFixed(3)),
+          bestEfficiency: Number(bestEff.toFixed(3)),
+        });
+      }
+    } catch (err) {
+      console.warn('Profile fetch warning:', err);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Fetch profile
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (profileData) setProfile(profileData as Profile);
-
-    // Fetch user's check-ins
-    const { data: checkInsData } = await supabase
-      .from('check_ins')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('check_in_date', { ascending: false })
-      .limit(20);
-
-    if (checkInsData) {
-      const checkins = checkInsData as CheckIn[];
-      setRecentCheckIns(checkins);
-
-      const totalKWh = checkins.reduce((acc, c) => acc + Number(c.kwh_generated), 0);
-      const efficiencies = checkins.map(c => Number(c.efficiency_kwh_per_kwp));
-      const avgEff = efficiencies.length > 0 ? efficiencies.reduce((a, b) => a + b, 0) / efficiencies.length : 0;
-      const bestEff = efficiencies.length > 0 ? Math.max(...efficiencies) : 0;
-
-      setStats({
-        totalKWh,
-        totalCheckIns: checkins.length,
-        avgEfficiency: Number(avgEff.toFixed(3)),
-        bestEfficiency: Number(bestEff.toFixed(3)),
-      });
-    }
-
-    setLoading(false);
   };
 
   if (loading) {

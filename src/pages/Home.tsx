@@ -17,24 +17,29 @@ export const Home: React.FC = () => {
     setLoading(true);
     const today = new Date().toISOString().slice(0, 10);
 
-    // Fetch recent check-ins (latest 6)
-    const { data: recent } = await supabase
-      .from('check_ins')
-      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
-      .order('created_at', { ascending: false })
-      .limit(6);
+    try {
+      // Fetch recent check-ins (latest 6)
+      const { data: recent } = await supabase
+        .from('check_ins')
+        .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
+        .order('created_at', { ascending: false })
+        .limit(6);
 
-    // Fetch today's top 5 by efficiency
-    const { data: topToday } = await supabase
-      .from('check_ins')
-      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
-      .eq('check_in_date', today)
-      .order('efficiency_kwh_per_kwp', { ascending: false })
-      .limit(5);
+      // Fetch today's top 5 by efficiency
+      const { data: topToday } = await supabase
+        .from('check_ins')
+        .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
+        .eq('check_in_date', today)
+        .order('efficiency_kwh_per_kwp', { ascending: false })
+        .limit(5);
 
-    if (recent) setRecentCheckIns(recent as CheckIn[]);
-    if (topToday) setTopRankings(topToday as CheckIn[]);
-    setLoading(false);
+      if (recent) setRecentCheckIns(recent as CheckIn[]);
+      if (topToday) setTopRankings(topToday as CheckIn[]);
+    } catch (err) {
+      console.warn('Home data fetch warning:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Aggregate stats

@@ -14,8 +14,8 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
+      setUser(data?.user || null);
+    }).catch(err => console.warn('Navbar auth check warning:', err));
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);

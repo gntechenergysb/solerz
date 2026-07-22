@@ -16,7 +16,7 @@ export const TOP_INVERTER_BRANDS = [
   'Eaton', 'Sineng Electric', 'Teco Electric', 'Other / Generic'
 ];
 
-export const GLOBAL_COUNTRIES = [
+const RAW_GLOBAL_COUNTRIES = [
   { code: 'AD', name: 'Andorra', flag: '🇦🇩' },
   { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
   { code: 'AF', name: 'Afghanistan', flag: '🇦🇫' },
@@ -267,3 +267,8 @@ export const GLOBAL_COUNTRIES = [
   { code: 'ZM', name: 'Zambia', flag: '🇿🇲' },
   { code: 'ZW', name: 'Zimbabwe', flag: '🇿🇼' }
 ];
+
+// Sort countries alphabetically by English name
+export const GLOBAL_COUNTRIES = [...RAW_GLOBAL_COUNTRIES].sort((a, b) =>
+  a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+);

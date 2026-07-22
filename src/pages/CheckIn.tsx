@@ -8,12 +8,16 @@ export const CheckInPage: React.FC = () => {
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
 
   const refreshCheckIns = async () => {
-    const { data } = await supabase
-      .from('check_ins')
-      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
-      .order('created_at', { ascending: false })
-      .limit(8);
-    if (data) setCheckIns(data as CheckIn[]);
+    try {
+      const { data } = await supabase
+        .from('check_ins')
+        .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
+        .order('created_at', { ascending: false })
+        .limit(8);
+      if (data) setCheckIns(data as CheckIn[]);
+    } catch (err) {
+      console.warn('CheckIns fetch warning:', err);
+    }
   };
 
   useEffect(() => {

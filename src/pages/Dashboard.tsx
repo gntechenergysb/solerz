@@ -15,15 +15,21 @@ export const Dashboard: React.FC = () => {
 
   const loadUserData = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (prof) setProfile(prof as Profile);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
+      if (user) {
+        const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (prof) setProfile(prof as Profile);
 
-      const { data: logs } = await supabase.from('check_ins').select('*').eq('user_id', user.id).order('check_in_date', { ascending: false });
-      if (logs) setHistory(logs as CheckIn[]);
+        const { data: logs } = await supabase.from('check_ins').select('*').eq('user_id', user.id).order('check_in_date', { ascending: false });
+        if (logs) setHistory(logs as CheckIn[]);
+      }
+    } catch (err) {
+      console.warn('Dashboard fetch warning:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDelete = async (id: string) => {

@@ -24,8 +24,8 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setCurrentUser(data.user);
-      if (data.user) {
+      setCurrentUser(data?.user || null);
+      if (data?.user) {
         supabase.from('profiles').select('*').eq('id', data.user.id).single().then(({ data: profile }) => {
           if (profile) {
             setCountryCode(profile.country_code || 'US');
@@ -33,9 +33,9 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
             setPanelBrand(profile.panel_brand || 'Jinko Solar');
             setInverterBrand(profile.inverter_brand || 'Enphase Energy');
           }
-        });
+        }).catch(err => console.warn('Profile load warning:', err));
       }
-    });
+    }).catch(err => console.warn('Auth check warning:', err));
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setCurrentUser(session?.user || null);

@@ -19,32 +19,37 @@ export const Leaderboard: React.FC = () => {
 
   const fetchLeaderboard = async () => {
     setLoading(true);
-    let query = supabase
-      .from('check_ins')
-      .select(`
-        *,
-        profiles!inner (
-          id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role, is_dummy
-        )
-      `)
-      .eq('check_in_date', selectedDate)
-      .order('efficiency_kwh_per_kwp', { ascending: false });
+    try {
+      let query = supabase
+        .from('check_ins')
+        .select(`
+          *,
+          profiles!inner (
+            id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role, is_dummy
+          )
+        `)
+        .eq('check_in_date', selectedDate)
+        .order('efficiency_kwh_per_kwp', { ascending: false });
 
-    if (countryFilter !== 'All') {
-      query = query.eq('profiles.country_code', countryFilter);
-    }
-    if (inverterFilter !== 'All') {
-      query = query.eq('profiles.inverter_brand', inverterFilter);
-    }
-    if (panelFilter !== 'All') {
-      query = query.eq('profiles.panel_brand', panelFilter);
-    }
+      if (countryFilter !== 'All') {
+        query = query.eq('profiles.country_code', countryFilter);
+      }
+      if (inverterFilter !== 'All') {
+        query = query.eq('profiles.inverter_brand', inverterFilter);
+      }
+      if (panelFilter !== 'All') {
+        query = query.eq('profiles.panel_brand', panelFilter);
+      }
 
-    const { data, error } = await query;
-    if (!error && data) {
-      setRankings(data as CheckIn[]);
+      const { data, error } = await query;
+      if (!error && data) {
+        setRankings(data as CheckIn[]);
+      }
+    } catch (err) {
+      console.warn('Leaderboard fetch warning:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const totalKwhToday = rankings.reduce((acc, curr) => acc + (Number(curr.kwh_generated) || 0), 0);
