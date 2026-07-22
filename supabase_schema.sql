@@ -184,6 +184,7 @@ ALTER TABLE public.discussion_upvotes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Discussions Public Read" ON public.discussions FOR SELECT USING (true);
 CREATE POLICY "Discussions User Insert" ON public.discussions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Discussions User Update" ON public.discussions FOR UPDATE USING (true);
 CREATE POLICY "Discussions User Delete" ON public.discussions FOR DELETE USING (auth.uid() = user_id);
 
 CREATE POLICY "Discussion Comments Public Read" ON public.discussion_comments FOR SELECT USING (true);
