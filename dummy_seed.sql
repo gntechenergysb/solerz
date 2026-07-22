@@ -47,3 +47,51 @@ SELECT public.seed_daily_dummy_data(CURRENT_DATE);
 
 -- 💡 ONE-CLICK CLEANUP INSTRUCTION (When real users grow):
 -- DELETE FROM public.profiles WHERE is_dummy = TRUE;
+
+
+-- =================================────────────────===========================
+-- COMMUNITY DISCUSSION DUMMY SEED DATA
+-- =================================────────────────===========================
+
+INSERT INTO public.discussions (id, user_id, title, content, category, upvotes_count, is_dummy, created_at)
+VALUES
+    (
+        'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', -- Sam (CA)
+        'Enphase IQ8 vs SolarEdge Inverter: Which handles partial shading better?',
+        'I have a giant oak tree east of my roof. In the morning, 3 out of 16 panels get shaded. Is it worth paying extra for microinverters or should I go with SolarEdge optimizers?',
+        'hardware',
+        14,
+        TRUE,
+        NOW() - INTERVAL '3 hours'
+    ),
+    (
+        'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
+        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', -- Oliver (UK)
+        'Yield dropping around 2 PM every sunny afternoon - thermal throttling?',
+        'Notice a sudden 20% power drop on bright sunny days around 2 PM in London. Inverter is mounted inside my garage. Could heat be clipping the output?',
+        'troubleshooting',
+        8,
+        TRUE,
+        NOW() - INTERVAL '6 hours'
+    )
+ON CONFLICT (id) DO NOTHING;
+
+-- Starter Replies from Installer
+INSERT INTO public.discussion_comments (discussion_id, user_id, content, is_dummy, created_at)
+VALUES
+    (
+        'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', -- Shane (Pro Installer AU)
+        'For partial morning shade, Enphase IQ8 microinverters isolated the shaded panels completely without affecting string voltage. SolarEdge optimizers do a great job too, but IQ8s give you no single point of inverter failure.',
+        TRUE,
+        NOW() - INTERVAL '2 hours'
+    ),
+    (
+        'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
+        'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', -- Shane (Pro Installer AU)
+        'Check your garage ambient temperature! Most string inverters start thermal derating above 45°C (113°F). Installing a small external cooling fan near the heat sink usually fixes this completely.',
+        TRUE,
+        NOW() - INTERVAL '4 hours'
+    )
+ON CONFLICT DO NOTHING;

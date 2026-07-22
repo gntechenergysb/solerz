@@ -133,3 +133,61 @@ CREATE POLICY "Comments User Delete" ON public.comments FOR DELETE USING (auth.u
 CREATE POLICY "Reactions Public Read" ON public.flex_reactions FOR SELECT USING (true);
 CREATE POLICY "Reactions User Insert" ON public.flex_reactions FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Reactions User Delete" ON public.flex_reactions FOR DELETE USING (auth.uid() = user_id);
+
+-- =================================────────────────===========================
+-- ADD STANDALONE DISCUSSIONS & COMMUNITY Q&A TABLES
+-- =================================────────────────===========================
+
+-- 1. DISCUSSIONS TABLE
+CREATE TABLE IF NOT EXISTS public.discussions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL CHECK (char_length(trim(title)) >= 5),
+    content TEXT NOT NULL CHECK (char_length(trim(content)) > 0),
+    category TEXT NOT NULL DEFAULT 'general' CHECK (category IN ('troubleshooting', 'hardware', 'tips', 'general')),
+    image_url TEXT,
+    upvotes_count INT NOT NULL DEFAULT 0,
+    is_dummy BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. DISCUSSION COMMENTS TABLE
+CREATE TABLE IF NOT EXISTS public.discussion_comments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    discussion_id UUID NOT NULL REFERENCES public.discussions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    content TEXT NOT NULL CHECK (char_length(trim(content)) > 0),
+    is_dummy BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. DISCUSSION UPVOTES TABLE
+CREATE TABLE IF NOT EXISTS public.discussion_upvotes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    discussion_id UUID NOT NULL REFERENCES public.discussions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT unique_user_discussion_upvote UNIQUE (discussion_id, user_id)
+);
+
+-- INDEXES FOR FAST FEED LOADING
+CREATE INDEX IF NOT EXISTS idx_discussions_feed ON public.discussions (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_discussions_category ON public.discussions (category);
+CREATE INDEX IF NOT EXISTS idx_discussion_comments_post ON public.discussion_comments (discussion_id, created_at ASC);
+
+-- ROW LEVEL SECURITY (RLS) POLICIES
+ALTER TABLE public.discussions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.discussion_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.discussion_upvotes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Discussions Public Read" ON public.discussions FOR SELECT USING (true);
+CREATE POLICY "Discussions User Insert" ON public.discussions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Discussions User Delete" ON public.discussions FOR DELETE USING (auth.uid() = user_id);
+
+CREATE POLICY "Discussion Comments Public Read" ON public.discussion_comments FOR SELECT USING (true);
+CREATE POLICY "Discussion Comments User Insert" ON public.discussion_comments FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND auth.uid() = user_id);
+CREATE POLICY "Discussion Comments User Delete" ON public.discussion_comments FOR DELETE USING (auth.uid() = user_id);
+
+CREATE POLICY "Discussion Upvotes Public Read" ON public.discussion_upvotes FOR SELECT USING (true);
+CREATE POLICY "Discussion Upvotes User Insert" ON public.discussion_upvotes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Discussion Upvotes User Delete" ON public.discussion_upvotes FOR DELETE USING (auth.uid() = user_id);

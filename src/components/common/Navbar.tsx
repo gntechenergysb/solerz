@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Sun, Trophy, Plus, User, LayoutGrid, Menu, X, LogIn, LogOut, LayoutDashboard } from 'lucide-react';
+import { Sun, Trophy, Plus, User, LayoutGrid, Menu, X, LogIn, LogOut, LayoutDashboard, MessageSquare } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { AuthModal } from '../auth/AuthModal';
 
@@ -82,6 +82,17 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 Leaderboard
+              </Link>
+
+              <Link
+                to="/discussion"
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  isActive('/discussion')
+                    ? 'bg-slate-800 text-white font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                }`}
+              >
+                Community
               </Link>
 
               <Link
@@ -181,6 +192,14 @@ export const Navbar: React.FC = () => {
             >
               <Trophy className="w-4 h-4 text-slate-400" />
               Leaderboard
+            </Link>
+            <Link
+              to="/discussion"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900"
+            >
+              <MessageSquare className="w-4 h-4 text-slate-400" />
+              Community
             </Link>
             <Link
               to="/checkin"

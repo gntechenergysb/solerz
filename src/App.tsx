@@ -8,6 +8,7 @@ import CheckIn from './pages/CheckIn';
 import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
+import Discussion from './pages/Discussion';
 
 export const App: React.FC = () => {
   return (
@@ -22,6 +23,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/checkin" element={<CheckIn />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/discussion" element={<Discussion />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
