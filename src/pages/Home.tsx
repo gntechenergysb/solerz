@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sun, Zap, Trophy, Plus, ArrowRight, Activity, Globe, ShieldCheck, ExternalLink } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
-import { CheckIn } from '../types/checkin';
+import { CheckIn } from '../types/checkin';import { FALLBACK_MOCK_CHECKINS } from '../utils/mockData';
 
 export const Home: React.FC = () => {
   const [recentCheckIns, setRecentCheckIns] = useState<CheckIn[]>([]);
@@ -33,10 +33,21 @@ export const Home: React.FC = () => {
         .order('efficiency_kwh_per_kwp', { ascending: false })
         .limit(5);
 
-      if (recent) setRecentCheckIns(recent as CheckIn[]);
-      if (topToday) setTopRankings(topToday as CheckIn[]);
+      if (recent && recent.length > 0) {
+        setRecentCheckIns(recent as CheckIn[]);
+      } else {
+        setRecentCheckIns(FALLBACK_MOCK_CHECKINS.slice(0, 6));
+      }
+
+      if (topToday && topToday.length > 0) {
+        setTopRankings(topToday as CheckIn[]);
+      } else {
+        setTopRankings(FALLBACK_MOCK_CHECKINS.slice(0, 5));
+      }
     } catch (err) {
-      console.warn('Home data fetch warning:', err);
+      console.warn('Home data fetch warning, using fallback arena data:', err);
+      setRecentCheckIns(FALLBACK_MOCK_CHECKINS.slice(0, 6));
+      setTopRankings(FALLBACK_MOCK_CHECKINS.slice(0, 5));
     } finally {
       setLoading(false);
     }

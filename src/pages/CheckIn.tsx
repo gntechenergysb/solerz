@@ -3,6 +3,7 @@ import { Sun, History, Zap, ExternalLink } from 'lucide-react';
 import CheckInForm from '../components/checkin/CheckInForm';
 import { supabase } from '../services/supabaseClient';
 import { CheckIn } from '../types/checkin';
+import { FALLBACK_MOCK_CHECKINS } from '../utils/mockData';
 
 export const CheckInPage: React.FC = () => {
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
@@ -14,9 +15,14 @@ export const CheckInPage: React.FC = () => {
         .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
         .order('created_at', { ascending: false })
         .limit(8);
-      if (data) setCheckIns(data as CheckIn[]);
+      if (data && data.length > 0) {
+        setCheckIns(data as CheckIn[]);
+      } else {
+        setCheckIns(FALLBACK_MOCK_CHECKINS);
+      }
     } catch (err) {
-      console.warn('CheckIns fetch warning:', err);
+      console.warn('CheckIns fetch warning, using fallback stream:', err);
+      setCheckIns(FALLBACK_MOCK_CHECKINS);
     }
   };
 

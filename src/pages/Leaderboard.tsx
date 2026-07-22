@@ -3,6 +3,7 @@ import { supabase } from '../services/supabaseClient';
 import { CheckIn } from '../types/checkin';
 import { calculateCO2SavedKg, calculateTreesEquivalent } from '../utils/carbon';
 import { TOP_INVERTER_BRANDS, TOP_PANEL_BRANDS, GLOBAL_COUNTRIES } from '../utils/equipment';
+import { FALLBACK_MOCK_CHECKINS } from '../utils/mockData';
 import { Trophy, Flame, Globe, Filter, ExternalLink, Leaf, ShieldCheck } from 'lucide-react';
 
 export const Leaderboard: React.FC = () => {
@@ -42,11 +43,22 @@ export const Leaderboard: React.FC = () => {
       }
 
       const { data, error } = await query;
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         setRankings(data as CheckIn[]);
+      } else {
+        let filtered = [...FALLBACK_MOCK_CHECKINS];
+        if (countryFilter !== 'All') filtered = filtered.filter(i => i.profiles?.country_code === countryFilter);
+        if (inverterFilter !== 'All') filtered = filtered.filter(i => i.profiles?.inverter_brand === inverterFilter);
+        if (panelFilter !== 'All') filtered = filtered.filter(i => i.profiles?.panel_brand === panelFilter);
+        setRankings(filtered);
       }
     } catch (err) {
-      console.warn('Leaderboard fetch warning:', err);
+      console.warn('Leaderboard fetch warning, using fallback arena data:', err);
+      let filtered = [...FALLBACK_MOCK_CHECKINS];
+      if (countryFilter !== 'All') filtered = filtered.filter(i => i.profiles?.country_code === countryFilter);
+      if (inverterFilter !== 'All') filtered = filtered.filter(i => i.profiles?.inverter_brand === inverterFilter);
+      if (panelFilter !== 'All') filtered = filtered.filter(i => i.profiles?.panel_brand === panelFilter);
+      setRankings(filtered);
     } finally {
       setLoading(false);
     }
