@@ -8,6 +8,7 @@ export interface Profile {
   system_kwp: number;
   equipment_brand: string;
   role: 'consumer' | 'installer' | 'supplier';
+  is_dummy: boolean;
   created_at: string;
 }
 
@@ -20,6 +21,7 @@ export interface CheckIn {
   efficiency_kwh_per_kwp: number;
   image_url?: string;
   notes?: string;
+  is_dummy: boolean;
   created_at: string;
   profiles?: Profile;
   flex_count?: number;
@@ -31,6 +33,7 @@ export interface Comment {
   check_in_id: string;
   user_id: string;
   content: string;
+  is_dummy: boolean;
   created_at: string;
   profiles?: Profile;
 }

@@ -1,6 +1,3 @@
-/**
- * Compresses an image file on the client canvas to WebP format (~30KB-50KB).
- */
 export async function compressImageToWebP(
   file: File,
   maxWidth = 1200,
@@ -30,25 +27,18 @@ export async function compressImageToWebP(
       canvas.height = height;
 
       const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        return reject(new Error('Canvas context unavailable'));
-      }
+      if (!ctx) return reject(new Error('Canvas 2D context unavailable'));
 
       ctx.drawImage(image, 0, 0, width, height);
 
       canvas.toBlob(
         (blob) => {
-          if (!blob) {
-            return reject(new Error('Failed to convert image to WebP'));
-          }
+          if (!blob) return reject(new Error('WebP conversion failed'));
 
           const compressedFile = new File(
             [blob],
             `${file.name.replace(/\.[^/.]+$/, '')}.webp`,
-            {
-              type: 'image/webp',
-              lastModified: Date.now(),
-            }
+            { type: 'image/webp', lastModified: Date.now() }
           );
           resolve(compressedFile);
         },

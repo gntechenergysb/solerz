@@ -27,7 +27,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (!file.type.startsWith('image/')) {
       return new Response(
-        JSON.stringify({ error: 'Invalid file type. Image required.' }),
+        JSON.stringify({ error: 'Uploaded file is not a valid image' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
