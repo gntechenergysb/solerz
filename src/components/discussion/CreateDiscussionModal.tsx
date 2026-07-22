@@ -74,25 +74,43 @@ export const CreateDiscussionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Please sign in to start a discussion.');
 
-      // Upload images to Supabase Storage (discussion-images bucket)
+      // Upload images: Primary = Cloudflare R2 (/api/upload-image), Fallback = Supabase Storage
       const uploadedUrls: string[] = [];
-      for (const file of files) {
-        const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.webp`;
-        const { error: uploadError } = await supabase.storage
-          .from('discussion-images')
-          .upload(fileName, file, { contentType: file.type });
+      for (const imgFile of files) {
+        let singleUrl = '';
 
-        if (uploadError) {
-          console.warn('Image upload failed, skipping:', uploadError.message);
-          continue;
+        // 1. Primary: Cloudflare R2 Edge CDN
+        try {
+          const formData = new FormData();
+          formData.append('file', imgFile);
+          const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            if (uploadData.url) singleUrl = uploadData.url;
+          }
+        } catch (r2Err) {
+          console.warn('R2 upload skipped/failed, trying Supabase Storage fallback:', r2Err);
         }
 
-        const { data: urlData } = supabase.storage
-          .from('discussion-images')
-          .getPublicUrl(fileName);
+        // 2. Fallback: Supabase Storage
+        if (!singleUrl) {
+          try {
+            const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.webp`;
+            const { error: uploadError } = await supabase.storage
+              .from('discussion-images')
+              .upload(fileName, imgFile, { contentType: imgFile.type });
 
-        if (urlData?.publicUrl) {
-          uploadedUrls.push(urlData.publicUrl);
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage.from('discussion-images').getPublicUrl(fileName);
+              if (urlData?.publicUrl) singleUrl = urlData.publicUrl;
+            }
+          } catch (storageErr) {
+            console.warn('Supabase Storage upload error:', storageErr);
+          }
+        }
+
+        if (singleUrl) {
+          uploadedUrls.push(singleUrl);
         }
       }
 

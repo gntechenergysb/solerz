@@ -82,32 +82,33 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
       let uploadedImageUrl = '';
 
       if (file) {
+        // 1. Primary: Try Cloudflare R2 (/api/upload-image) for 0 egress fee & global Edge CDN
         try {
-          const fileName = `${currentUser.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.webp`;
-          const { error: uploadError } = await supabase.storage
-            .from('checkin-images')
-            .upload(fileName, file, { contentType: file.type });
-
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from('checkin-images').getPublicUrl(fileName);
-            if (urlData?.publicUrl) uploadedImageUrl = urlData.publicUrl;
+          const formData = new FormData();
+          formData.append('file', file);
+          const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
+          if (uploadRes.ok) {
+            const uploadResult = await uploadRes.json();
+            if (uploadResult.url) uploadedImageUrl = uploadResult.url;
           }
-        } catch (storageErr) {
-          console.warn('Storage upload fallback:', storageErr);
+        } catch (r2Err) {
+          console.warn('R2 primary upload skipped/failed, trying Supabase Storage fallback:', r2Err);
         }
 
-        // If storage bucket isn't public or endpoint missing, fallback to uploading via API if present
+        // 2. Fallback: Try Supabase Storage if R2 endpoint is unavailable in local dev
         if (!uploadedImageUrl) {
           try {
-            const formData = new FormData();
-            formData.append('file', file);
-            const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
-            if (uploadRes.ok) {
-              const uploadResult = await uploadRes.json();
-              if (uploadResult.url) uploadedImageUrl = uploadResult.url;
+            const fileName = `${currentUser.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.webp`;
+            const { error: uploadError } = await supabase.storage
+              .from('checkin-images')
+              .upload(fileName, file, { contentType: file.type });
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage.from('checkin-images').getPublicUrl(fileName);
+              if (urlData?.publicUrl) uploadedImageUrl = urlData.publicUrl;
             }
-          } catch {
-            // Safe fallback: continue check-in submission
+          } catch (storageErr) {
+            console.warn('Supabase Storage fallback error:', storageErr);
           }
         }
       }
