@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { compressImageToWebP } from '../../services/imageCompression';
 import { DiscussionCategory } from '../../types/discussion';
-import { X, MessageSquarePlus, Upload, AlertCircle } from 'lucide-react';
+import { X, MessageSquarePlus, Upload, AlertCircle, ImagePlus, Trash2 } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -10,29 +10,53 @@ interface Props {
   onSuccess: () => void;
 }
 
+const MAX_IMAGES = 3;
+
 export const CreateDiscussionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<DiscussionCategory>('troubleshooting');
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selected = e.target.files[0];
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const newFiles = Array.from(e.target.files);
+    const remaining = MAX_IMAGES - files.length;
+    const filesToAdd = newFiles.slice(0, remaining);
+
+    const processed: File[] = [];
+    const previews: string[] = [];
+
+    for (const file of filesToAdd) {
       try {
-        const compressed = await compressImageToWebP(selected);
-        setFile(compressed);
-        setPreviewUrl(URL.createObjectURL(compressed));
-      } catch (err) {
-        setFile(selected);
-        setPreviewUrl(URL.createObjectURL(selected));
+        const compressed = await compressImageToWebP(file);
+        processed.push(compressed);
+        previews.push(URL.createObjectURL(compressed));
+      } catch {
+        processed.push(file);
+        previews.push(URL.createObjectURL(file));
       }
     }
+
+    setFiles((prev) => [...prev, ...processed]);
+    setPreviewUrls((prev) => [...prev, ...previews]);
+    // Reset file input
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => {
+      // Revoke the URL to free memory
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,31 +68,54 @@ export const CreateDiscussionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Please sign in to start a discussion.');
 
-      let imageUrl = '';
-      if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload-image', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to upload photo');
-        imageUrl = data.url;
+      // Upload images to Supabase Storage (discussion-images bucket)
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.webp`;
+        const { error: uploadError } = await supabase.storage
+          .from('discussion-images')
+          .upload(fileName, file, { contentType: file.type });
+
+        if (uploadError) {
+          console.warn('Image upload failed, skipping:', uploadError.message);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('discussion-images')
+          .getPublicUrl(fileName);
+
+        if (urlData?.publicUrl) {
+          uploadedUrls.push(urlData.publicUrl);
+        }
       }
 
-      const { error } = await supabase.from('discussions').insert({
+      const insertData: any = {
         user_id: user.id,
         title,
         content,
         category,
-        image_url: imageUrl || null,
         is_dummy: false,
-      });
+      };
+
+      // Use image_url for single image (backward compat), image_urls for multiple
+      if (uploadedUrls.length === 1) {
+        insertData.image_url = uploadedUrls[0];
+      } else if (uploadedUrls.length > 1) {
+        insertData.image_url = uploadedUrls[0]; // first image as primary
+        insertData.image_urls = uploadedUrls;    // all images array
+      }
+
+      const { error } = await supabase.from('discussions').insert(insertData);
 
       if (error) throw error;
 
+      // Cleanup
       setTitle('');
       setContent('');
-      setFile(null);
-      setPreviewUrl(null);
+      setFiles([]);
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+      setPreviewUrls([]);
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -140,24 +187,52 @@ export const CreateDiscussionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
             />
           </div>
 
+          {/* Multi-Image Upload (up to 3) */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Attach Photo or Chart (Optional)</label>
-            <div className="relative border border-dashed border-slate-700 hover:border-slate-500 rounded-2xl p-3 text-center bg-slate-800/30">
-              <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              {previewUrl ? (
-                <img src={previewUrl} alt="Preview" className="max-h-24 mx-auto rounded-lg object-cover" />
-              ) : (
+            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              Attach Photos ({files.length}/{MAX_IMAGES})
+            </label>
+
+            {/* Image Previews Grid */}
+            {previewUrls.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {previewUrls.map((url, idx) => (
+                  <div key={idx} className="relative group">
+                    <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-20 object-cover rounded-xl border border-slate-700" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 p-1 bg-slate-950/80 text-rose-400 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add More Button */}
+            {files.length < MAX_IMAGES && (
+              <div className="relative border border-dashed border-slate-700 hover:border-slate-500 rounded-2xl p-3 text-center bg-slate-800/30">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
                 <div className="flex items-center justify-center gap-2 text-slate-400 text-xs py-1">
-                  <Upload className="w-4 h-4 text-slate-500"/> Drop installation photo or app chart
+                  <ImagePlus className="w-4 h-4 text-slate-500"/>
+                  {files.length === 0 ? 'Drop or tap to add photos (max 3)' : `Add ${MAX_IMAGES - files.length} more photo${MAX_IMAGES - files.length > 1 ? 's' : ''}`}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl shadow-lg transition-all text-xs uppercase tracking-wider mt-2"
+            className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl shadow-lg transition-all text-xs uppercase tracking-wider mt-2 disabled:opacity-50"
           >
             {loading ? 'Posting...' : 'Publish Discussion'}
           </button>

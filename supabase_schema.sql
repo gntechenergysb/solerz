@@ -147,6 +147,7 @@ CREATE TABLE IF NOT EXISTS public.discussions (
     content TEXT NOT NULL CHECK (char_length(trim(content)) > 0),
     category TEXT NOT NULL DEFAULT 'general' CHECK (category IN ('troubleshooting', 'hardware', 'tips', 'general')),
     image_url TEXT,
+    image_urls JSONB DEFAULT '[]'::jsonb,
     upvotes_count INT NOT NULL DEFAULT 0,
     is_dummy BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()

@@ -9,6 +9,7 @@ export interface DiscussionPost {
   content: string;
   category: DiscussionCategory;
   image_url?: string;
+  image_urls?: string[];  // Support up to 3 images
   upvotes_count: number;
   is_dummy: boolean;
   created_at: string;

@@ -316,6 +316,95 @@ SELECT public.seed_daily_dummy_data(CURRENT_DATE);
 -- (Real engineering questions & verified technical answers from global solar forums)
 -- =================================────────────────===========================
 
+-- Ensure discussion tables exist before seeding
+CREATE TABLE IF NOT EXISTS public.discussions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL CHECK (char_length(trim(title)) >= 5),
+    content TEXT NOT NULL CHECK (char_length(trim(content)) > 0),
+    category TEXT NOT NULL DEFAULT 'general' CHECK (category IN ('troubleshooting', 'hardware', 'tips', 'general')),
+    image_url TEXT,
+    image_urls JSONB DEFAULT '[]'::jsonb,
+    upvotes_count INT NOT NULL DEFAULT 0,
+    is_dummy BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add image_urls column if table already exists without it
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='discussions' AND column_name='image_urls') THEN
+        ALTER TABLE public.discussions ADD COLUMN image_urls JSONB DEFAULT '[]'::jsonb;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.discussion_comments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    discussion_id UUID NOT NULL REFERENCES public.discussions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    content TEXT NOT NULL CHECK (char_length(trim(content)) > 0),
+    is_dummy BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.discussion_upvotes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    discussion_id UUID NOT NULL REFERENCES public.discussions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT unique_user_discussion_upvote UNIQUE (discussion_id, user_id)
+);
+
+ALTER TABLE public.discussions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.discussion_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.discussion_upvotes ENABLE ROW LEVEL SECURITY;
+
+DO $$ 
+BEGIN
+    -- discussions: SELECT
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussions Public Read' AND tablename = 'discussions') THEN
+        CREATE POLICY "Discussions Public Read" ON public.discussions FOR SELECT USING (true);
+    END IF;
+    -- discussions: INSERT
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussions User Insert' AND tablename = 'discussions') THEN
+        CREATE POLICY "Discussions User Insert" ON public.discussions FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+    -- discussions: UPDATE (for upvote count increments)
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussions User Update' AND tablename = 'discussions') THEN
+        CREATE POLICY "Discussions User Update" ON public.discussions FOR UPDATE USING (true);
+    END IF;
+    -- discussions: DELETE
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussions User Delete' AND tablename = 'discussions') THEN
+        CREATE POLICY "Discussions User Delete" ON public.discussions FOR DELETE USING (auth.uid() = user_id);
+    END IF;
+
+    -- discussion_comments: SELECT
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussion Comments Public Read' AND tablename = 'discussion_comments') THEN
+        CREATE POLICY "Discussion Comments Public Read" ON public.discussion_comments FOR SELECT USING (true);
+    END IF;
+    -- discussion_comments: INSERT
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussion Comments User Insert' AND tablename = 'discussion_comments') THEN
+        CREATE POLICY "Discussion Comments User Insert" ON public.discussion_comments FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND auth.uid() = user_id);
+    END IF;
+    -- discussion_comments: DELETE
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussion Comments User Delete' AND tablename = 'discussion_comments') THEN
+        CREATE POLICY "Discussion Comments User Delete" ON public.discussion_comments FOR DELETE USING (auth.uid() = user_id);
+    END IF;
+
+    -- discussion_upvotes: SELECT
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussion Upvotes Public Read' AND tablename = 'discussion_upvotes') THEN
+        CREATE POLICY "Discussion Upvotes Public Read" ON public.discussion_upvotes FOR SELECT USING (true);
+    END IF;
+    -- discussion_upvotes: INSERT
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussion Upvotes User Insert' AND tablename = 'discussion_upvotes') THEN
+        CREATE POLICY "Discussion Upvotes User Insert" ON public.discussion_upvotes FOR INSERT WITH CHECK (auth.uid() = user_id);
+    END IF;
+    -- discussion_upvotes: DELETE
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Discussion Upvotes User Delete' AND tablename = 'discussion_upvotes') THEN
+        CREATE POLICY "Discussion Upvotes User Delete" ON public.discussion_upvotes FOR DELETE USING (auth.uid() = user_id);
+    END IF;
+END $$;
+
 INSERT INTO public.discussions (id, user_id, title, content, category, upvotes_count, is_dummy, created_at)
 VALUES
     -- 1
