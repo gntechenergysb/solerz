@@ -20,14 +20,14 @@ export const Home: React.FC = () => {
     // Fetch recent check-ins (latest 6)
     const { data: recent } = await supabase
       .from('check_ins')
-      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, equipment_brand, role)`)
+      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
       .order('created_at', { ascending: false })
       .limit(6);
 
     // Fetch today's top 5 by efficiency
     const { data: topToday } = await supabase
       .from('check_ins')
-      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, equipment_brand, role)`)
+      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
       .eq('check_in_date', today)
       .order('efficiency_kwh_per_kwp', { ascending: false })
       .limit(5);
@@ -164,7 +164,7 @@ export const Home: React.FC = () => {
                         <div>
                           <h4 className="font-semibold text-white text-xs">{chk.profiles?.display_name || 'Solar Owner'}</h4>
                           <span className="text-[11px] text-zinc-400">
-                            {chk.profiles?.city_region}, {chk.profiles?.country_code} · {chk.system_kwp} kWp ({chk.profiles?.equipment_brand})
+                            {chk.profiles?.city_region}, {chk.profiles?.country_code} · {chk.system_kwp} kWp ({chk.profiles?.inverter_brand})
                           </span>
                         </div>
                       </div>

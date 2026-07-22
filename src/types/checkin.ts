@@ -6,7 +6,8 @@ export interface Profile {
   country_code: string;
   city_region: string;
   system_kwp: number;
-  equipment_brand: string;
+  panel_brand: string;
+  inverter_brand: string;
   role: 'consumer' | 'installer' | 'supplier';
   is_dummy: boolean;
   created_at: string;

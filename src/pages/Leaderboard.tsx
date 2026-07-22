@@ -2,20 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { CheckIn } from '../types/checkin';
 import { calculateCO2SavedKg, calculateTreesEquivalent } from '../utils/carbon';
+import { TOP_INVERTER_BRANDS, TOP_PANEL_BRANDS, GLOBAL_COUNTRIES } from '../utils/equipment';
 import { Trophy, Flame, Globe, Filter, ExternalLink, Leaf, ShieldCheck } from 'lucide-react';
 
 export const Leaderboard: React.FC = () => {
   const [rankings, setRankings] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [countryFilter, setCountryFilter] = useState<string>('All');
-  const [brandFilter, setBrandFilter] = useState<string>('All');
+  const [inverterFilter, setInverterFilter] = useState<string>('All');
+  const [panelFilter, setPanelFilter] = useState<string>('All');
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [selectedDate, countryFilter, brandFilter]);
+  }, [selectedDate, countryFilter, inverterFilter, panelFilter]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -24,7 +24,7 @@ export const Leaderboard: React.FC = () => {
       .select(`
         *,
         profiles!inner (
-          id, username, display_name, avatar_url, country_code, city_region, equipment_brand, role, is_dummy
+          id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role, is_dummy
         )
       `)
       .eq('check_in_date', selectedDate)
@@ -33,8 +33,11 @@ export const Leaderboard: React.FC = () => {
     if (countryFilter !== 'All') {
       query = query.eq('profiles.country_code', countryFilter);
     }
-    if (brandFilter !== 'All') {
-      query = query.eq('profiles.equipment_brand', brandFilter);
+    if (inverterFilter !== 'All') {
+      query = query.eq('profiles.inverter_brand', inverterFilter);
+    }
+    if (panelFilter !== 'All') {
+      query = query.eq('profiles.panel_brand', panelFilter);
     }
 
     const { data, error } = await query;
@@ -46,8 +49,7 @@ export const Leaderboard: React.FC = () => {
 
   const totalKwhToday = rankings.reduce((acc, curr) => acc + (Number(curr.kwh_generated) || 0), 0);
   const totalCo2SavedKg = rankings.reduce((acc, curr) => {
-    const country = curr.profiles?.country_code || 'US';
-    return acc + calculateCO2SavedKg(curr.kwh_generated, country);
+    return acc + calculateCO2SavedKg(curr.kwh_generated, curr.profiles?.country_code);
   }, 0);
 
   return (
@@ -62,7 +64,7 @@ export const Leaderboard: React.FC = () => {
               <Trophy className="w-3.5 h-3.5"/> Global Specific Yield Arena
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-              Daily Solar Efficiency Arena
+              Daily Solar Efficiency Leaderboard
             </h1>
             <p className="text-slate-400 text-xs md:text-sm mt-1">
               Normalized ranking based on Specific Yield (<span className="text-amber-400 font-semibold">kWh / kWp</span>)
@@ -80,7 +82,7 @@ export const Leaderboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Global Impact Summary */}
+        {/* Impact Bar */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-800/80">
           <div>
             <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Today's Generation</p>
@@ -93,59 +95,63 @@ export const Leaderboard: React.FC = () => {
             <p className="text-xl font-black text-emerald-400 mt-0.5">{totalCo2SavedKg.toFixed(1)} <span className="text-xs text-emerald-600 font-normal">kg</span></p>
           </div>
           <div className="hidden md:block">
-            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Equivalent Trees</p>
+            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Trees Offset</p>
             <p className="text-xl font-black text-amber-400 mt-0.5">{calculateTreesEquivalent(totalCo2SavedKg)} <span className="text-xs text-slate-500 font-normal">trees/yr</span></p>
           </div>
         </div>
       </div>
 
-      {/* Arena Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
+      {/* Worldwide Filter Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800 p-4 rounded-2xl">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
           <Filter className="w-4 h-4 text-amber-500"/> Filter Arena:
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Country Filter */}
           <select
             value={countryFilter}
             onChange={(e) => setCountryFilter(e.target.value)}
             className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-2.5 font-medium focus:outline-none focus:border-amber-500"
           >
             <option value="All">🌐 All Countries</option>
-            <option value="US">🇺🇸 United States</option>
-            <option value="GB">🇬🇧 United Kingdom</option>
-            <option value="AU">🇦🇺 Australia</option>
-            <option value="DE">🇩🇪 Germany</option>
-            <option value="CA">🇨🇦 Canada</option>
-            <option value="FR">🇫🇷 France</option>
-            <option value="MY">🇲🇾 Malaysia</option>
-            <option value="SG">🇸🇬 Singapore</option>
+            {GLOBAL_COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+            ))}
           </select>
 
+          {/* Inverter Brand Filter */}
           <select
-            value={brandFilter}
-            onChange={(e) => setBrandFilter(e.target.value)}
+            value={inverterFilter}
+            onChange={(e) => setInverterFilter(e.target.value)}
             className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-2.5 font-medium focus:outline-none focus:border-amber-500"
           >
-            <option value="All">⚡ All Inverter Brands</option>
-            <option value="Enphase">Enphase</option>
-            <option value="SolarEdge">SolarEdge</option>
-            <option value="Fronius">Fronius</option>
-            <option value="Growatt">Growatt</option>
-            <option value="Huawei">Huawei</option>
-            <option value="Sungrow">Sungrow</option>
-            <option value="Tesla">Tesla</option>
-            <option value="SMA">SMA</option>
+            <option value="All">⚡ All Inverters</option>
+            {TOP_INVERTER_BRANDS.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+
+          {/* Panel Brand Filter */}
+          <select
+            value={panelFilter}
+            onChange={(e) => setPanelFilter(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl p-2.5 font-medium focus:outline-none focus:border-amber-500"
+          >
+            <option value="All">☀️ All Panels</option>
+            {TOP_PANEL_BRANDS.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Leaderboard List */}
+      {/* Leaderboard Table List */}
       {loading ? (
         <div className="text-center py-16 text-slate-500 text-sm font-medium">Recalculating Specific Yield Rankings...</div>
       ) : rankings.length === 0 ? (
         <div className="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl text-slate-500 text-sm">
-          No check-ins logged for this filter and date. Be the first to check in today!
+          No check-ins found for these filters on {selectedDate}. Log today's yield first!
         </div>
       ) : (
         <div className="space-y-3">
@@ -187,13 +193,16 @@ export const Leaderboard: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-400 flex items-center gap-2 mt-1">
-                      <span className="flex items-center gap-1">
+
+                    <div className="text-xs text-slate-400 flex flex-wrap items-center gap-2 mt-1">
+                      <span className="flex items-center gap-1 font-medium text-slate-300">
                         <Globe className="w-3 h-3 text-slate-500"/>
                         {item.profiles?.city_region}, {item.profiles?.country_code}
                       </span>
                       <span>•</span>
-                      <span>{item.profiles?.equipment_brand}</span>
+                      <span>{item.profiles?.inverter_brand}</span>
+                      <span>•</span>
+                      <span className="text-slate-400">{item.profiles?.panel_brand}</span>
                       <span>•</span>
                       <span className="text-slate-300">{item.system_kwp} kWp</span>
                       <span>•</span>
@@ -219,7 +228,7 @@ export const Leaderboard: React.FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 hover:text-white transition-colors"
-                      title="View App Screenshot Proof"
+                      title="View Inverter App Screenshot"
                     >
                       <ExternalLink className="w-4 h-4"/>
                     </a>

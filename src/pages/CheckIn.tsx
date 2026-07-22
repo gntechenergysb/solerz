@@ -10,7 +10,7 @@ export const CheckInPage: React.FC = () => {
   const refreshCheckIns = async () => {
     const { data } = await supabase
       .from('check_ins')
-      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, equipment_brand, role)`)
+      .select(`*, profiles!inner (id, username, display_name, avatar_url, country_code, city_region, panel_brand, inverter_brand, role)`)
       .order('created_at', { ascending: false })
       .limit(8);
     if (data) setCheckIns(data as CheckIn[]);

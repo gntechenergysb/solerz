@@ -109,7 +109,7 @@ export const ProfilePage: React.FC = () => {
               <span>·</span>
               <span>{profile.city_region}, {profile.country_code}</span>
               <span>·</span>
-              <span className="text-zinc-200 font-semibold">{profile.system_kwp} kWp ({profile.equipment_brand})</span>
+              <span className="text-zinc-200 font-semibold">{profile.system_kwp} kWp ({profile.inverter_brand})</span>
             </p>
           </div>
         </div>
