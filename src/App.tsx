@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import CheckIn from './pages/CheckIn';
 import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
+import Dashboard from './pages/Dashboard';
 
 export const App: React.FC = () => {
   return (
@@ -21,6 +22,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/checkin" element={<CheckIn />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -36,7 +38,7 @@ export const App: React.FC = () => {
             style: {
               background: '#0f172a',
               color: '#f8fafc',
-              border: '1 border-slate-800',
+              border: '1px solid #1e293b',
               borderRadius: '12px',
             }
           }}
