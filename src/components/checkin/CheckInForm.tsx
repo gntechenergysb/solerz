@@ -15,6 +15,7 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
   const [countryCode, setCountryCode] = useState<string>('US');
   const [panelBrand, setPanelBrand] = useState<string>('Jinko Solar');
   const [inverterBrand, setInverterBrand] = useState<string>('Enphase Energy');
+  const [notes, setNotes] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -100,6 +101,7 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
         check_in_date: new Date().toISOString().slice(0, 10),
         kwh_generated: parseFloat(kwh),
         system_kwp: parseFloat(kwp),
+        notes: notes.trim() || null,
         image_url: uploadedImageUrl || null,
         is_dummy: false,
       });
@@ -113,6 +115,7 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
 
       setMessage({ type: 'success', text: 'Check-in live! You are now ranked on the global leaderboard.' });
       setKwh('');
+      setNotes('');
       setFile(null);
       setPreviewUrl(null);
       if (onSuccess) onSuccess();
@@ -206,6 +209,18 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
         <div>
           <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Today's Generation (kWh) *</label>
           <input type="number" step="0.01" required placeholder="e.g. 32.8" value={kwh} onChange={(e) => setKwh(e.target.value)} className="w-full px-3.5 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white font-black text-xl focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Notes / Weather (Optional)</label>
+          <input
+            type="text"
+            maxLength={120}
+            placeholder="e.g. Clear sky, 32°C, panels cleaned this morning"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500 placeholder:text-slate-600"
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3 bg-slate-800/40 border border-slate-800 rounded-2xl p-3.5">
