@@ -24,19 +24,25 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
   const alertRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setCurrentUser(data?.user || null);
-      if (data?.user) {
-        supabase.from('profiles').select('*').eq('id', data.user.id).single().then(({ data: profile }) => {
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        setCurrentUser(data?.user || null);
+        if (data?.user) {
+          const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
           if (profile) {
             setCountryCode(profile.country_code || 'US');
             setKwp(profile.system_kwp ? String(profile.system_kwp) : '6.0');
             setPanelBrand(profile.panel_brand || 'Jinko Solar');
             setInverterBrand(profile.inverter_brand || 'Enphase Energy');
           }
-        }).catch(err => console.warn('Profile load warning:', err));
+        }
+      } catch (err) {
+        console.warn('Auth/Profile load warning:', err);
       }
-    }).catch(err => console.warn('Auth check warning:', err));
+    };
+
+    initAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setCurrentUser(session?.user || null);
@@ -76,17 +82,34 @@ export const CheckInForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess })
       let uploadedImageUrl = '';
 
       if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
+        try {
+          const fileName = `${currentUser.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.webp`;
+          const { error: uploadError } = await supabase.storage
+            .from('checkin-images')
+            .upload(fileName, file, { contentType: file.type });
 
-        const uploadRes = await fetch('/api/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage.from('checkin-images').getPublicUrl(fileName);
+            if (urlData?.publicUrl) uploadedImageUrl = urlData.publicUrl;
+          }
+        } catch (storageErr) {
+          console.warn('Storage upload fallback:', storageErr);
+        }
 
-        const uploadResult = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadResult.error || 'Failed to upload screenshot.');
-        uploadedImageUrl = uploadResult.url;
+        // If storage bucket isn't public or endpoint missing, fallback to uploading via API if present
+        if (!uploadedImageUrl) {
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
+            if (uploadRes.ok) {
+              const uploadResult = await uploadRes.json();
+              if (uploadResult.url) uploadedImageUrl = uploadResult.url;
+            }
+          } catch {
+            // Safe fallback: continue check-in submission
+          }
+        }
       }
 
       await supabase.from('profiles').update({

@@ -26,21 +26,21 @@ export const CreateDiscussionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
-    const newFiles = Array.from(e.target.files);
+    const newFiles: File[] = Array.from(e.target.files);
     const remaining = MAX_IMAGES - files.length;
-    const filesToAdd = newFiles.slice(0, remaining);
+    const filesToAdd: File[] = newFiles.slice(0, remaining);
 
     const processed: File[] = [];
     const previews: string[] = [];
 
-    for (const file of filesToAdd) {
+    for (const rawFile of filesToAdd) {
       try {
-        const compressed = await compressImageToWebP(file);
+        const compressed = await compressImageToWebP(rawFile);
         processed.push(compressed);
         previews.push(URL.createObjectURL(compressed));
       } catch {
-        processed.push(file);
-        previews.push(URL.createObjectURL(file));
+        processed.push(rawFile);
+        previews.push(URL.createObjectURL(rawFile));
       }
     }
 
