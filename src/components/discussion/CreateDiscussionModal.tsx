@@ -61,8 +61,14 @@ export const CreateDiscussionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMsg(null);
+
+    if (title.trim().length < 2) {
+      setErrorMsg('Title must be at least 2 characters long.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();

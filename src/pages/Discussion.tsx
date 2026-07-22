@@ -313,16 +313,25 @@ export const Discussion: React.FC = () => {
     }
   };
 
+  const [upvotingIds, setUpvotingIds] = useState<Set<string>>(new Set());
+
   const handleUpvote = async (postId: string, currentCount: number) => {
     if (!currentUser) {
       alert('Please sign in to upvote discussions.');
       return;
     }
 
+    if (upvotingIds.has(postId)) return;
+
+    setUpvotingIds((prev) => new Set(prev).add(postId));
     const alreadyUpvoted = userUpvotes.has(postId);
 
     if (alreadyUpvoted) {
-      // Remove upvote
+      // Optimistic toggle off
+      setUserUpvotes((prev) => { const next = new Set(prev); next.delete(postId); return next; });
+      const newCount = Math.max(0, currentCount - 1);
+      setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: newCount } : p)));
+
       try {
         const { error } = await supabase
           .from('discussion_upvotes')
@@ -330,33 +339,35 @@ export const Discussion: React.FC = () => {
           .eq('discussion_id', postId)
           .eq('user_id', currentUser.id);
         if (error) throw error;
-
-        const newCount = Math.max(0, currentCount - 1);
         await supabase.from('discussions').update({ upvotes_count: newCount }).eq('id', postId);
-
-        setUserUpvotes((prev) => { const next = new Set(prev); next.delete(postId); return next; });
-        setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: newCount } : p)));
       } catch (err: any) {
-        console.warn('Remove upvote failed:', err);
+        console.warn('Remove upvote failed, reverting UI:', err);
+        // Revert UI on failure
+        setUserUpvotes((prev) => new Set(prev).add(postId));
+        setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: currentCount } : p)));
+      } finally {
+        setUpvotingIds((prev) => { const next = new Set(prev); next.delete(postId); return next; });
       }
     } else {
-      // Add upvote
+      // Optimistic toggle on
+      setUserUpvotes((prev) => new Set(prev).add(postId));
+      const newCount = currentCount + 1;
+      setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: newCount } : p)));
+
       try {
         const { error } = await supabase.from('discussion_upvotes').insert({
           discussion_id: postId,
           user_id: currentUser.id,
         });
         if (error) throw error;
-
-        const newCount = currentCount + 1;
         await supabase.from('discussions').update({ upvotes_count: newCount }).eq('id', postId);
-
-        setUserUpvotes((prev) => new Set(prev).add(postId));
-        setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: newCount } : p)));
       } catch (err: any) {
-        console.warn('Upvote failed:', err);
-        // Optimistic fallback
-        setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: p.upvotes_count + 1 } : p)));
+        console.warn('Upvote failed, reverting UI:', err);
+        // Revert UI on failure
+        setUserUpvotes((prev) => { const next = new Set(prev); next.delete(postId); return next; });
+        setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, upvotes_count: currentCount } : p)));
+      } finally {
+        setUpvotingIds((prev) => { const next = new Set(prev); next.delete(postId); return next; });
       }
     }
   };

@@ -143,7 +143,7 @@ CREATE POLICY "Reactions User Delete" ON public.flex_reactions FOR DELETE USING 
 CREATE TABLE IF NOT EXISTS public.discussions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    title TEXT NOT NULL CHECK (char_length(trim(title)) >= 5),
+    title TEXT NOT NULL CHECK (char_length(trim(title)) >= 2),
     content TEXT NOT NULL CHECK (char_length(trim(content)) > 0),
     category TEXT NOT NULL DEFAULT 'general' CHECK (category IN ('troubleshooting', 'hardware', 'tips', 'general')),
     image_url TEXT,
