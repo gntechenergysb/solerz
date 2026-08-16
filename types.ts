@@ -1,3 +1,114 @@
+export interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+  headquarters_country?: string;
+  website_url?: string;
+  logo_url?: string;
+  tier_rating?: string;
+}
+
+export interface SolarPanel {
+  id: string;
+  brand_id?: string;
+  brand_name: string;
+  model_name: string;
+  slug: string;
+  technol: string;
+  ncels: number;
+  ncelp: number;
+  ndiodes: number;
+  pnom_w: number;
+  pnom_tol_low_pct: number;
+  pnom_tol_up_pct: number;
+  voc_v: number;
+  isc_a: number;
+  vmp_v: number;
+  imp_a: number;
+  module_efficiency_pct: number;
+  mu_isc_ma_c: number;
+  mu_voc_spec_pct_c: number;
+  mu_pnom_spec_pct_c: number;
+  r_serie_ohm?: number;
+  r_shunt_ohm?: number;
+  is_bifacial: boolean;
+  bifaciality_factor: number;
+  width_m: number;
+  length_m: number;
+  depth_m: number;
+  weight_kg: number;
+  vmax_iec_v: number;
+  vmax_ul_v: number;
+  certifications: string[];
+  warranty_product_years: number;
+  warranty_power_years: number;
+  datasheet_url?: string;
+  image_url?: string;
+  raw_pan_content?: string;
+  views_count: number;
+}
+
+export interface SolarInverter {
+  id: string;
+  brand_id?: string;
+  brand_name: string;
+  model_name: string;
+  slug: string;
+  inverter_type: 'String' | 'Hybrid' | 'Microinverter';
+  grid_phases: 'Single Phase' | 'Three Phase';
+  pnom_conv_w: number;
+  pmax_out_va: number;
+  vmin_mpp_v: number;
+  vmax_mpp_v: number;
+  v_abs_max_v: number;
+  imax_pv_a: number;
+  nb_mppt: number;
+  max_efficiency_pct?: number;
+  euro_efficiency_pct?: number;
+  is_battery_supported: boolean;
+  battery_voltage_type?: 'LV' | 'HV';
+  battery_voltage_min_v?: number;
+  battery_voltage_max_v?: number;
+  max_charge_current_a?: number;
+  max_discharge_current_a?: number;
+  certifications: string[];
+  warranty_years: number;
+  ip_rating: string;
+  weight_kg?: number;
+  datasheet_url?: string;
+  image_url?: string;
+  raw_ond_content?: string;
+  views_count: number;
+}
+
+export interface SolarBattery {
+  id: string;
+  brand_id?: string;
+  brand_name: string;
+  model_name: string;
+  slug: string;
+  cell_chemistry: string;
+  voltage_architecture: 'LV' | 'HV';
+  nominal_voltage_v: number;
+  operating_voltage_min_v: number;
+  operating_voltage_max_v: number;
+  total_energy_kwh: number;
+  usable_energy_kwh: number;
+  nominal_capacity_ah: number;
+  max_c_rate: number;
+  depth_of_discharge_pct: number;
+  cycle_life: number;
+  communication_protocols: string[];
+  certifications: string[];
+  warranty_years: number;
+  datasheet_url?: string;
+  image_url?: string;
+  views_count: number;
+}
+
+// ============================================================================
+// Legacy Application Types (Cleaned)
+// ============================================================================
 
 export type UserTier = 'UNSUBSCRIBED' | 'STARTER' | 'PRO' | 'ELITE' | 'ENTERPRISE';
 
@@ -20,9 +131,8 @@ export interface Profile {
   stripe_current_period_start?: number | null;
   stripe_billing_interval?: 'month' | 'year' | null;
   stripe_cancel_at_period_end?: boolean | null;
-  // KYC Fields - International company registration number
-  company_reg_no?: string;  // Company/Business Registration Number
-  company_doc_path?: string;  // Path to company registration document
+  company_reg_no?: string;
+  company_doc_path?: string;
   country?: string;
   avatar_url?: string;
 }
@@ -54,7 +164,7 @@ export type ListingCondition = 'New / Unused' | 'Used (Working)' | 'Refurbished 
 
 export interface PriceTier {
   min_quantity: number;
-  max_quantity?: number | null; // null or undefined means "and above"
+  max_quantity?: number | null;
   price: number;
 }
 
@@ -66,25 +176,7 @@ export interface BaseSpecs {
 
 export interface PanelSpecs extends BaseSpecs {
   wattage: number;
-  cell_type:
-  | 'TOPCon'
-  | 'BC'
-  | 'HJT'
-  | 'N-type'
-  | 'P-type'
-  | 'Bifacial'
-  | 'Monofacial'
-  | 'Thin-Film'
-  | 'Standard Rigid'
-  | 'Flexible'
-  | 'BIPV'
-  | 'Shingled'
-  | 'PERC'
-  | 'Mono'
-  | 'Poly'
-  | 'IBC'
-  | 'ABC'
-  | string;
+  cell_type: string;
   efficiency: number;
   dimensions: string;
   model?: string;
@@ -102,7 +194,7 @@ export interface PanelSpecs extends BaseSpecs {
 }
 
 export interface InverterSpecs extends BaseSpecs {
-  inverter_type?: 'String' | 'Micro' | 'Microinverter' | 'Hybrid' | 'Off-Grid' | 'Grid-Tied' | 'Central' | string;
+  inverter_type?: string;
   phase: 'Single' | 'Three';
   max_input_voltage: number;
   efficiency: number;
@@ -127,25 +219,8 @@ export interface BatterySpecs extends BaseSpecs {
   cycle_life: number;
   capacity_kwh: number;
   nominal_voltage: number;
-  battery_type?:
-  | 'Rack-mounted'
-  | 'Wall-mounted'
-  | 'Portable'
-  | 'Container'
-  | 'Floor-standing'
-  | 'All-in-one'
-  | string;
-  technology:
-  | 'LiFePO4'
-  | 'NMC'
-  | 'LTO'
-  | 'Lead-Acid'
-  | 'AGM'
-  | 'Gel'
-  | 'Sodium-Ion'
-  | 'Flow'
-  | 'Other'
-  | string;
+  battery_type?: string;
+  technology: string;
   model?: string;
   usable_capacity_kwh?: number;
   max_charge_kw?: number;
@@ -161,9 +236,9 @@ export interface BatterySpecs extends BaseSpecs {
 }
 
 export interface MountingSpecs extends BaseSpecs {
-  mounting_type?: 'Roof Mount' | 'Ground Mount' | 'Carport' | 'Tracking System' | 'Wall Mount' | 'Pole Mount' | 'Other';
-  material?: 'Aluminum' | 'Galvanized Steel' | 'Stainless Steel' | 'Plastic' | 'Mixed' | string;
-  roof_type?: 'Corrugated' | 'Trapezoidal' | 'Tile' | 'Standing Seam' | 'Flat Roof' | 'Other';
+  mounting_type?: string;
+  material?: string;
+  roof_type?: string;
   wind_load_ms?: number;
   snow_load_knm2?: number;
   warranty_years?: number;
@@ -171,77 +246,42 @@ export interface MountingSpecs extends BaseSpecs {
 
 export interface CableSpecs extends BaseSpecs {
   current_type?: 'DC' | 'AC';
-  cable_type?:
-  | 'PV1-F'
-  | 'H1Z2Z2-K'
-  | 'USE-2'
-  | 'PV Wire'
-  | 'THHN'
-  | 'H05VV-F'
-  | 'N2XH'
-  | 'Battery Cable'
-  | 'MV Cable'
-  | 'RHW-2'
-  | 'THWN-2'
-  | string;
-  voltage_rating?:
-  | '600V'
-  | '1000V'
-  | '1500V'
-  | '1800V'
-  | '2000V'
-  | '0.6/1kV'
-  | '450/750V'
-  | '1.8/3kV'
-  | '6.35/11kV'
-  | '19/33kV'
-  | string;
-  insulation?: 'XLPE' | 'XLPO' | 'PVC' | 'Halogen-Free' | 'LSHF' | string;
+  cable_type?: string;
+  voltage_rating?: string;
+  insulation?: string;
   size_mm2?: number;
   cores?: number;
   length_m?: number;
-  conductor?:
-  | 'Copper'
-  | 'Tinned Copper'
-  | 'Aluminum'
-  | 'Tinned Copper-Clad Aluminum (TCCA)'
-  | 'Aluminum Alloy'
-  | string;
+  conductor?: string;
 }
 
 export interface ProtectiveSpecs extends BaseSpecs {
-  device_type?: 'Fuse' | 'Breaker' | 'SPD' | 'Isolator' | 'Other';
+  device_type?: string;
   rated_current_a?: number;
   rated_voltage_v?: number;
   poles?: number;
 }
 
 export interface FullSystemSpecs extends BaseSpecs {
-  system_type?: 'On-Grid' | 'Off-Grid' | 'Hybrid' | 'Other' | string;
+  system_type?: string;
   total_capacity_kwp?: number;
   battery_storage_kwh?: number;
-
   panel_brand?: string;
   panel_wattage_w?: number;
   panel_cell_type?: string;
-
   inverter_brand?: string;
   inverter_rated_power_kw?: number;
   inverter_phase?: string;
   inverter_type?: string;
-
   battery_brand?: string;
   battery_capacity_kwh?: number;
   battery_technology?: string;
-
   mounting_brand?: string;
   mounting_type?: string;
   mounting_material?: string;
-
   cable_brand?: string;
   cable_type?: string;
   cable_size_mm2?: number;
-
   protective_breaker_brand?: string;
   protective_breaker_rated_current_a?: number;
   protective_spd_brand?: string;
@@ -250,7 +290,6 @@ export interface FullSystemSpecs extends BaseSpecs {
   protective_fuse_rated_current_a?: number;
   protective_others_brand?: string;
   protective_others_rated_current_a?: number;
-
   workmanship_warranty_years?: number;
   panel_power_warranty_years?: number;
   panel_performance_warranty_years?: number;
@@ -262,14 +301,14 @@ export type ProductSpecs = PanelSpecs | InverterSpecs | BatterySpecs | MountingS
 export interface Listing {
   id: string;
   seller_id: string;
-  seller_name?: string; // Joined field
-  is_verified_seller?: boolean; // Joined field
-  seller_type?: 'INDIVIDUAL' | 'COMPANY'; // Joined field
-  seller_phone?: string; // Joined field
-  seller_email?: string; // Joined field (public)
-  seller_business_address?: string; // Joined field (public)
-  seller_company_reg_no?: string; // Joined field (public)
-  seller_avatar_url?: string; // Joined field (public)
+  seller_name?: string;
+  is_verified_seller?: boolean;
+  seller_type?: 'INDIVIDUAL' | 'COMPANY';
+  seller_phone?: string;
+  seller_email?: string;
+  seller_business_address?: string;
+  seller_company_reg_no?: string;
+  seller_avatar_url?: string;
   title: string;
   category: Category;
   brand: string;
@@ -285,10 +324,10 @@ export interface Listing {
   datasheet_url?: string;
   active_until: string;
   archive_until: string;
-  is_verified_listing: boolean; // New persistent field
+  is_verified_listing: boolean;
   is_sold: boolean;
   is_hidden: boolean;
-  is_paused: boolean; // 因配套额度不足暂停
+  is_paused: boolean;
   view_count: number;
   created_at: string;
 }
