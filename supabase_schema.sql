@@ -39,10 +39,10 @@ CREATE TABLE solar_panels (
     imp_a NUMERIC(5,2) NOT NULL,
     module_efficiency_pct NUMERIC(5,2) NOT NULL,
     
-    -- Temperature Coefficients (PVSyst Standard Units)
-    mu_isc_ma_c NUMERIC(6,3) NOT NULL,       -- mA/°C
-    mu_voc_spec_pct_c NUMERIC(5,3) NOT NULL, -- %/°C
-    mu_pnom_spec_pct_c NUMERIC(5,3) NOT NULL,-- %/°C
+    -- Temperature Coefficients (PVSyst Standard Native Units)
+    mu_isc_ma_c NUMERIC(6,3) NOT NULL,       -- mA/°C (PVSyst muISC)
+    mu_voc_spec_mv_c NUMERIC(7,2) NOT NULL,  -- mV/°C (PVSyst muVocSpec, e.g. -127.00)
+    mu_pnom_spec_pct_c NUMERIC(5,3) NOT NULL,-- %/°C (PVSyst muPmpReq)
     
     -- Single-Diode Model (SDM) Physical Parameters
     r_serie_ohm NUMERIC(6,3),
@@ -51,10 +51,12 @@ CREATE TABLE solar_panels (
     rp_exp NUMERIC(5,2) DEFAULT 5.5,
     gamma NUMERIC(5,3) DEFAULT 1.050,
     
-    -- Optical & Mechanical Specs
+    -- Optical, Advanced Curves & Mechanical Specs
     is_bifacial BOOLEAN DEFAULT FALSE,
     bifaciality_factor NUMERIC(4,2) DEFAULT 0.80,
     iam_b0 NUMERIC(4,3) DEFAULT 0.05,
+    iam_profile JSONB,                       -- IAM Optical Incidence Angle Curve (e.g. TCubicProfile)
+    oper_points JSONB,                       -- Low-light & Irradiance Matrix Points (100-1100 W/m2)
     width_m NUMERIC(4,3) NOT NULL,
     length_m NUMERIC(4,3) NOT NULL,
     depth_m NUMERIC(4,3) DEFAULT 0.030,
@@ -69,7 +71,7 @@ CREATE TABLE solar_panels (
     warranty_power_years INT DEFAULT 30,
     datasheet_url TEXT,
     image_url TEXT,
-    raw_pan_content TEXT,
+    raw_pan_content TEXT,                    -- 100% full raw .PAN file backup
     
     views_count INT DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -97,6 +99,7 @@ CREATE TABLE solar_inverters (
     nb_mppt INT DEFAULT 2,                    -- MPPT Trackers Count
     max_efficiency_pct NUMERIC(5,2),
     euro_efficiency_pct NUMERIC(5,2),
+    efficiency_curve JSONB,                   -- Efficiency vs Output Power/Voltage curve
     
     -- Hybrid Battery Interface
     is_battery_supported BOOLEAN DEFAULT FALSE,

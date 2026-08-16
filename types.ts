@@ -8,6 +8,34 @@ export interface Brand {
   tier_rating?: string;
 }
 
+export interface OperPoint {
+  irradiance: number;     // W/m2 (e.g. 100, 200, 400, 600, 800, 1000, 1100)
+  temp: number;           // °C (e.g. 25.0)
+  rel_effic_pct?: number; // % relative efficiency (e.g. -1.65, 0.00)
+  voc_v?: number;         // Open-circuit voltage at this irradiance
+  isc_a?: number;         // Short-circuit current at this irradiance
+  vmp_v?: number;         // Max power voltage at this irradiance
+  imp_a?: number;         // Max power current at this irradiance
+  pmp_w: number;          // Max power at this irradiance
+}
+
+export interface IAMProfilePoint {
+  angle_deg: number;      // Incidence angle in degrees (0, 20, 40, 60, etc.)
+  iam: number;            // IAM transmission factor (1.000, 0.999, 0.756, etc.)
+}
+
+export interface IAMProfile {
+  mode: string;           // e.g. 'TCubicProfile' | 'Ashrae' | 'UserProfile'
+  points?: IAMProfilePoint[];
+  b0?: number;            // For Ashrae model
+}
+
+export interface InverterEfficiencyPoint {
+  load_pct: number;       // % load (e.g. 10%, 20%, 50%, 100%)
+  efficiency_pct: number; // % efficiency
+  voltage_level?: 'Vmin' | 'Vnom' | 'Vmax';
+}
+
 export interface SolarPanel {
   id: string;
   brand_id?: string;
@@ -26,13 +54,19 @@ export interface SolarPanel {
   vmp_v: number;
   imp_a: number;
   module_efficiency_pct: number;
-  mu_isc_ma_c: number;
-  mu_voc_spec_pct_c: number;
-  mu_pnom_spec_pct_c: number;
+  mu_isc_ma_c: number;          // mA/°C (PVSyst muISC)
+  mu_voc_spec_mv_c: number;     // mV/°C (PVSyst muVocSpec, e.g. -127.00)
+  mu_pnom_spec_pct_c: number;   // %/°C (PVSyst muPmpReq)
   r_serie_ohm?: number;
   r_shunt_ohm?: number;
+  rp_0_ohm?: number;
+  rp_exp?: number;
+  gamma?: number;
   is_bifacial: boolean;
   bifaciality_factor: number;
+  iam_b0?: number;
+  iam_profile?: IAMProfile;
+  oper_points?: OperPoint[];
   width_m: number;
   length_m: number;
   depth_m: number;
@@ -65,6 +99,7 @@ export interface SolarInverter {
   nb_mppt: number;
   max_efficiency_pct?: number;
   euro_efficiency_pct?: number;
+  efficiency_curve?: InverterEfficiencyPoint[];
   is_battery_supported: boolean;
   battery_voltage_type?: 'LV' | 'HV';
   battery_voltage_min_v?: number;
