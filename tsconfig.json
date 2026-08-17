@@ -34,6 +34,11 @@
   "exclude": [
     "node_modules",
     "dist",
-    "dist-admin"
+    "dist-admin",
+    "admin",
+    "functions",
+    "tools",
+    "e2e",
+    "llm_prompts"
   ]
 }

@@ -5,18 +5,11 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error(
-    'Missing Supabase environment variables. Please check:\n' +
+    'Missing Supabase environment variables.\n' +
     '  - VITE_SUPABASE_URL\n' +
     '  - VITE_SUPABASE_ANON_KEY\n' +
     'Ensure .env.local file exists with these values.'
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined
-  }
-});
+export const supabase = createClient(supabaseUrl, supabaseKey);

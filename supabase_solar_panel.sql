@@ -102,3 +102,12 @@ SELECT
     length_m, width_m, weight_kg, warranty_product_years
 FROM solar_panels
 WHERE is_active = TRUE;
+
+-- ============================================================================
+-- 5. Row Level Security (RLS) - 只读公开访问策略
+-- ============================================================================
+ALTER TABLE brands ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access on brands" ON brands FOR SELECT USING (true);
+
+ALTER TABLE solar_panels ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access on solar_panels" ON solar_panels FOR SELECT USING (true);
