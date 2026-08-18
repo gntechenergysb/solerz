@@ -5,6 +5,7 @@ import type { InverterFilters, InverterSummary } from '../types';
 import { fetchInvertersSummary, fetchInverterBrands } from '../services/inverterService';
 import InverterCard from '../components/InverterCard';
 import InverterFilterBar from '../components/InverterFilterBar';
+import InverterComparisonTray from '../components/InverterComparisonTray';
 
 const PAGE_SIZE = 24;
 
@@ -244,6 +245,9 @@ const InvertersList: React.FC = () => {
           )}
         </>
       )}
+
+      {/* Floating Inverter Comparison Tray */}
+      <InverterComparisonTray />
     </div>
   );
 };

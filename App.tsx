@@ -9,6 +9,7 @@ const PanelDetail = React.lazy(() => import('./pages/PanelDetail'));
 const InvertersList = React.lazy(() => import('./pages/InvertersList'));
 const InverterDetail = React.lazy(() => import('./pages/InverterDetail'));
 const ComparePage = React.lazy(() => import('./pages/ComparePage'));
+const InverterComparePage = React.lazy(() => import('./pages/InverterComparePage'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
@@ -37,7 +38,8 @@ const App: React.FC = () => {
                 <Route path="/inverters" element={<InvertersList />} />
                 <Route path="/inverters/:slug" element={<InverterDetail />} />
 
-                {/* Versus Comparison */}
+                {/* Versus Comparisons */}
+                <Route path="/compare/inverters/:slugs" element={<InverterComparePage />} />
                 <Route path="/compare/:slugs" element={<ComparePage />} />
 
                 {/* Legacy redirects */}

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Battery, Cpu, ArrowRight, Layers, ShieldCheck } from 'lucide-react';
+import { Zap, Battery, Cpu, ArrowRight, Layers, ShieldCheck, GitCompareArrows, Check } from 'lucide-react';
 import type { InverterSummary } from '../types';
+import { useCompare } from '../contexts/CompareContext';
 
 interface InverterCardProps {
   inverter: InverterSummary;
@@ -23,6 +24,8 @@ const fmtPower = (pacoW: number): { value: string; unit: string } => {
 
 const InverterCard: React.FC<InverterCardProps> = ({ inverter }) => {
   const navigate = useNavigate();
+  const { addInverter, removeInverter, isInverterSelected, isInvertersFull } = useCompare();
+  const selected = isInverterSelected(inverter.id);
   const power = fmtPower(inverter.paco_w);
 
   const typeBadgeStyles: Record<string, string> = {
@@ -40,10 +43,23 @@ const InverterCard: React.FC<InverterCardProps> = ({ inverter }) => {
     typeBadgeStyles[inverter.inverter_type] ||
     'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700';
 
+  const handleCompareToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selected) {
+      removeInverter(inverter.id);
+    } else if (!isInvertersFull) {
+      addInverter(inverter);
+    }
+  };
+
   return (
     <div
       onClick={() => navigate(`/inverters/${inverter.slug}`)}
-      className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 dark:hover:shadow-amber-500/10 hover:-translate-y-0.5 flex flex-col justify-between"
+      className={`group relative bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 dark:hover:shadow-amber-500/10 hover:-translate-y-0.5 flex flex-col justify-between ${
+        selected
+          ? 'panel-card-selected border-amber-400 dark:border-amber-500'
+          : 'border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700'
+      }`}
       role="article"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && navigate(`/inverters/${inverter.slug}`)}
@@ -124,25 +140,46 @@ const InverterCard: React.FC<InverterCardProps> = ({ inverter }) => {
           </div>
         </div>
 
-        {/* Bottom Feature Badges & Link */}
-        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+        {/* Bottom Feature Badges & Compare Button */}
+        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
             {inverter.is_hybrid && (
               <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 whitespace-nowrap flex-none border border-purple-200 dark:border-purple-800">
                 <Battery className="w-3 h-3" />
-                Battery Ready
+                Battery
               </span>
             )}
             <span className="text-[10px] font-medium text-slate-400 flex items-center gap-0.5">
               <ShieldCheck className="w-3 h-3 text-emerald-500" />
-              CEC Listed
+              CEC
             </span>
           </div>
 
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform flex-none">
-            View Specs
-            <ArrowRight className="w-3.5 h-3.5" />
-          </span>
+          {/* Compare toggle button */}
+          <button
+            onClick={handleCompareToggle}
+            disabled={!selected && isInvertersFull}
+            className={`flex-none inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all duration-200 ${
+              selected
+                ? 'bg-amber-600 text-white shadow-sm shadow-amber-500/20'
+                : isInvertersFull
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400'
+            }`}
+            title={selected ? 'Remove from compare' : isInvertersFull ? 'Max 4 inverters' : 'Add to compare'}
+          >
+            {selected ? (
+              <>
+                <Check className="w-3 h-3" />
+                Added
+              </>
+            ) : (
+              <>
+                <GitCompareArrows className="w-3 h-3" />
+                Compare
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
