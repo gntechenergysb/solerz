@@ -69,7 +69,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   const description = inverter
     ? `${inverter.brand_name} ${inverter.model_name} solar inverter technical datasheet: ${descParts.join(', ')}. Full AC grid output, MPPT voltage window, and Sandia .OND simulation parameters.`
-    : 'Comprehensive solar inverter hardware specs database. String, micro, and battery storage inverters with full CEC and Sandia simulation data.';
+    : 'Comprehensive solar inverter hardware specs database. String, micro, and battery storage inverters with full laboratory test protocols and Sandia simulation data.';
 
   const canonical = `${origin}/inverters/${encodeURIComponent(slug)}`;
 

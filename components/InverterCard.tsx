@@ -130,7 +130,7 @@ const InverterCard: React.FC<InverterCardProps> = ({ inverter }) => {
               </span>
             )}
             <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap flex-none">
-              CEC
+              Verified
             </span>
           </div>
 

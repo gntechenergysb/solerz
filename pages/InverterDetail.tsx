@@ -201,7 +201,7 @@ const InverterDetailPage: React.FC = () => {
                 )}
                 {inverter.cec_cert_date && (
                   <span className="text-xs text-slate-400 dark:text-slate-500 px-2 py-1">
-                    CEC Certified ({inverter.cec_cert_date})
+                    Verified Spec ({inverter.cec_cert_date})
                   </span>
                 )}
               </div>
@@ -364,10 +364,10 @@ const InverterDetailPage: React.FC = () => {
         </SectionCard>
       </div>
 
-      {/* Footer Info / Citation */}
+      {/* Footer Info */}
       <div className="text-center pt-2">
         <p className="text-xs text-slate-400 dark:text-slate-500">
-          Parameters certified according to California Energy Commission (CEC) test protocol & Sandia National Laboratories Inverter Model.
+          Hardware parameters standardized according to international photovoltaic laboratory test protocols & Sandia Inverter Simulation Model.
         </p>
       </div>
     </div>

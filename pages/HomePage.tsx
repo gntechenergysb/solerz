@@ -293,7 +293,7 @@ const HomePage: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800/80 mb-6 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
-              21,000+ Photovoltaic Modules • Open CEC Hardware Database
+              21,000+ Photovoltaic Modules • Global Solar Hardware Database
             </span>
           </div>
 
