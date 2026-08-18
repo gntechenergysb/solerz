@@ -110,15 +110,39 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     } catch {}
   }
 
-  // 4. Featured / Top Power Tier Comparisons
+  // 4. Popular Head-to-Head Comparisons (Solar Panels & Inverters)
   const popularComparisons = [
     'ja-solar-ja-solar-jam72s30-545-mr-vs-longi-green-energy-technology-co-ltd-longi-green-energy-technology-co-ltd-lr5-72hph-555m',
     'sunpower-sunpower-spr-a410-vs-trina-solar-trina-solar-tsm-415ne09rc05',
     'elite-solar-elite-solar-et-n866tbh700gb-vs-seg-solar-inc-seg-solar-inc-seg-750-bhc-bg',
+    'canadian-solar-canadian-solar-inc-cs6w-550ms-vs-longi-green-energy-technology-co-ltd-longi-green-energy-technology-co-ltd-lr5-72hph-550m',
+    'jinko-solar-jinko-solar-co-ltd-jk纪录m-72hl4-tv-575-vs-ja-solar-ja-solar-jam72s30-575-mr',
   ];
 
   for (const compSlug of popularComparisons) {
     addUrl(`${origin}/compare/${compSlug}`, nowIso, 'weekly', '0.7');
+  }
+
+  // 5. Inverter Head-to-Head Comparisons
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const invPairRes = await fetch(`${supabaseUrl}/rest/v1/inverters?select=slug&is_active=eq.true&order=paco_w.desc&limit=20`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Accept: 'application/json',
+        },
+      });
+      if (invPairRes.ok) {
+        const invPairs = (await invPairRes.json().catch(() => [])) as PanelSitemapRow[];
+        for (let i = 0; i < invPairs.length - 1; i += 2) {
+          const s1 = invPairs[i].slug;
+          const s2 = invPairs[i + 1].slug;
+          const pairSlug = [s1, s2].sort().join('-vs-');
+          addUrl(`${origin}/compare/inverters/${pairSlug}`, nowIso, 'weekly', '0.7');
+        }
+      }
+    } catch {}
   }
 
   const xml = [
