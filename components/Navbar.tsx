@@ -58,14 +58,28 @@ const Navbar: React.FC = () => {
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow duration-300">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                Solerz
-              </span>
+            {/* Logo - Preloaded & Zero CLS */}
+            <Link to="/" className="flex items-center gap-2 group flex-none focus:outline-none" aria-label="Solerz Home">
+              <img
+                src="/solerz-logo-light.png"
+                alt="Solerz Logo"
+                width="613"
+                height="158"
+                className="h-9 w-auto dark:hidden transition-transform duration-300 group-hover:scale-[1.02]"
+                decoding="async"
+                // @ts-ignore
+                fetchpriority="high"
+              />
+              <img
+                src="/solerz-logo-dark.png"
+                alt="Solerz Logo"
+                width="613"
+                height="158"
+                className="h-9 w-auto hidden dark:block transition-transform duration-300 group-hover:scale-[1.02]"
+                decoding="async"
+                // @ts-ignore
+                fetchpriority="high"
+              />
             </Link>
 
             {/* Desktop Nav Links */}

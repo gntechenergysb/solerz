@@ -28,6 +28,10 @@
 
   <link id="app-favicon" rel="icon" type="image/png" href="/icon.png?v=20260202">
 
+  <!-- High-priority preload logo assets for 0ms render delay -->
+  <link rel="preload" as="image" href="/solerz-logo-light.png" fetchpriority="high">
+  <link rel="preload" as="image" href="/solerz-logo-dark.png" fetchpriority="high">
+
   <!-- Dark mode FOUC prevention -->
   <script>
     (function () {
