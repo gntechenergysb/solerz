@@ -58,7 +58,7 @@ const App: React.FC = () => {
                 &copy; {new Date().getFullYear()} Solerz. Photovoltaic hardware data platform.
               </p>
               <p className="text-xs text-slate-400 dark:text-slate-600">
-                Independent solar hardware specifications & photovoltaic database. For reference only.
+                Solar hardware specifications & photovoltaic database. For reference only.
               </p>
             </div>
           </footer>
