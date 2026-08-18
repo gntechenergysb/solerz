@@ -16,6 +16,9 @@ import {
   Sparkles,
   Flame,
   Layers,
+  Thermometer,
+  CircuitBoard,
+  Ruler,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -248,22 +251,22 @@ const HomePage: React.FC = () => {
 
   const trendingComparisons: PopularCompareProps[] = [
     {
-      panelA: { name: 'LR5-72HPH-555M', brand: 'LONGi Solar', power: 555, eff: 21.5 },
-      panelB: { name: 'JAM72S30-545/MR', brand: 'JA Solar', power: 545, eff: 21.1 },
+      panelA: { name: 'JAM72S30-545/MR', brand: 'JA Solar', power: 545, eff: 21.6 },
+      panelB: { name: 'LR5-72HPH-555M', brand: 'LONGi Solar', power: 555, eff: 22.3 },
       tag: '550W Utility Class',
-      slug: '/compare/longi-green-energy-technology-co---ltd--longi-lr5-72hph-555m-vs-ja-solar-jam72s30-545-mr',
+      slug: '/compare/ja-solar-ja-solar-jam72s30-545-mr-vs-longi-green-energy-technology-co-ltd-longi-green-energy-technology-co-ltd-lr5-72hph-555m',
     },
     {
-      panelA: { name: 'CS6R-420MS HiKu6', brand: 'Canadian Solar', power: 420, eff: 21.5 },
-      panelB: { name: 'TSM-DE09R.08 Vertex S', brand: 'Trina Solar', power: 420, eff: 21.0 },
-      tag: '420W Residential Rooftop',
-      slug: '/compare/canadian-solar-inc--cs6r-420ms-vs-trina-solar-co---ltd-tsm-de09r-08-420',
+      panelA: { name: 'SPR-A410 Maxeon', brand: 'SunPower', power: 410, eff: 21.9 },
+      panelB: { name: 'TSM-415NE09RC05', brand: 'Trina Solar', power: 415, eff: 21.5 },
+      tag: '410W Residential Rooftop',
+      slug: '/compare/sunpower-sunpower-spr-a410-vs-trina-solar-trina-solar-tsm-415ne09rc05',
     },
     {
-      panelA: { name: 'SEG-750-BHC-BG', brand: 'SEG Solar', power: 750, eff: 24.8 },
-      panelB: { name: 'ET-N866TBH700GB', brand: 'ELITE Solar', power: 700, eff: 22.5 },
+      panelA: { name: 'ET-N866TBH700GB', brand: 'ELITE Solar', power: 700, eff: 22.5 },
+      panelB: { name: 'SEG-750-BHC-BG', brand: 'SEG Solar', power: 750, eff: 24.8 },
       tag: '700W+ Ultra High Power',
-      slug: '/compare/elite-solar-et-n866tbh700gb-vs-seg-solar-inc-seg-solar-inc-seg-750-bhc-bg',
+      slug: '/compare/elite-solar-elite-solar-et-n866tbh700gb-vs-seg-solar-inc-seg-solar-inc-seg-750-bhc-bg',
     },
   ];
 
