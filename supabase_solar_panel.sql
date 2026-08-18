@@ -95,7 +95,8 @@ CREATE INDEX idx_panels_search_trgm ON solar_panels USING gin(model_name gin_trg
 -- ============================================================================
 -- 4. 轻量摘要视图 (用于前端列表/卡片展示，大幅节省频宽)
 -- ============================================================================
-CREATE OR REPLACE VIEW v_solar_panels_summary AS
+CREATE OR REPLACE VIEW v_solar_panels_summary 
+WITH (security_invoker = true) AS
 SELECT 
     id, brand_id, brand_name, model_name, slug, technol, 
     pnom_w, module_efficiency_pct, is_bifacial, vmp_v, imp_a,
