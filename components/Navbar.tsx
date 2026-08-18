@@ -48,6 +48,7 @@ const Navbar: React.FC = () => {
   const navLinks = [
     { path: '/', label: 'Home', exact: true },
     { path: '/solar-panels', label: 'Solar Panels' },
+    { path: '/inverters', label: 'Inverters' },
   ];
 
   const compareCount = selectedPanels.length;

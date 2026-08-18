@@ -11,6 +11,14 @@ node_modules
 dist
 dist-ssr
 *.local
+.env*
+!.env.example
+
+# Large Data files & database pipeline scripts
+*.csv
+import_*.py
+tools/
+scripts/
 
 # Editor directories and files
 .vscode/*

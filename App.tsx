@@ -6,6 +6,8 @@ import { CompareProvider } from './contexts/CompareContext';
 
 const PanelsList = React.lazy(() => import('./pages/PanelsList'));
 const PanelDetail = React.lazy(() => import('./pages/PanelDetail'));
+const InvertersList = React.lazy(() => import('./pages/InvertersList'));
+const InverterDetail = React.lazy(() => import('./pages/InverterDetail'));
 const ComparePage = React.lazy(() => import('./pages/ComparePage'));
 
 const LoadingSpinner = () => (
@@ -30,6 +32,10 @@ const App: React.FC = () => {
                 {/* Solar Panels */}
                 <Route path="/solar-panels" element={<PanelsList />} />
                 <Route path="/solar-panels/:slug" element={<PanelDetail />} />
+
+                {/* Inverters */}
+                <Route path="/inverters" element={<InvertersList />} />
+                <Route path="/inverters/:slug" element={<InverterDetail />} />
 
                 {/* Versus Comparison */}
                 <Route path="/compare/:slugs" element={<ComparePage />} />

@@ -82,18 +82,39 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   // 1. Core Platform Pages
   addUrl(`${origin}/`, nowIso, 'daily', '1.0');
   addUrl(`${origin}/solar-panels`, nowIso, 'daily', '0.9');
+  addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
 
-  // 2. Hardware Specs Detail Pages
+  // 2. Solar Panels Hardware Specs Detail Pages
   for (const r of rows) {
     const last = r.updated_at || r.created_at || nowIso;
     addUrl(`${origin}/solar-panels/${r.slug}`, last, 'monthly', '0.8');
   }
 
-  // 3. Featured / Top Power Tier Comparisons
+  // 3. Inverters Specs Detail Pages
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const invRes = await fetch(`${supabaseUrl}/rest/v1/inverters?select=slug,updated_at,created_at&is_active=eq.true&order=paco_w.desc&limit=3000`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Accept: 'application/json',
+        },
+      });
+      if (invRes.ok) {
+        const invRows = (await invRes.json().catch(() => [])) as PanelSitemapRow[];
+        for (const r of invRows) {
+          const last = r.updated_at || r.created_at || nowIso;
+          addUrl(`${origin}/inverters/${r.slug}`, last, 'monthly', '0.8');
+        }
+      }
+    } catch {}
+  }
+
+  // 4. Featured / Top Power Tier Comparisons
   const popularComparisons = [
-    'longi-green-energy-technology-co---ltd--longi-lr5-72hph-555m-vs-ja-solar-jam72s30-545-mr',
-    'canadian-solar-inc--cs6r-420ms-vs-trina-solar-co---ltd-tsm-de09r-08-420',
-    'rec-group-rec430aa-pure-r-vs-sunpower-corporation-spr-max5-420-com',
+    'ja-solar-ja-solar-jam72s30-545-mr-vs-longi-green-energy-technology-co-ltd-longi-green-energy-technology-co-ltd-lr5-72hph-555m',
+    'sunpower-sunpower-spr-a410-vs-trina-solar-trina-solar-tsm-415ne09rc05',
+    'elite-solar-elite-solar-et-n866tbh700gb-vs-seg-solar-inc-seg-solar-inc-seg-750-bhc-bg',
   ];
 
   for (const compSlug of popularComparisons) {

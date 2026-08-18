@@ -1,5 +1,5 @@
 // =============================================================================
-// Solerz — Solar Panel Hardware Data Types
+// Solerz — Solar Hardware Data Types (Panels & Inverters)
 // =============================================================================
 
 export interface Brand {
@@ -9,9 +9,12 @@ export interface Brand {
   tier_rating: string | null;
 }
 
+// -----------------------------------------------------------------------------
+// Solar Panels Types
+// -----------------------------------------------------------------------------
+
 /**
  * Lightweight summary matching the `v_solar_panels_summary` view.
- * Used exclusively on the list/search page to minimize bandwidth.
  */
 export interface SolarPanelSummary {
   id: string;
@@ -33,7 +36,6 @@ export interface SolarPanelSummary {
 
 /**
  * Full detail record from the `solar_panels` table.
- * Used on the spec detail page (`/panels/:slug`).
  */
 export interface SolarPanelDetail extends SolarPanelSummary {
   ncels: number;
@@ -67,4 +69,64 @@ export interface PanelFilters {
   brandId: string;
   powerRange: 'all' | 'lt400' | '400to550' | 'gt550';
   bifacialOnly: boolean;
+}
+
+// -----------------------------------------------------------------------------
+// Inverters Types (PVSyst .OND / CEC Sandia Standard)
+// -----------------------------------------------------------------------------
+
+export type InverterType =
+  | 'String Inverter'
+  | 'Microinverter'
+  | 'Hybrid Storage Inverter'
+  | 'Utility Central Inverter';
+
+/**
+ * Lightweight summary matching `v_inverters_summary` view.
+ */
+export interface InverterSummary {
+  id: string;
+  brand_id: string;
+  brand_name: string;
+  model_name: string;
+  slug: string;
+  inverter_type: InverterType;
+  vac_v: number;
+  paco_w: number;
+  efficiency_pct: number | null;
+  is_hybrid: boolean;
+  vdcmax_v: number;
+  idcmax_a: number;
+  mppt_low_v: number;
+  mppt_high_v: number;
+}
+
+/**
+ * Full detail record from the `inverters` table.
+ */
+export interface InverterDetail extends InverterSummary {
+  pdco_w: number;
+  vdco_v: number;
+  pso_w: number;
+  pnt_w: number;
+  c0: number | null;
+  c1: number | null;
+  c2: number | null;
+  c3: number | null;
+  cec_cert_date: string | null;
+  views_count: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Filter state for the inverters list page.
+ */
+export interface InverterFilters {
+  search: string;
+  brandName: string;
+  inverterType: 'all' | 'String Inverter' | 'Microinverter' | 'Hybrid Storage Inverter' | 'Utility Central Inverter';
+  powerRange: 'all' | 'lt3k' | '3kto10k' | '10kto50k' | 'gt50k';
+  isHybridOnly: boolean;
 }

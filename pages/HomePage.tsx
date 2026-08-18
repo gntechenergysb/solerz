@@ -386,12 +386,12 @@ const HomePage: React.FC = () => {
           <CategoryCard
             theme="amber"
             icon={<Zap className="w-7 h-7" />}
-            subtitle="Category 02 • Coming Soon"
+            subtitle="Category 02 • Available Now"
             title="Solar Inverters"
-            description="String, micro, and hybrid storage inverters. Compare European efficiency, MPPT operating windows, and dual-string sizing."
-            count="Catalog in Progress"
-            badge="Coming Soon"
-            comingSoon
+            description="String, micro, and hybrid storage inverters. Compare Sandia peak efficiency, MPPT operating windows, and AC grid voltages."
+            count="2,340+ Verified Inverters"
+            badge="Full Data Available"
+            to="/inverters"
           />
 
           <CategoryCard
