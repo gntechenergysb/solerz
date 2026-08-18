@@ -1,3 +1,6 @@
 /robots.txt    /robots.txt    200
 /sitemap.xml    /sitemap.xml    200
+/solar-panels/* /solar-panels/:splat 200
+/compare/*    /compare/:splat    200
+/listing/*    /listing/:splat    200
 /*    /index.html   200

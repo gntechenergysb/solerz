@@ -5,6 +5,7 @@ import { fetchBrands, fetchPanelsSummary } from '../services/panelService';
 import FilterBar from '../components/FilterBar';
 import PanelCard from '../components/PanelCard';
 import SkeletonCard from '../components/SkeletonCard';
+import ComparisonTray from '../components/ComparisonTray';
 
 const DEFAULT_FILTERS: PanelFilters = {
   search: '',
@@ -41,7 +42,7 @@ const PanelsList: React.FC = () => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
       setDebouncedSearch(filters.search);
-    }, 300);
+    }, 350);
     return () => {
       if (searchTimer.current) clearTimeout(searchTimer.current);
     };
@@ -92,7 +93,7 @@ const PanelsList: React.FC = () => {
       <div className="text-center mb-2">
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           Solar Panel{' '}
-          <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+          <span className="text-gradient-brand">
             Database
           </span>
         </h1>
@@ -202,6 +203,9 @@ const PanelsList: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* Comparison Tray (sticky bottom bar) */}
+      <ComparisonTray />
     </div>
   );
 };

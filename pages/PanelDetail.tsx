@@ -135,7 +135,7 @@ const PanelDetailPage: React.FC = () => {
           The solar panel you're looking for doesn't exist or has been removed.
         </p>
         <Link
-          to="/"
+          to="/solar-panels"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors shadow-lg shadow-emerald-500/20"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -155,11 +155,11 @@ const PanelDetailPage: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Back link */}
       <Link
-        to="/"
+        to="/solar-panels"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        All Panels
+        All Solar Panels
       </Link>
 
       {/* ================================================================= */}

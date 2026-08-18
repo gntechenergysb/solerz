@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Zap } from 'lucide-react';
+import { Layers, Zap, GitCompareArrows, Check } from 'lucide-react';
 import type { SolarPanelSummary } from '../types';
+import { useCompare } from '../contexts/CompareContext';
 
 interface PanelCardProps {
   panel: SolarPanelSummary;
@@ -17,25 +18,47 @@ const techLabel = (t: string | null): string => {
     'mtCIS': 'CIS/CIGS',
     'mtHIT': 'HIT/HJT',
     'mtSiAmorp': 'a-Si',
+    'Mono-c-Si': 'Mono-c-Si',
+    'Multi-c-Si': 'Poly-c-Si',
+    'CdTe': 'CdTe',
+    'CIGS': 'CIS/CIGS',
+    'HIT-Si': 'HIT/HJT',
+    'a-Si': 'a-Si',
   };
   return map[t] ?? t;
 };
 
 const PanelCard: React.FC<PanelCardProps> = ({ panel }) => {
   const navigate = useNavigate();
+  const { addPanel, removePanel, isSelected, isFull } = useCompare();
+
+  const selected = isSelected(panel.id);
 
   const area =
     panel.length_m && panel.width_m
       ? (panel.length_m * panel.width_m).toFixed(2)
       : null;
 
+  const handleCompareToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selected) {
+      removePanel(panel.id);
+    } else if (!isFull) {
+      addPanel(panel);
+    }
+  };
+
   return (
     <div
-      onClick={() => navigate(`/panels/${panel.slug}`)}
-      className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/5 dark:hover:shadow-emerald-500/10 hover:-translate-y-0.5 hover:border-emerald-300 dark:hover:border-emerald-700"
+      onClick={() => navigate(`/solar-panels/${panel.slug}`)}
+      className={`group relative bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/5 dark:hover:shadow-emerald-500/10 hover:-translate-y-0.5 ${
+        selected
+          ? 'panel-card-selected border-emerald-400 dark:border-emerald-600'
+          : 'border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700'
+      }`}
       role="article"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/panels/${panel.slug}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/solar-panels/${panel.slug}`)}
     >
       {/* Top gradient accent */}
       <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -98,7 +121,7 @@ const PanelCard: React.FC<PanelCardProps> = ({ panel }) => {
           )}
         </div>
 
-        {/* Badges */}
+        {/* Badges + Compare button */}
         <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
           {panel.is_bifacial && (
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -111,6 +134,32 @@ const PanelCard: React.FC<PanelCardProps> = ({ panel }) => {
               {panel.warranty_product_years}yr warranty
             </span>
           )}
+
+          {/* Compare toggle button */}
+          <button
+            onClick={handleCompareToggle}
+            disabled={!selected && isFull}
+            className={`ml-auto inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-all duration-200 ${
+              selected
+                ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/20'
+                : isFull
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400'
+            }`}
+            title={selected ? 'Remove from compare' : isFull ? 'Max 4 panels' : 'Add to compare'}
+          >
+            {selected ? (
+              <>
+                <Check className="w-3 h-3" />
+                Added
+              </>
+            ) : (
+              <>
+                <GitCompareArrows className="w-3 h-3" />
+                Compare
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
