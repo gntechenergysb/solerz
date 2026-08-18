@@ -114,7 +114,7 @@ const InvertersList: React.FC = () => {
             Solar Inverters Catalog
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 max-w-2xl leading-relaxed">
-            Browse 2,340+ certified string, micro, and battery-hybrid storage inverters. Compare continuous AC power, MPPT voltage windows, and Sandia conversion efficiency.
+            Browse certified string, micro, and battery-hybrid storage inverters. Compare continuous AC power, MPPT voltage windows, and Sandia conversion efficiency.
           </p>
         </div>
 

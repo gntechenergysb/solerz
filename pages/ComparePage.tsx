@@ -665,7 +665,7 @@ const ComparePage: React.FC = () => {
                   Add Solar Panel to Compare
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Search 21,000+ modules by brand, model, or wattage
+                  Search solar modules by brand, model, or wattage
                 </p>
               </div>
               <button

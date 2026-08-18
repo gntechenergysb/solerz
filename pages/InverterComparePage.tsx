@@ -812,7 +812,7 @@ const InverterComparePage: React.FC = () => {
                   Add Inverter to Comparison
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Search 2,340+ inverters to compare side-by-side.
+                  Search certified inverters to compare side-by-side.
                 </p>
               </div>
               <button

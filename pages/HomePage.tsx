@@ -293,7 +293,7 @@ const HomePage: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800/80 mb-6 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
-              21,000+ Photovoltaic Modules • Global Solar Hardware Database
+              Photovoltaic Modules & Inverters • Global Solar Hardware Database
             </span>
           </div>
 
@@ -377,8 +377,8 @@ const HomePage: React.FC = () => {
             icon={<Sun className="w-7 h-7" />}
             subtitle="Category 01 • Available Now"
             title="Solar Panels"
-            description="Explore 21,000+ PV modules. Compare STC electrical ratings, thermal loss coefficients, cell counts, and single-diode physics."
-            count="21,000+ Verified Modules"
+            description="Explore technical datasheets for photovoltaic modules. Compare STC electrical ratings, thermal loss coefficients, cell counts, and single-diode physics."
+            count="Verified Hardware Catalog"
             badge="Full Data Available"
             to="/solar-panels"
           />
@@ -389,7 +389,7 @@ const HomePage: React.FC = () => {
             subtitle="Category 02 • Available Now"
             title="Solar Inverters"
             description="String, micro, and hybrid storage inverters. Compare Sandia peak efficiency, MPPT operating windows, and AC grid voltages."
-            count="2,340+ Verified Inverters"
+            count="Verified Hardware Catalog"
             badge="Full Data Available"
             to="/inverters"
           />
@@ -526,7 +526,7 @@ const HomePage: React.FC = () => {
             Ready to Compare Hardware?
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-            Search our open catalog of 21,000+ modules or select models to generate a multi-column technical comparison.
+            Search our global catalog of verified solar modules and inverters to generate multi-column technical comparisons.
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link

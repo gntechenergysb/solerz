@@ -100,7 +100,7 @@ const PanelsList: React.FC = () => {
           </span>
         </h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-          Browse {total > 0 ? total.toLocaleString() : '21,000+'} photovoltaic modules — STC specs, temperature coefficients &amp; SDM parameters.
+          Browse certified photovoltaic modules — STC specs, temperature coefficients &amp; SDM parameters.
         </p>
       </div>
 
