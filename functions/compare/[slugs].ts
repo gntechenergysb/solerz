@@ -1,4 +1,4 @@
-import type { Env } from '../_utils';
+import type { Env, PagesFunction } from '../_utils';
 import { escapeHtml, fetchIndexHtml, getOrigin, injectHead, supabaseRestGet } from '../_utils';
 
 type PanelRow = {

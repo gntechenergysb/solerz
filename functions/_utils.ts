@@ -8,8 +8,17 @@ export type Env = {
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_CATALOG_PRODUCT_IDS_JSON?: string;
   RESEND_API_KEY?: string;
-  ASSETS: Fetcher;
+  ASSETS: any;
 };
+
+export type PagesFunction<TEnv = Env, TParams = any, TData = any> = (context: {
+  request: Request;
+  env: TEnv;
+  params: TParams;
+  data?: TData;
+  next?: (input?: Request | string, init?: RequestInit) => Promise<Response>;
+  waitUntil?: (promise: Promise<any>) => void;
+}) => Promise<Response> | Response;
 
 export const getOrigin = (request: Request) => {
   const url = new URL(request.url);

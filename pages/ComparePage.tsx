@@ -48,6 +48,18 @@ const fmtVal = (val: number | null | undefined, decimals = 2): string => {
   return Number(val).toFixed(decimals);
 };
 
+const TOP_BRANDS_FILTER = [
+  'All',
+  'LONGi',
+  'Jinko',
+  'Trina',
+  'Canadian',
+  'JA Solar',
+  'SEG Solar',
+  'REC',
+  'SunPower',
+];
+
 interface SpecRowMulti {
   label: string;
   sub?: string;
@@ -65,10 +77,6 @@ interface MultiCategorySection {
   specs: SpecRowMulti[];
 }
 
-/**
- * Compare an array of numeric values where higher is better.
- * Returns array of formatted strings and whether each is the winner.
- */
 function compareMultiHigherBetter(
   values: (number | null | undefined)[],
   unit: string,
@@ -84,9 +92,6 @@ function compareMultiHigherBetter(
   });
 }
 
-/**
- * Compare an array of numeric values where lower is better (e.g. series resistance, weight).
- */
 function compareMultiLowerBetter(
   values: (number | null | undefined)[],
   unit: string,
@@ -103,7 +108,7 @@ function compareMultiLowerBetter(
 }
 
 // ---------------------------------------------------------------------------
-// Main Multi-Column Compare Page (GSMarena style)
+// Main Multi-Column Compare Page
 // ---------------------------------------------------------------------------
 
 const ComparePage: React.FC = () => {
@@ -118,6 +123,7 @@ const ComparePage: React.FC = () => {
   // Quick-add search modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrandFilter, setSelectedBrandFilter] = useState('All');
   const [searchResults, setSearchResults] = useState<RelatedPanel[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -161,18 +167,25 @@ const ComparePage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [slugList]);
 
-  // Search when modal opens or query changes
+  // Search when modal opens, query changes, or brand filter changes
   useEffect(() => {
     if (!isAddModalOpen) return;
     setIsSearching(true);
+
+    const effectiveQuery =
+      selectedBrandFilter !== 'All'
+        ? `${selectedBrandFilter} ${searchQuery}`.trim()
+        : searchQuery.trim();
+
     const timer = setTimeout(() => {
-      searchPanelsForCompare(searchQuery, slugList, 8)
+      searchPanelsForCompare(effectiveQuery, slugList, 40)
         .then(setSearchResults)
         .catch(console.error)
         .finally(() => setIsSearching(false));
-    }, 250);
+    }, 200);
+
     return () => clearTimeout(timer);
-  }, [isAddModalOpen, searchQuery, slugList]);
+  }, [isAddModalOpen, searchQuery, selectedBrandFilter, slugList]);
 
   // Handle removing a panel
   const handleRemovePanel = (slugToRemove: string) => {
@@ -191,6 +204,7 @@ const ComparePage: React.FC = () => {
     const nextSlugs = [...slugList, newSlug].sort();
     setIsAddModalOpen(false);
     setSearchQuery('');
+    setSelectedBrandFilter('All');
     navigate(`/compare/${nextSlugs.join('-vs-')}`);
   };
 
@@ -247,10 +261,20 @@ const ComparePage: React.FC = () => {
 
   const columnCount = panels.length;
   const canAddMore = columnCount < 4;
+  // Total slots on desktop grid (if 3 panels + Add button => 4 slots)
+  const totalGridSlots = columnCount + (canAddMore ? 1 : 0);
+
+  // Dynamic Tailwind Grid Classes for 100% synchronized column widths
+  const gridColumnsClass =
+    totalGridSlots === 2
+      ? 'grid-cols-2'
+      : totalGridSlots === 3
+      ? 'grid-cols-3'
+      : 'grid-cols-4';
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      {/* Top Breadcrumb / Back Link */}
+      {/* Top Navigation & Breadcrumbs */}
       <div className="flex items-center justify-between">
         <Link
           to="/solar-panels"
@@ -259,133 +283,157 @@ const ComparePage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           Back to Solar Panels
         </Link>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-          Comparing {panels.length} Models
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+            {panels.length} Models Head-to-Head
+          </span>
+        </div>
       </div>
 
       {/* ================================================================= */}
-      {/* GSMarena STYLE HEADER: DEVICE CARDS (STICKY / TOP OVERVIEW) */}
+      {/* GSMARENA UNIFIED TABLE HEADER (PRODUCT CARDS COLUMN ALIGNED) */}
       {/* ================================================================= */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div
-            className={`grid gap-4 items-stretch ${
-              columnCount === 2
-                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
-                : columnCount === 3
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-            }`}
-          >
-            {/* Panel Header Cards */}
-            {panels.map((panel, idx) => (
-              <div
-                key={panel.id}
-                className="relative flex flex-col justify-between p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 transition-all hover:border-emerald-400 dark:hover:border-emerald-600"
-              >
-                {/* Remove button */}
-                {panels.length > 2 && (
+        <div className="p-4 sm:p-6 lg:p-7">
+          {/* Unified Desktop Layout: Left Title Area (w-64) + Right Grid of Panel Cards */}
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch">
+            {/* Left Info Box */}
+            <div className="w-full lg:w-72 flex-none p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
+                  Solerz Compare Engine
+                </span>
+                <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">
+                  Photovoltaic Module Comparison
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                  Cross-analyzing STC electrical parameters, thermal coefficients, and SDM physics.
+                </p>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
+                <span>{panels.length} / 4 Selected</span>
+                {canAddMore && (
                   <button
-                    onClick={() => handleRemovePanel(panel.slug)}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                    title={`Remove ${panel.model_name}`}
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline"
                   >
-                    <X className="w-4 h-4" />
+                    + Add Model
                   </button>
                 )}
-
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">
-                    {panel.brand_name}
-                  </span>
-                  <Link
-                    to={`/solar-panels/${panel.slug}`}
-                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors line-clamp-2"
-                  >
-                    {panel.model_name}
-                  </Link>
-
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
-                      {techLabel(panel.technol)}
-                    </span>
-                    {panel.is_bifacial && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                        <Layers className="w-3 h-3" />
-                        Bifacial
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Metrics */}
-                <div className="mt-5 pt-4 border-t border-slate-200/60 dark:border-slate-700/50 flex items-end justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">
-                      Power Rating
-                    </span>
-                    <div className="flex items-baseline gap-0.5">
-                      <span className="text-2xl font-black text-slate-900 dark:text-white">
-                        {Math.round(panel.pnom_w)}
-                      </span>
-                      <span className="text-xs font-semibold text-slate-400">Wp</span>
-                    </div>
-                  </div>
-
-                  {panel.module_efficiency_pct != null && (
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">
-                        Efficiency
-                      </span>
-                      <div className="flex items-baseline gap-0.5 text-amber-600 dark:text-amber-400">
-                        <Zap className="w-3.5 h-3.5" />
-                        <span className="text-lg font-black">
-                          {panel.module_efficiency_pct.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Score badge */}
-                <div className="mt-3 flex items-center justify-between text-xs bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">
-                    Top Specs
-                  </span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <Trophy className="w-3.5 h-3.5" />
-                    {winCounts[idx]} wins
-                  </span>
-                </div>
               </div>
-            ))}
+            </div>
 
-            {/* Quick Add Slot (like GSMarena's "+ Add device to compare") */}
-            {canAddMore && (
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 bg-slate-50/50 dark:bg-slate-900/30 transition-all group cursor-pointer min-h-[220px]"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <Plus className="w-6 h-6" />
+            {/* Right Cards Grid: Exactly matches table values columns below */}
+            <div className={`flex-1 grid gap-3.5 ${gridColumnsClass}`}>
+              {panels.map((panel, idx) => (
+                <div
+                  key={panel.id}
+                  className="relative flex flex-col justify-between p-4.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 transition-all hover:border-emerald-400 dark:hover:border-emerald-600"
+                >
+                  {/* Remove button */}
+                  {panels.length > 2 && (
+                    <button
+                      onClick={() => handleRemovePanel(panel.slug)}
+                      className="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                      title={`Remove ${panel.model_name}`}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block truncate pr-4">
+                      {panel.brand_name}
+                    </span>
+                    <Link
+                      to={`/solar-panels/${panel.slug}`}
+                      className="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors line-clamp-2 mt-0.5"
+                    >
+                      {panel.model_name}
+                    </Link>
+
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
+                        {techLabel(panel.technol)}
+                      </span>
+                      {panel.is_bifacial && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                          <Layers className="w-2.5 h-2.5" />
+                          Bifacial
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Power & Efficiency */}
+                  <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/50">
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">
+                          Power
+                        </span>
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-xl font-black text-slate-900 dark:text-white">
+                            {Math.round(panel.pnom_w)}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-400">Wp</span>
+                        </div>
+                      </div>
+
+                      {panel.module_efficiency_pct != null && (
+                        <div className="text-right">
+                          <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">
+                            Efficiency
+                          </span>
+                          <div className="flex items-baseline gap-0.5 text-amber-600 dark:text-amber-400">
+                            <Zap className="w-3 h-3" />
+                            <span className="text-base font-black">
+                              {panel.module_efficiency_pct.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Best Specs Badge */}
+                    <div className="mt-2.5 flex items-center justify-between text-[11px] bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">Top Specs</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <Trophy className="w-3 h-3" />
+                        {winCounts[idx]}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  Add Solar Panel
-                </span>
-                <span className="text-xs text-slate-400 dark:text-slate-500 mt-1 text-center">
-                  Compare up to 4 models side-by-side
-                </span>
-              </button>
-            )}
+              ))}
+
+              {/* Add Solar Panel Slot */}
+              {canAddMore && (
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 bg-slate-50/50 dark:bg-slate-900/30 transition-all group cursor-pointer min-h-[190px]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                    <Plus className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Add Solar Panel
+                  </span>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 text-center">
+                    Slot {panels.length + 1} of 4
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* ================================================================= */}
-      {/* DETAILED MULTI-COLUMN COMPARISON TABLE (GSMARENA STYLE) */}
+      {/* 100% ALIGNED SPECIFICATION COMPARISON SECTIONS */}
       {/* ================================================================= */}
       <div className="space-y-6">
         {sections.map((section) => (
@@ -393,32 +441,32 @@ const ComparePage: React.FC = () => {
             key={section.title}
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
           >
-            {/* Section Header */}
-            <div className="flex items-center gap-3 px-6 py-4 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
-              <div className="p-2 rounded-xl bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm">
+            {/* Category Header */}
+            <div className="flex items-center gap-2.5 px-5 sm:px-6 py-3.5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
+              <div className="p-1.5 rounded-lg bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm">
                 {section.icon}
               </div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                 {section.title}
               </h2>
             </div>
 
-            {/* Spec rows table */}
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/70 overflow-x-auto">
+            {/* Spec rows: Left label (w-72) + Right aligned values grid */}
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/70">
               {section.specs.map((spec, i) => (
                 <div
                   key={i}
-                  className="px-6 py-3.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                  className="p-4 sm:px-6 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-                    {/* Spec Label & Explanation */}
-                    <div className="lg:col-span-4 pr-2">
+                  <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
+                    {/* Left Spec Label & Explanation (w-72 exact match with top header) */}
+                    <div className="w-full lg:w-72 flex-none pr-3">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                        <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                           {spec.label}
                         </span>
                         {spec.sub && (
-                          <span className="text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                          <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
                             {spec.sub}
                           </span>
                         )}
@@ -430,26 +478,18 @@ const ComparePage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Values Columns */}
-                    <div
-                      className={`lg:col-span-8 grid gap-3 ${
-                        columnCount === 2
-                          ? 'grid-cols-2'
-                          : columnCount === 3
-                          ? 'grid-cols-3'
-                          : 'grid-cols-4'
-                      }`}
-                    >
+                    {/* Right Values Grid (100% aligned with header cards) */}
+                    <div className={`flex-1 grid gap-3.5 ${gridColumnsClass}`}>
                       {spec.values.map((v, valIdx) => (
                         <div
                           key={valIdx}
-                          className={`p-2.5 rounded-xl text-center sm:text-left flex items-center justify-between gap-1 transition-all ${
+                          className={`p-2.5 rounded-xl text-left flex items-center justify-between gap-1 transition-all ${
                             v.isWinner
                               ? 'bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-700/60 font-bold text-emerald-800 dark:text-emerald-300 shadow-sm'
                               : 'text-slate-700 dark:text-slate-300 font-medium'
                           }`}
                         >
-                          <span className="text-sm tabular-nums truncate">
+                          <span className="text-xs sm:text-sm tabular-nums truncate">
                             {v.formatted}
                           </span>
                           {v.isWinner && (
@@ -460,6 +500,16 @@ const ComparePage: React.FC = () => {
                           )}
                         </div>
                       ))}
+
+                      {/* Empty filler cell for alignment under the +Add Card */}
+                      {canAddMore && (
+                        <div className="p-2.5 rounded-xl border border-dashed border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-700 text-center text-xs flex items-center justify-center">
+                          <Plus
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="w-3.5 h-3.5 cursor-pointer hover:text-emerald-500 transition-colors"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -475,7 +525,7 @@ const ComparePage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-emerald-500" />
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
             Key Advantages &amp; Standouts
           </h3>
         </div>
@@ -543,7 +593,7 @@ const ComparePage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-4">
           <div className="flex items-center gap-2">
             <GitCompareArrows className="w-5 h-5 text-emerald-500" />
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
               Related Comparisons
             </h3>
           </div>
@@ -574,23 +624,26 @@ const ComparePage: React.FC = () => {
       )}
 
       {/* ================================================================= */}
-      {/* QUICK ADD MODAL (SEARCH & SELECT) */}
+      {/* QUICK ADD MODAL (ENHANCED SEARCH WITH BRAND CHIPS) */}
       {/* ================================================================= */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-lg shadow-2xl overflow-hidden animate-scale-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 w-full max-w-xl shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[85vh]">
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-none">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Add Panel to Compare
+                  Add Solar Panel to Compare
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Search by model name or manufacturer
+                  Search 21,000+ modules by brand, model, or wattage
                 </p>
               </div>
               <button
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setSelectedBrandFilter('All');
+                }}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -598,24 +651,42 @@ const ComparePage: React.FC = () => {
             </div>
 
             {/* Search Input */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex-none space-y-3">
               <div className="relative">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search model (e.g. Tiger Neo, Hi-MO 6, Vertex)..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500"
+                  placeholder="Search model or wattage (e.g. Longi 550, Tiger Neo, SEG 750)..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 text-slate-800 dark:text-slate-100"
                   autoFocus
                 />
+              </div>
+
+              {/* Quick Brand Filter Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                {TOP_BRANDS_FILTER.map((brand) => (
+                  <button
+                    key={brand}
+                    onClick={() => setSelectedBrandFilter(brand)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                      selectedBrandFilter === brand
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-400'
+                    }`}
+                  >
+                    {brand}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Search Results List */}
-            <div className="max-h-80 overflow-y-auto p-3 space-y-1">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1">
               {isSearching ? (
-                <div className="py-10 text-center text-sm text-slate-400">
+                <div className="py-12 text-center text-sm text-slate-400">
+                  <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   Searching database...
                 </div>
               ) : searchResults.length > 0 ? (
@@ -623,31 +694,31 @@ const ComparePage: React.FC = () => {
                   <button
                     key={p.id}
                     onClick={() => handleAddPanel(p.slug)}
-                    className="w-full text-left p-3 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 flex items-center justify-between group transition-colors"
+                    className="w-full text-left p-3 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 flex items-center justify-between group transition-colors border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800"
                   >
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    <div className="min-w-0 pr-3">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">
                         {p.brand_name}
                       </span>
-                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 truncate block">
                         {p.model_name}
                       </span>
                     </div>
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                        {Math.round(p.pnom_w)} W
+                    <div className="text-right flex-none">
+                      <span className="text-xs font-black text-slate-900 dark:text-white block">
+                        {Math.round(p.pnom_w)} Wp
                       </span>
                       {p.module_efficiency_pct && (
                         <span className="text-[11px] text-amber-500 font-semibold">
-                          {p.module_efficiency_pct.toFixed(1)}%
+                          {p.module_efficiency_pct.toFixed(1)}% Eff
                         </span>
                       )}
                     </div>
                   </button>
                 ))
               ) : (
-                <div className="py-10 text-center text-sm text-slate-400">
-                  No panels found matching your query.
+                <div className="py-12 text-center text-sm text-slate-400">
+                  No panels found. Try typing a different model or power rating.
                 </div>
               )}
             </div>
@@ -667,12 +738,12 @@ function buildMultiComparisonSections(
 ): MultiCategorySection[] {
   const sections: MultiCategorySection[] = [];
 
-  // 1. STC Electrical
+  // 1. STC Electrical Specs
   const stcSpecs: SpecRowMulti[] = [
     {
       label: 'Max Power',
       sub: 'Pnom',
-      desc: 'Higher power means more electricity generated per panel, reducing total racking & balance-of-system costs.',
+      desc: 'Higher power yields more electricity per module, lowering balance-of-system and racking costs.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.pnom_w),
         'W',
@@ -682,7 +753,7 @@ function buildMultiComparisonSections(
     {
       label: 'Module Efficiency',
       sub: 'η',
-      desc: 'Higher efficiency converts more sunlight into electricity — critical for space-constrained rooftops.',
+      desc: 'Higher efficiency generates more watts per square meter — vital for constrained roof spaces.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.module_efficiency_pct),
         '%',
@@ -692,7 +763,7 @@ function buildMultiComparisonSections(
     {
       label: 'Max Power Voltage',
       sub: 'Vmp',
-      desc: 'Operating voltage at peak power. Higher Vmp enables optimal string inverter MPPT sizing.',
+      desc: 'Operating voltage at maximum power point (MPPT). Crucial for string inverter design.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.vmp_v),
         'V'
@@ -701,7 +772,7 @@ function buildMultiComparisonSections(
     {
       label: 'Max Power Current',
       sub: 'Imp',
-      desc: 'Operating current at peak power output under standard test conditions.',
+      desc: 'Operating current at maximum power point under standard test conditions.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.imp_a),
         'A'
@@ -710,7 +781,7 @@ function buildMultiComparisonSections(
     {
       label: 'Open Circuit Voltage',
       sub: 'Voc',
-      desc: 'Maximum open-circuit voltage. Used to calculate cold-weather maximum voltage for inverter safety.',
+      desc: 'Maximum cold-weather voltage. Used to calculate string lengths for safety compliance.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.voc_v),
         'V'
@@ -719,15 +790,16 @@ function buildMultiComparisonSections(
     {
       label: 'Short Circuit Current',
       sub: 'Isc',
-      desc: 'Maximum current under short circuit. Determines fuse ratings and cable cross-section requirements.',
+      desc: 'Maximum short-circuit current. Determines DC fuse and cable sizing.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.isc_a),
         'A'
       ),
     },
     {
-      label: 'Max System Voltage (IEC)',
-      desc: 'Maximum certified series string voltage. 1500V allows 33% longer strings than 1000V.',
+      label: 'Max System Voltage',
+      sub: 'IEC',
+      desc: '1500V rated modules allow 33% longer series strings than 1000V modules.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.vmax_iec_v),
         'V',
@@ -738,16 +810,16 @@ function buildMultiComparisonSections(
 
   sections.push({
     title: 'STC Electrical Specs (1000 W/m², 25°C)',
-    icon: <Zap className="w-5 h-5" />,
+    icon: <Zap className="w-4 h-4" />,
     specs: stcSpecs,
   });
 
   // 2. Temperature Coefficients
   const tempSpecs: SpecRowMulti[] = [
     {
-      label: 'Power Temp Coeff',
+      label: 'Power Temp Coefficient',
       sub: 'γ_pmp',
-      desc: 'Closer to 0 is better — less power loss per °C rise above 25°C. Critical in hot climates.',
+      desc: 'Closer to 0 is better — less power loss per °C rise above 25°C in hot summer weather.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.mu_pnom_spec_pct_c),
         '%/°C',
@@ -755,9 +827,9 @@ function buildMultiComparisonSections(
       ),
     },
     {
-      label: 'Voltage Temp Coeff',
+      label: 'Voltage Temp Coefficient',
       sub: 'β_oc',
-      desc: 'Closer to 0 is better — less voltage drop during hot summer afternoons.',
+      desc: 'Closer to 0 is better — less voltage drop during hot operating conditions.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.mu_voc_spec_mv_c),
         'mV/°C',
@@ -765,9 +837,9 @@ function buildMultiComparisonSections(
       ),
     },
     {
-      label: 'Current Temp Coeff',
+      label: 'Current Temp Coefficient',
       sub: 'α_sc',
-      desc: 'Slightly positive is normal — current increases slightly as cell temperature rises.',
+      desc: 'Slightly positive is normal — current increases marginally as cell heats up.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.mu_isc_ma_c),
         'mA/°C',
@@ -778,7 +850,7 @@ function buildMultiComparisonSections(
 
   sections.push({
     title: 'Temperature Coefficients & Thermal Behavior',
-    icon: <Thermometer className="w-5 h-5" />,
+    icon: <Thermometer className="w-4 h-4" />,
     specs: tempSpecs,
   });
 
@@ -787,7 +859,7 @@ function buildMultiComparisonSections(
     {
       label: 'Series Resistance',
       sub: 'Rs',
-      desc: 'Lower is better — less internal ohmic resistance loss in busbars and cell contacts.',
+      desc: 'Lower is better — indicates lower ohmic losses in busbars, ribbons, and cell contacts.',
       values: compareMultiLowerBetter(
         panels.map((p) => p.r_serie_ohm),
         'Ω',
@@ -797,7 +869,7 @@ function buildMultiComparisonSections(
     {
       label: 'Shunt Resistance',
       sub: 'Rsh',
-      desc: 'Higher is better — less internal leakage current through manufacturing micro-defects.',
+      desc: 'Higher is better — reflects lower leakage current across cell PN junction defects.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.r_shunt_ohm),
         'Ω',
@@ -807,7 +879,7 @@ function buildMultiComparisonSections(
     {
       label: 'Diode Ideality Factor',
       sub: 'γ',
-      desc: 'Closer to 1.0 is ideal — reflects pure recombination dynamics without defect trap states.',
+      desc: 'Closer to 1.0 indicates ideal recombination dynamics with fewer cell trap states.',
       values: panels.map((p) => ({
         raw: p.gamma,
         formatted: p.gamma != null ? fmtVal(p.gamma, 3) : '—',
@@ -819,7 +891,7 @@ function buildMultiComparisonSections(
   if (panels.some((p) => p.is_bifacial)) {
     sdmSpecs.push({
       label: 'Bifaciality Factor',
-      desc: 'Ratio of rear-side to front-side power. Higher yields more energy from ground albedo reflection.',
+      desc: 'Higher ratio generates more power from ground albedo reflection on the rear glass.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.bifaciality_factor),
         '',
@@ -830,7 +902,7 @@ function buildMultiComparisonSections(
 
   sections.push({
     title: 'Single Diode Model (SDM Physical Parameters)',
-    icon: <CircuitBoard className="w-5 h-5" />,
+    icon: <CircuitBoard className="w-4 h-4" />,
     specs: sdmSpecs,
   });
 
@@ -842,7 +914,7 @@ function buildMultiComparisonSections(
   const mechSpecs: SpecRowMulti[] = [
     {
       label: 'Length',
-      desc: 'Module length in meters. Smaller modules provide greater flexibility on complex roofs.',
+      desc: 'Module length in meters. Compact dimensions fit complex roof geometries.',
       values: compareMultiLowerBetter(
         panels.map((p) => p.length_m),
         'm',
@@ -860,12 +932,12 @@ function buildMultiComparisonSections(
     },
     {
       label: 'Total Surface Area',
-      desc: 'Smaller module area with equal power indicates higher power density (W/m²).',
+      desc: 'Smaller module area with equal power indicates superior power density.',
       values: compareMultiLowerBetter(areas, 'm²', 3),
     },
     {
-      label: 'Weight',
-      desc: 'Lighter panels reduce structural roof loading and ease installer handling.',
+      label: 'Module Weight',
+      desc: 'Lighter panels reduce structural roof load and speed up manual installation.',
       values: compareMultiLowerBetter(
         panels.map((p) => p.weight_kg),
         'kg',
@@ -875,7 +947,7 @@ function buildMultiComparisonSections(
     {
       label: 'Series Cells',
       sub: 'Ns',
-      desc: 'Number of individual PV cells wired in series.',
+      desc: 'Total number of solar cells connected in series.',
       values: panels.map((p) => ({
         raw: p.ncels,
         formatted: p.ncels != null ? String(p.ncels) : '—',
@@ -884,7 +956,7 @@ function buildMultiComparisonSections(
     },
     {
       label: 'Bypass Diodes',
-      desc: 'Prevents hot-spot damage during partial shading. More diodes offer finer shade granularity.',
+      desc: 'Prevents hot-spot degradation during partial shading events.',
       values: panels.map((p) => ({
         raw: p.ndiodes,
         formatted: p.ndiodes != null ? String(p.ndiodes) : '—',
@@ -895,15 +967,15 @@ function buildMultiComparisonSections(
 
   sections.push({
     title: 'Mechanical Specifications & Dimensions',
-    icon: <Ruler className="w-5 h-5" />,
+    icon: <Ruler className="w-4 h-4" />,
     specs: mechSpecs,
   });
 
   // 5. Warranty & Reliability
   const warrantySpecs: SpecRowMulti[] = [
     {
-      label: 'Product Workmanship Warranty',
-      desc: 'Covers manufacturer mechanical & material defects. Longer warranty reflects high build quality.',
+      label: 'Product Warranty',
+      desc: 'Workmanship warranty covering material and manufacturing defects.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.warranty_product_years),
         'years',
@@ -911,8 +983,8 @@ function buildMultiComparisonSections(
       ),
     },
     {
-      label: 'Linear Performance Warranty',
-      desc: 'Guarantees minimum power output over 25–30 years. Industry standard is ≥80-87% at year 25-30.',
+      label: 'Power Warranty',
+      desc: 'Guarantees minimum linear power retention over 25 to 30 years of operation.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.warranty_power_years),
         'years',
@@ -923,7 +995,7 @@ function buildMultiComparisonSections(
 
   sections.push({
     title: 'Warranty & Reliability',
-    icon: <Shield className="w-5 h-5" />,
+    icon: <Shield className="w-4 h-4" />,
     specs: warrantySpecs,
   });
 

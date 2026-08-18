@@ -1,4 +1,4 @@
-import type { Env } from './_utils';
+import type { Env, PagesFunction } from './_utils';
 import { getOrigin } from './_utils';
 
 export const onRequest: PagesFunction<Env> = async ({ request }) => {

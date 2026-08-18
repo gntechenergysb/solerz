@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SearchX } from 'lucide-react';
 import type { Brand, PanelFilters, SolarPanelSummary } from '../types';
 import { fetchBrands, fetchPanelsSummary } from '../services/panelService';
@@ -7,28 +8,29 @@ import PanelCard from '../components/PanelCard';
 import SkeletonCard from '../components/SkeletonCard';
 import ComparisonTray from '../components/ComparisonTray';
 
-const DEFAULT_FILTERS: PanelFilters = {
-  search: '',
-  brandId: '',
-  powerRange: 'all',
-  bifacialOnly: false,
-};
-
 const PAGE_SIZE = 24;
 
 const PanelsList: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+
   const [brands, setBrands] = useState<Brand[]>([]);
   const [panels, setPanels] = useState<SolarPanelSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<PanelFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<PanelFilters>({
+    search: initialSearch,
+    brandId: '',
+    powerRange: 'all',
+    bifacialOnly: false,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Debounce timer ref for search
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // The actual search value sent to the API (debounced)
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
 
   // Load brands once
   useEffect(() => {

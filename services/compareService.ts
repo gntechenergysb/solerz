@@ -27,35 +27,8 @@ export async function fetchComparisonPanels(
     .filter((p): p is SolarPanelDetail => p !== undefined);
 }
 
-/**
- * Search panels for the in-page "+ Add to compare" quick picker (GSMarena style)
- */
-export async function searchPanelsForCompare(
-  queryText: string,
-  excludeSlugs: string[] = [],
-  limit = 8
-): Promise<RelatedPanel[]> {
-  let query = supabase
-    .from('v_solar_panels_summary')
-    .select('id, slug, brand_name, model_name, pnom_w, module_efficiency_pct')
-    .limit(limit);
-
-  if (queryText.trim()) {
-    const term = `%${queryText.trim()}%`;
-    query = query.or(`model_name.ilike.${term},brand_name.ilike.${term}`);
-  } else {
-    query = query.order('pnom_w', { ascending: false });
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-
-  const results = (data ?? []) as RelatedPanel[];
-  return results.filter((p) => !excludeSlugs.includes(p.slug));
-}
-
 // ---------------------------------------------------------------------------
-// Fetch related panels for "Related Comparisons" section
+// Search panels for the in-page "+ Add to compare" quick picker
 // ---------------------------------------------------------------------------
 
 export interface RelatedPanel {
@@ -68,9 +41,74 @@ export interface RelatedPanel {
 }
 
 /**
+ * High-precision multi-token search for solar panels.
+ * Handles single or multi-word queries like "Longi 550", "Tiger Neo", "seg 745".
+ */
+export async function searchPanelsForCompare(
+  queryText: string,
+  excludeSlugs: string[] = [],
+  limit = 40
+): Promise<RelatedPanel[]> {
+  let query = supabase
+    .from('v_solar_panels_summary')
+    .select('id, slug, brand_name, model_name, pnom_w, module_efficiency_pct')
+    .limit(limit);
+
+  const cleanQuery = queryText.trim();
+
+  if (cleanQuery) {
+    const tokens = cleanQuery.split(/\s+/).filter(Boolean);
+
+    if (tokens.length === 1) {
+      const term = `%${tokens[0]}%`;
+      // Check if the token is a number (e.g. 550 or 750)
+      const numVal = parseFloat(tokens[0]);
+      if (!isNaN(numVal) && numVal > 50 && numVal < 1000) {
+        query = query.or(
+          `model_name.ilike.${term},brand_name.ilike.${term},pnom_w.eq.${numVal}`
+        );
+      } else {
+        query = query.or(`model_name.ilike.${term},brand_name.ilike.${term}`);
+      }
+    } else {
+      // Multiple tokens (e.g. "Longi 550", "SEG 745", "Trina 700")
+      // Match each token across brand or model
+      tokens.forEach((token) => {
+        const term = `%${token}%`;
+        const numVal = parseFloat(token);
+        if (!isNaN(numVal) && numVal > 50 && numVal < 1000) {
+          query = query.or(
+            `model_name.ilike.${term},brand_name.ilike.${term},pnom_w.eq.${numVal}`
+          );
+        } else {
+          query = query.or(`model_name.ilike.${term},brand_name.ilike.${term}`);
+        }
+      });
+    }
+
+    query = query.order('pnom_w', { ascending: false });
+  } else {
+    // Default: Top popular / highest power modules
+    query = query.order('pnom_w', { ascending: false });
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('searchPanelsForCompare error:', error);
+    return [];
+  }
+
+  const results = (data ?? []) as RelatedPanel[];
+  return results.filter((p) => !excludeSlugs.includes(p.slug));
+}
+
+// ---------------------------------------------------------------------------
+// Fetch related panels for "Related Comparisons" section
+// ---------------------------------------------------------------------------
+
+/**
  * Fetches up to `limit` panels with similar power output.
  * Includes both same-brand and cross-brand panels for comprehensive comparison.
- * Used in the "Compare with other panels" section.
  */
 export async function fetchRelatedPanels(
   excludeId: string,
@@ -78,16 +116,15 @@ export async function fetchRelatedPanels(
   _brandName: string,
   limit = 6
 ): Promise<RelatedPanel[]> {
-  // Look for panels within ±20W of the same power rating
   const { data, error } = await supabase
     .from('v_solar_panels_summary')
     .select('id, slug, brand_name, model_name, pnom_w, module_efficiency_pct')
-    .gte('pnom_w', pnomW - 20)
-    .lte('pnom_w', pnomW + 20)
+    .gte('pnom_w', pnomW - 25)
+    .lte('pnom_w', pnomW + 25)
     .neq('id', excludeId)
     .order('pnom_w', { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) return [];
   return (data ?? []) as RelatedPanel[];
 }

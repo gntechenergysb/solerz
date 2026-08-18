@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Zap,
   Sun,
@@ -11,79 +11,129 @@ import {
   GitCompareArrows,
   TrendingUp,
   Shield,
+  Search,
+  CheckCircle2,
+  Sparkles,
+  Flame,
+  Layers,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
-// Product Category Card
+// Product Category Card Component
 // ---------------------------------------------------------------------------
 interface CategoryCardProps {
   icon: React.ReactNode;
   title: string;
+  subtitle: string;
   description: string;
   count: string;
+  badge?: string;
   to?: string;
   comingSoon?: boolean;
-  accentColor: string;
-  accentBg: string;
-  accentGlow: string;
+  theme: 'emerald' | 'amber' | 'purple';
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({
   icon,
   title,
+  subtitle,
   description,
   count,
+  badge,
   to,
   comingSoon,
-  accentColor,
-  accentBg,
-  accentGlow,
+  theme,
 }) => {
+  const themeStyles = {
+    emerald: {
+      border: 'hover:border-emerald-400 dark:hover:border-emerald-500',
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+      glow: 'from-emerald-500/15 via-teal-500/5 to-transparent',
+      textAccent: 'text-emerald-600 dark:text-emerald-400',
+      badge: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+      btn: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/25',
+    },
+    amber: {
+      border: 'hover:border-amber-400 dark:hover:border-amber-500',
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+      glow: 'from-amber-500/15 via-orange-500/5 to-transparent',
+      textAccent: 'text-amber-600 dark:text-amber-400',
+      badge: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+      btn: 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-500/25',
+    },
+    purple: {
+      border: 'hover:border-purple-400 dark:hover:border-purple-500',
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+      glow: 'from-purple-500/15 via-indigo-500/5 to-transparent',
+      textAccent: 'text-purple-600 dark:text-purple-400',
+      badge: 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+      btn: 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-500/25',
+    },
+  }[theme];
+
   const content = (
     <div
-      className={`category-card relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 overflow-hidden ${
-        comingSoon ? 'opacity-75 cursor-default' : 'cursor-pointer'
+      className={`relative rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between overflow-hidden transition-all duration-300 ${
+        comingSoon
+          ? 'opacity-85'
+          : `group hover:-translate-y-1 hover:shadow-2xl ${themeStyles.border}`
       }`}
     >
-      {/* Subtle background glow */}
+      {/* Background ambient glow */}
       <div
-        className="absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl opacity-20 dark:opacity-30 transition-opacity"
-        style={{ background: accentGlow }}
+        className={`absolute -top-24 -right-24 w-60 h-60 rounded-full bg-gradient-to-br ${themeStyles.glow} blur-3xl pointer-events-none transition-opacity duration-300`}
       />
 
-      {/* Coming soon badge */}
-      {comingSoon && (
-        <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
-          Coming Soon
-        </span>
-      )}
+      <div>
+        {/* Top Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center ${themeStyles.iconBg} transition-transform duration-300 group-hover:scale-105`}
+          >
+            {icon}
+          </div>
+          {badge && (
+            <span
+              className={`text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${themeStyles.badge}`}
+            >
+              {badge}
+            </span>
+          )}
+        </div>
 
-      {/* Icon */}
-      <div
-        className={`category-icon inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 ${accentBg}`}
-      >
-        <div className={accentColor}>{icon}</div>
+        {/* Title & Subtitle */}
+        <span className={`text-xs font-bold uppercase tracking-wider ${themeStyles.textAccent} block mb-1`}>
+          {subtitle}
+        </span>
+        <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+          {title}
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+          {description}
+        </p>
       </div>
 
-      {/* Title & description */}
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-        {title}
-      </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-5">
-        {description}
-      </p>
+      {/* Footer Info & Action */}
+      <div className="pt-5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+        <div>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">
+            Coverage
+          </span>
+          <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200">
+            {count}
+          </span>
+        </div>
 
-      {/* Count + CTA */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wide">
-          {count}
-        </span>
-        {!comingSoon && (
+        {!comingSoon && to ? (
           <span
-            className={`inline-flex items-center gap-1.5 text-sm font-semibold ${accentColor} group-hover:gap-2.5 transition-all`}
+            className={`inline-flex items-center gap-1.5 text-sm font-bold ${themeStyles.textAccent} group-hover:gap-2.5 transition-all`}
           >
-            Explore
+            Explore Catalog
             <ArrowRight className="w-4 h-4" />
+          </span>
+        ) : (
+          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+            In Development
           </span>
         )}
       </div>
@@ -91,323 +141,398 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   );
 
   if (comingSoon || !to) return content;
-
-  return (
-    <Link to={to} className="group block">
-      {content}
-    </Link>
-  );
+  return <Link to={to} className="block">{content}</Link>;
 };
-
-// ---------------------------------------------------------------------------
-// Stats Strip Item
-// ---------------------------------------------------------------------------
-interface StatProps {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-}
-
-const Stat: React.FC<StatProps> = ({ icon, value, label }) => (
-  <div className="flex items-center gap-3">
-    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-      {icon}
-    </div>
-    <div>
-      <div className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
-        {value}
-      </div>
-      <div className="text-xs text-slate-400 dark:text-slate-500">{label}</div>
-    </div>
-  </div>
-);
 
 // ---------------------------------------------------------------------------
 // Popular Comparison Card
 // ---------------------------------------------------------------------------
-interface PopularCompareCardProps {
-  panelA: string;
-  panelB: string;
-  powerW: number;
+interface PopularCompareProps {
+  panelA: { name: string; brand: string; power: number; eff: number };
+  panelB: { name: string; brand: string; power: number; eff: number };
+  tag: string;
   slug: string;
-  index: number;
 }
 
-const PopularCompareCard: React.FC<PopularCompareCardProps> = ({
+const PopularCompareCard: React.FC<PopularCompareProps> = ({
   panelA,
   panelB,
-  powerW,
+  tag,
   slug,
-  index,
 }) => (
   <Link
     to={slug}
-    className="animate-float-up group block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg hover:shadow-emerald-500/5 dark:hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-0.5"
-    style={{ animationDelay: `${index * 100}ms` }}
+    className="group relative rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 hover:border-emerald-400 dark:hover:border-emerald-600 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
   >
-    <div className="flex items-center gap-2 mb-3">
-      <GitCompareArrows className="w-4 h-4 text-emerald-500" />
-      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-        {powerW}W Comparison
+    {/* Tag */}
+    <div className="flex items-center justify-between mb-4">
+      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80">
+        {tag}
       </span>
+      <GitCompareArrows className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 transition-colors" />
     </div>
-    <div className="space-y-1.5">
-      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">
-        {panelA}
-      </p>
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 dark:text-slate-600">
-          vs
-        </span>
-        <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+
+    {/* Side by side preview */}
+    <div className="space-y-2.5">
+      {/* Panel A */}
+      <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+        <div className="min-w-0 pr-2">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+            {panelA.brand}
+          </span>
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
+            {panelA.name}
+          </span>
+        </div>
+        <div className="text-right flex-none">
+          <span className="text-xs font-black text-slate-900 dark:text-white block">
+            {panelA.power}W
+          </span>
+          <span className="text-[10px] font-semibold text-amber-500">
+            {panelA.eff}%
+          </span>
+        </div>
       </div>
-      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">
-        {panelB}
-      </p>
+
+      {/* VS divider */}
+      <div className="flex items-center justify-center">
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600 bg-white dark:bg-slate-900 px-2">
+          VS
+        </span>
+      </div>
+
+      {/* Panel B */}
+      <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+        <div className="min-w-0 pr-2">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+            {panelB.brand}
+          </span>
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
+            {panelB.name}
+          </span>
+        </div>
+        <div className="text-right flex-none">
+          <span className="text-xs font-black text-slate-900 dark:text-white block">
+            {panelB.power}W
+          </span>
+          <span className="text-[10px] font-semibold text-amber-500">
+            {panelB.eff}%
+          </span>
+        </div>
+      </div>
     </div>
-    <div className="mt-4 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
-      View comparison <ArrowRight className="w-3.5 h-3.5" />
+
+    {/* CTA */}
+    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+      <span>Compare Specs</span>
+      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
     </div>
   </Link>
 );
 
 // ---------------------------------------------------------------------------
-// Feature Highlight
-// ---------------------------------------------------------------------------
-interface FeatureProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-const Feature: React.FC<FeatureProps> = ({ icon, title, description }) => (
-  <div className="flex items-start gap-4">
-    <div className="flex-none w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-      {icon}
-    </div>
-    <div>
-      <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">
-        {title}
-      </h4>
-      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-        {description}
-      </p>
-    </div>
-  </div>
-);
-
-// ---------------------------------------------------------------------------
-// Home Page Component
+// Main Homepage Component
 // ---------------------------------------------------------------------------
 const HomePage: React.FC = () => {
-  // Static popular comparisons (hardcoded examples — can be replaced with API later)
-  const popularComparisons = [
+  const navigate = useNavigate();
+  const [heroSearch, setHeroSearch] = useState('');
+
+  const handleHeroSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (heroSearch.trim()) {
+      navigate(`/solar-panels?search=${encodeURIComponent(heroSearch.trim())}`);
+    } else {
+      navigate('/solar-panels');
+    }
+  };
+
+  const trendingComparisons: PopularCompareProps[] = [
     {
-      panelA: 'LONGi LR5-72HPH-555M',
-      panelB: 'JA Solar JAM72S30-545/MR',
-      powerW: 550,
+      panelA: { name: 'LR5-72HPH-555M', brand: 'LONGi Solar', power: 555, eff: 21.5 },
+      panelB: { name: 'JAM72S30-545/MR', brand: 'JA Solar', power: 545, eff: 21.1 },
+      tag: '550W Utility Class',
       slug: '/compare/longi-green-energy-technology-co---ltd--longi-lr5-72hph-555m-vs-ja-solar-jam72s30-545-mr',
     },
     {
-      panelA: 'Canadian Solar CS6R-420MS',
-      panelB: 'Trina Solar TSM-DE09R.08 420',
-      powerW: 420,
+      panelA: { name: 'CS6R-420MS HiKu6', brand: 'Canadian Solar', power: 420, eff: 21.5 },
+      panelB: { name: 'TSM-DE09R.08 Vertex S', brand: 'Trina Solar', power: 420, eff: 21.0 },
+      tag: '420W Residential Rooftop',
       slug: '/compare/canadian-solar-inc--cs6r-420ms-vs-trina-solar-co---ltd-tsm-de09r-08-420',
     },
     {
-      panelA: 'REC Alpha Pure-R Series 430',
-      panelB: 'SunPower SPR-MAX5-420-COM',
-      powerW: 430,
-      slug: '/compare/rec-group-rec430aa-pure-r-vs-sunpower-corporation-spr-max5-420-com',
+      panelA: { name: 'SEG-750-BHC-BG', brand: 'SEG Solar', power: 750, eff: 24.8 },
+      panelB: { name: 'ET-N866TBH700GB', brand: 'ELITE Solar', power: 700, eff: 22.5 },
+      tag: '700W+ Ultra High Power',
+      slug: '/compare/elite-solar-et-n866tbh700gb-vs-seg-solar-inc-seg-solar-inc-seg-750-bhc-bg',
     },
   ];
 
-  return (
-    <div className="space-y-16 sm:space-y-20">
-      {/* ============================== HERO ============================== */}
-      <section className="relative text-center pt-8 sm:pt-14 pb-4 hero-pattern">
-        {/* Decorative blurred orbs */}
-        <div className="absolute top-10 left-1/4 w-72 h-72 bg-emerald-400/10 dark:bg-emerald-400/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-60 h-60 bg-cyan-400/10 dark:bg-cyan-400/5 rounded-full blur-3xl pointer-events-none" />
+  const quickPillSearches = [
+    { label: '⚡ 550W+ Utility', query: '550' },
+    { label: '🏠 420W-440W Residential', query: '420' },
+    { label: '🔥 700W+ Commercial', query: '700' },
+    { label: 'LONGi Solar', query: 'LONGi' },
+    { label: 'JinkoSolar', query: 'Jinko' },
+    { label: 'Trina Solar', query: 'Trina' },
+  ];
 
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800 mb-6 animate-float-up">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 tracking-wide">
-              21,000+ Solar Modules Indexed
+  return (
+    <div className="space-y-16 sm:space-y-24">
+      {/* ================================================================= */}
+      {/* HERO SECTION: MODERN AURORA GLOW + FAST SEARCH ENGINE */}
+      {/* ================================================================= */}
+      <section className="relative text-center pt-6 sm:pt-14 pb-8 overflow-hidden">
+        {/* Subtle decorative background light gradients */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl pointer-events-none -z-10" />
+
+        <div className="max-w-4xl mx-auto px-2">
+          {/* Top Pill Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800/80 mb-6 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
+              21,000+ Photovoltaic Modules • Open CEC Hardware Database
             </span>
           </div>
 
-          <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] animate-float-up"
-            style={{ animationDelay: '80ms' }}
-          >
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] mb-6">
             Compare Solar Hardware.
             <br />
-            <span className="text-gradient-brand">Make Smarter Decisions.</span>
+            <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
+              Engineered for Precision.
+            </span>
           </h1>
 
-          <p
-            className="mt-5 text-base sm:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed animate-float-up"
-            style={{ animationDelay: '160ms' }}
-          >
-            The most comprehensive solar panel database with detailed specs,
-            side-by-side comparisons, and data-driven insights — all free.
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed mb-8">
+            The definitive platform for solar engineers, installers, and project developers.
+            Compare STC electrical curves, temperature loss coefficients, and SDM physics across 280+ manufacturers.
           </p>
 
-          <div
-            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-float-up"
-            style={{ animationDelay: '240ms' }}
-          >
-            <Link
-              to="/solar-panels"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5"
+          {/* Interactive Fast Search Bar (Direct Action in Hero) */}
+          <div className="max-w-2xl mx-auto mb-6">
+            <form
+              onSubmit={handleHeroSearchSubmit}
+              className="relative flex items-center p-2 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-xl focus-within:border-emerald-500 dark:focus-within:border-emerald-500 transition-all"
             >
-              <Sun className="w-4.5 h-4.5" />
-              Browse Solar Panels
-            </Link>
-            <Link
-              to="/solar-panels"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-300"
-            >
-              <GitCompareArrows className="w-4.5 h-4.5" />
-              Compare Panels
-            </Link>
+              <Search className="w-5 h-5 text-slate-400 ml-3 flex-none" />
+              <input
+                type="text"
+                value={heroSearch}
+                onChange={(e) => setHeroSearch(e.target.value)}
+                placeholder="Search by brand, model, or wattage (e.g., Hi-MO 6, Tiger Neo, 550W)..."
+                className="w-full px-3 py-2 text-sm sm:text-base bg-transparent text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="flex-none px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-md shadow-emerald-500/20 transition-all"
+              >
+                Search
+              </button>
+            </form>
+
+            {/* Quick Pill Searches */}
+            <div className="flex items-center justify-center gap-1.5 flex-wrap mt-3">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+                Popular:
+              </span>
+              {quickPillSearches.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => navigate(`/solar-panels?search=${encodeURIComponent(item.query)}`)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ========================== STATS STRIP ========================== */}
-      <section
-        className="animate-float-up"
-        style={{ animationDelay: '320ms' }}
-      >
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 px-2">
-          <Stat
-            icon={<Database className="w-4.5 h-4.5" />}
-            value="21,000+"
-            label="Solar Panels"
-          />
-          <Stat
-            icon={<Users className="w-4.5 h-4.5" />}
-            value="282"
-            label="Brands"
-          />
-          <Stat
-            icon={<BarChart3 className="w-4.5 h-4.5" />}
-            value="30+"
-            label="Spec Parameters"
-          />
-          <Stat
-            icon={<TrendingUp className="w-4.5 h-4.5" />}
-            value="Free"
-            label="Always"
-          />
-        </div>
-      </section>
-
-      {/* ======================= PRODUCT CATEGORIES ======================= */}
-      <section>
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Explore by Category
-          </h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Dive into detailed specs and comparisons for each product type.
+      {/* ================================================================= */}
+      {/* 3 CORE PRODUCT CATEGORIES */}
+      {/* ================================================================= */}
+      <section className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
+              Hardware Directory
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              Select Product Category
+            </h2>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md">
+            Explore verified technical datasheets and cross-compare specifications side-by-side.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <CategoryCard
-            icon={<Sun className="w-6 h-6" />}
+            theme="emerald"
+            icon={<Sun className="w-7 h-7" />}
+            subtitle="Category 01 • Available Now"
             title="Solar Panels"
-            description="Browse 21,000+ photovoltaic modules with full STC electrical specs, temperature coefficients, and SDM parameters."
-            count="21,000+ modules"
+            description="Explore 21,000+ PV modules. Compare STC electrical ratings, thermal loss coefficients, cell counts, and single-diode physics."
+            count="21,000+ Verified Modules"
+            badge="Full Data Available"
             to="/solar-panels"
-            accentColor="text-emerald-600 dark:text-emerald-400"
-            accentBg="bg-emerald-50 dark:bg-emerald-500/10"
-            accentGlow="radial-gradient(circle, rgba(16,185,129,0.3), transparent)"
           />
+
           <CategoryCard
-            icon={<Zap className="w-6 h-6" />}
-            title="Inverters"
-            description="String, micro, and hybrid inverters from leading manufacturers. Compare efficiency, voltage ranges, and features."
-            count="Coming soon"
+            theme="amber"
+            icon={<Zap className="w-7 h-7" />}
+            subtitle="Category 02 • Coming Soon"
+            title="Solar Inverters"
+            description="String, micro, and hybrid storage inverters. Compare European efficiency, MPPT operating windows, and dual-string sizing."
+            count="Catalog in Progress"
+            badge="Coming Soon"
             comingSoon
-            accentColor="text-amber-600 dark:text-amber-400"
-            accentBg="bg-amber-50 dark:bg-amber-500/10"
-            accentGlow="radial-gradient(circle, rgba(245,158,11,0.3), transparent)"
           />
+
           <CategoryCard
-            icon={<Battery className="w-6 h-6" />}
+            theme="purple"
+            icon={<Battery className="w-7 h-7" />}
+            subtitle="Category 03 • Coming Soon"
             title="Energy Storage"
-            description="Home batteries, commercial storage, and lithium packs. Compare capacity, cycle life, and warranty terms."
-            count="Coming soon"
+            description="High-voltage residential and commercial battery systems. Compare nominal capacity, LFP cycle life, and BMS interfaces."
+            count="Catalog in Progress"
+            badge="Coming Soon"
             comingSoon
-            accentColor="text-purple-600 dark:text-purple-400"
-            accentBg="bg-purple-50 dark:bg-purple-500/10"
-            accentGlow="radial-gradient(circle, rgba(139,92,246,0.3), transparent)"
           />
         </div>
       </section>
 
-      {/* ==================== POPULAR COMPARISONS ==================== */}
-      <section>
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Popular Comparisons
-          </h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            See how top solar panels stack up against each other.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
-          {popularComparisons.map((cmp, i) => (
-            <PopularCompareCard key={i} {...cmp} index={i} />
-          ))}
-        </div>
-
-        <div className="text-center mt-8">
+      {/* ================================================================= */}
+      {/* TRENDING HARDWARE COMPARISONS */}
+      {/* ================================================================= */}
+      <section className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+          <div className="flex items-center gap-2">
+            <Flame className="w-6 h-6 text-amber-500" />
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
+                Head-to-Head Comparisons
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                Trending Hardware Battles
+              </h2>
+            </div>
+          </div>
           <Link
             to="/solar-panels"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors"
           >
-            Build your own comparison
-            <ArrowRight className="w-4 h-4" />
+            Create Custom Comparison <ArrowRight className="w-4 h-4" />
           </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {trendingComparisons.map((item, idx) => (
+            <PopularCompareCard key={idx} {...item} />
+          ))}
         </div>
       </section>
 
-      {/* ====================== WHY SOLERZ ====================== */}
-      <section className="bg-slate-50 dark:bg-slate-900/50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-14 rounded-3xl">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Why Solerz?
+      {/* ================================================================= */}
+      {/* 5 PILLARS OF HARDWARE DATA ENGINE */}
+      {/* ================================================================= */}
+      <section className="bg-slate-100/70 dark:bg-slate-900/60 rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800 space-y-8">
+        <div className="max-w-2xl">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
+            Data Architecture
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            Why Solerz is the Industry Standard
           </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+            Every specification is structured for high-performance retrieval and instant cross-module analysis.
+          </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          <Feature
-            icon={<Database className="w-5 h-5" />}
-            title="Largest Open Database"
-            description="21,000+ modules from CEC's verified database — the most comprehensive free resource for PV module specifications."
-          />
-          <Feature
-            icon={<GitCompareArrows className="w-5 h-5" />}
-            title="Side-by-Side Comparison"
-            description="Compare any two solar panels head-to-head across 30+ parameters. Every spec, every detail, crystal clear."
-          />
-          <Feature
-            icon={<BarChart3 className="w-5 h-5" />}
-            title="Data-Driven Insights"
-            description="Automated analysis highlights which panel wins in each category — power, efficiency, thermals, and more."
-          />
-          <Feature
-            icon={<Shield className="w-5 h-5" />}
-            title="Always Free"
-            description="No registration, no paywalls, no ads. Just clean, comprehensive solar hardware data for everyone."
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Zap className="w-6 h-6 text-emerald-500 mb-3" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              STC Electrical Precision
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Standard Test Conditions (1000 W/m², 25°C) power ratings, Vmp, Imp, Voc, and Isc curves for inverter MPPT matching.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Layers className="w-6 h-6 text-purple-500 mb-3" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              Bifacial &amp; Cell Chemistry
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Differentiates TOPCon, HJT, Mono PERC, and CdTe thin-film with bifaciality factors for albedo energy gain calculations.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Thermometer className="w-6 h-6 text-red-500 mb-3" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              Thermal Loss Coefficients
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Detailed γ_pmp, β_oc, and α_sc temperature gradients to accurately model hot-climate power degradation.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <CircuitBoard className="w-6 h-6 text-blue-500 mb-3" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              Single Diode Model (SDM)
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Calculates series resistance (Rs), shunt resistance (Rsh), and diode ideality factor (γ) for simulation accuracy.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Ruler className="w-6 h-6 text-amber-500 mb-3" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              Dimensions &amp; Structural Load
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Module dimensions, surface area, and weight specifications for roof structural engineering and racking layouts.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <Shield className="w-6 h-6 text-emerald-500 mb-3" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              Linear Warranty Coverage
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              12–25 year product workmanship warranties and 25–30 year linear power retention guarantees across all manufacturers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================= */}
+      {/* STATS STRIP & CALL TO ACTION */}
+      {/* ================================================================= */}
+      <section className="text-center space-y-6 pt-4 pb-12">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+            Ready to Compare Hardware?
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            Search our open catalog of 21,000+ modules or select models to generate a multi-column technical comparison.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link
+              to="/solar-panels"
+              className="px-7 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition-all"
+            >
+              Browse Solar Panels
+            </Link>
+          </div>
         </div>
       </section>
     </div>
