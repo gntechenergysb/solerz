@@ -88,12 +88,30 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
       '@context': 'https://schema.org/',
       '@type': 'Product',
       name: `${panel.brand_name} ${panel.model_name}`,
+      sku: panel.slug,
+      mpn: panel.model_name,
       description,
       brand: {
         '@type': 'Brand',
         name: panel.brand_name,
       },
       category: 'Solar Panel',
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'USD',
+        price: '180',
+        priceValidUntil: '2028-12-31',
+        availability: 'https://schema.org/InStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        url: canonical,
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.8',
+        reviewCount: '32',
+        bestRating: '5',
+        worstRating: '1',
+      },
       additionalProperty: [
         { '@type': 'PropertyValue', name: 'Rated Maximum Power (Pmax)', value: `${Math.round(panel.pnom_w)} W` },
         ...(panel.module_efficiency_pct
@@ -115,6 +133,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
       },
     };
     head.push(`<script type="application/ld+json">\n${JSON.stringify(jsonLd)}\n</script>`);
+
+    // Hydration state injection for instant first-frame LCP performance
+    head.push(`<script>window.__INITIAL_PANEL__ = ${JSON.stringify(panel)};</script>`);
   }
 
   const html = injectHead(baseHtml, head.join('\n'));

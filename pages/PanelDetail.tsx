@@ -90,12 +90,29 @@ const Section: React.FC<SectionProps> = ({ icon, title, children }) => (
 // ---------------------------------------------------------------------------
 const PanelDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [panel, setPanel] = useState<SolarPanelDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  // Check SSR hydration state
+  const initialPanel = React.useMemo(() => {
+    if (typeof window !== 'undefined' && (window as any).__INITIAL_PANEL__) {
+      const init = (window as any).__INITIAL_PANEL__ as SolarPanelDetail;
+      if (init && init.slug === slug) {
+        return init;
+      }
+    }
+    return null;
+  }, [slug]);
+
+  const [panel, setPanel] = useState<SolarPanelDetail | null>(initialPanel);
+  const [loading, setLoading] = useState(!initialPanel);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
+    if (panel && panel.slug === slug) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setNotFound(false);
     fetchPanelBySlug(slug)

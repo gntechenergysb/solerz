@@ -115,18 +115,6 @@ const ComparePage: React.FC = () => {
   const { slugs: routeSlugs } = useParams<{ slugs: string }>();
   const navigate = useNavigate();
 
-  const [panels, setPanels] = useState<SolarPanelDetail[]>([]);
-  const [relatedPanels, setRelatedPanels] = useState<RelatedPanel[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Quick-add search modal state
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBrandFilter, setSelectedBrandFilter] = useState('All');
-  const [searchResults, setSearchResults] = useState<RelatedPanel[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
   // Parse 2, 3, or 4 slugs from URL (split by '-vs-')
   const slugList = useMemo(() => {
     if (!routeSlugs) return [];
@@ -136,11 +124,52 @@ const ComparePage: React.FC = () => {
       .filter(Boolean);
   }, [routeSlugs]);
 
+  // Check SSR initial hydration data
+  const initialPanels = useMemo(() => {
+    if (typeof window !== 'undefined' && (window as any).__INITIAL_PANELS__) {
+      const init = (window as any).__INITIAL_PANELS__ as SolarPanelDetail[];
+      if (
+        init &&
+        init.length >= 2 &&
+        init.every((p, idx) => p.slug === slugList[idx])
+      ) {
+        return init;
+      }
+    }
+    return [];
+  }, [slugList]);
+
+  const [panels, setPanels] = useState<SolarPanelDetail[]>(initialPanels);
+  const [relatedPanels, setRelatedPanels] = useState<RelatedPanel[]>([]);
+  const [loading, setLoading] = useState(initialPanels.length < 2);
+  const [error, setError] = useState<string | null>(null);
+
+  // Quick-add search modal state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrandFilter, setSelectedBrandFilter] = useState('All');
+  const [searchResults, setSearchResults] = useState<RelatedPanel[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   // Load panels data
   useEffect(() => {
     if (slugList.length < 2) {
       setError('Please select at least 2 solar panels to compare.');
       setLoading(false);
+      return;
+    }
+
+    // If initial SSR data matches current slugs, skip client fetch for main panels
+    if (
+      panels.length >= 2 &&
+      panels.every((p, idx) => p.slug === slugList[idx])
+    ) {
+      setLoading(false);
+      // Fetch related panels in the background without blocking
+      const primary = panels[0];
+      fetchRelatedPanels(primary.id, primary.pnom_w, primary.brand_name, 6).then(
+        setRelatedPanels
+      );
       return;
     }
 
