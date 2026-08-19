@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { SolarPanelSummary, InverterSummary } from '../types';
+import type { SolarPanelSummary, InverterSummary, BatterySummary } from '../types';
 
 const MAX_COMPARE = 4;
 const PANELS_STORAGE_KEY = 'solerz_compare_panels';
 const INVERTERS_STORAGE_KEY = 'solerz_compare_inverters';
+const BATTERIES_STORAGE_KEY = 'solerz_compare_batteries';
 
 interface CompareContextType {
   // Solar Panels
@@ -21,6 +22,14 @@ interface CompareContextType {
   clearAllInverters: () => void;
   isInverterSelected: (id: string) => boolean;
   isInvertersFull: boolean;
+
+  // Batteries
+  selectedBatteries: BatterySummary[];
+  addBattery: (battery: BatterySummary) => void;
+  removeBattery: (id: string) => void;
+  clearAllBatteries: () => void;
+  isBatterySelected: (id: string) => boolean;
+  isBatteriesFull: boolean;
 
   // Backward compatibility aliases
   clearAll: () => void;
@@ -57,6 +66,16 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
+  // 3. Batteries State
+  const [selectedBatteries, setSelectedBatteries] = useState<BatterySummary[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(BATTERIES_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Persist to sessionStorage
   useEffect(() => {
     try {
@@ -70,6 +89,12 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
       sessionStorage.setItem(INVERTERS_STORAGE_KEY, JSON.stringify(selectedInverters));
     } catch { /* ignore */ }
   }, [selectedInverters]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(BATTERIES_STORAGE_KEY, JSON.stringify(selectedBatteries));
+    } catch { /* ignore */ }
+  }, [selectedBatteries]);
 
   // Panels operations
   const addPanel = useCallback((panel: SolarPanelSummary) => {
@@ -115,6 +140,28 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [selectedInverters]
   );
 
+  // Batteries operations
+  const addBattery = useCallback((battery: BatterySummary) => {
+    setSelectedBatteries((prev) => {
+      if (prev.length >= MAX_COMPARE) return prev;
+      if (prev.some((b) => b.id === battery.id)) return prev;
+      return [...prev, battery];
+    });
+  }, []);
+
+  const removeBattery = useCallback((id: string) => {
+    setSelectedBatteries((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
+  const clearAllBatteries = useCallback(() => {
+    setSelectedBatteries([]);
+  }, []);
+
+  const isBatterySelected = useCallback(
+    (id: string) => selectedBatteries.some((b) => b.id === id),
+    [selectedBatteries]
+  );
+
   return (
     <CompareContext.Provider
       value={{
@@ -131,6 +178,13 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
         clearAllInverters,
         isInverterSelected,
         isInvertersFull: selectedInverters.length >= MAX_COMPARE,
+
+        selectedBatteries,
+        addBattery,
+        removeBattery,
+        clearAllBatteries,
+        isBatterySelected,
+        isBatteriesFull: selectedBatteries.length >= MAX_COMPARE,
 
         // Aliases
         clearAll: clearAllPanels,

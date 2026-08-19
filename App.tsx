@@ -8,12 +8,15 @@ const PanelsList = React.lazy(() => import('./pages/PanelsList'));
 const PanelDetail = React.lazy(() => import('./pages/PanelDetail'));
 const InvertersList = React.lazy(() => import('./pages/InvertersList'));
 const InverterDetail = React.lazy(() => import('./pages/InverterDetail'));
+const BatteriesList = React.lazy(() => import('./pages/BatteriesList'));
+const BatteryDetail = React.lazy(() => import('./pages/BatteryDetail'));
 const ComparePage = React.lazy(() => import('./pages/ComparePage'));
 const InverterComparePage = React.lazy(() => import('./pages/InverterComparePage'));
+const BatteryComparePage = React.lazy(() => import('./pages/BatteryComparePage'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
-    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
   </div>
 );
 
@@ -38,7 +41,12 @@ const App: React.FC = () => {
                 <Route path="/inverters" element={<InvertersList />} />
                 <Route path="/inverters/:slug" element={<InverterDetail />} />
 
+                {/* Batteries */}
+                <Route path="/batteries" element={<BatteriesList />} />
+                <Route path="/batteries/:slug" element={<BatteryDetail />} />
+
                 {/* Versus Comparisons */}
+                <Route path="/compare/batteries/:slugs" element={<BatteryComparePage />} />
                 <Route path="/compare/inverters/:slugs" element={<InverterComparePage />} />
                 <Route path="/compare/:slugs" element={<ComparePage />} />
 

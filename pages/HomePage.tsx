@@ -397,12 +397,12 @@ const HomePage: React.FC = () => {
           <CategoryCard
             theme="purple"
             icon={<Battery className="w-7 h-7" />}
-            subtitle="Category 03 • Coming Soon"
-            title="Energy Storage"
-            description="High-voltage residential and commercial battery systems. Compare nominal capacity, LFP cycle life, and BMS interfaces."
-            count="Catalog in Progress"
-            badge="Coming Soon"
-            comingSoon
+            subtitle="Category 03 • Available Now"
+            title="Battery Systems"
+            description="Residential, commercial, and off-grid battery energy storage systems (BESS). Compare usable kWh capacity, continuous kW power, RTE efficiency, and LFP cycle life."
+            count="Verified Hardware Catalog"
+            badge="Full Data Available"
+            to="/batteries"
           />
         </div>
       </section>

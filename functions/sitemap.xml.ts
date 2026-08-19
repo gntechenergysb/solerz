@@ -83,6 +83,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   addUrl(`${origin}/`, nowIso, 'daily', '1.0');
   addUrl(`${origin}/solar-panels`, nowIso, 'daily', '0.9');
   addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
+  addUrl(`${origin}/batteries`, nowIso, 'daily', '0.9');
 
   // 2. Solar Panels Hardware Specs Detail Pages
   for (const r of rows) {
@@ -110,7 +111,27 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     } catch {}
   }
 
-  // 4. Popular Head-to-Head Comparisons (Solar Panels & Inverters)
+  // 4. Battery Energy Storage Systems (BESS) Detail Pages
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const batRes = await fetch(`${supabaseUrl}/rest/v1/batteries?select=slug,updated_at,created_at&is_active=eq.true&order=usable_capacity_kwh.desc&limit=500`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Accept: 'application/json',
+        },
+      });
+      if (batRes.ok) {
+        const batRows = (await batRes.json().catch(() => [])) as PanelSitemapRow[];
+        for (const r of batRows) {
+          const last = r.updated_at || r.created_at || nowIso;
+          addUrl(`${origin}/batteries/${r.slug}`, last, 'monthly', '0.8');
+        }
+      }
+    } catch {}
+  }
+
+  // 5. Popular Head-to-Head Comparisons (Solar Panels)
   const popularComparisons = [
     'ja-solar-ja-solar-jam72s30-545-mr-vs-longi-green-energy-technology-co-ltd-longi-green-energy-technology-co-ltd-lr5-72hph-555m',
     'sunpower-sunpower-spr-a410-vs-trina-solar-trina-solar-tsm-415ne09rc05',
@@ -123,7 +144,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     addUrl(`${origin}/compare/${compSlug}`, nowIso, 'weekly', '0.7');
   }
 
-  // 5. Inverter Head-to-Head Comparisons
+  // 6. Inverter Head-to-Head Comparisons
   if (supabaseUrl && supabaseKey) {
     try {
       const invPairRes = await fetch(`${supabaseUrl}/rest/v1/inverters?select=slug&is_active=eq.true&order=paco_w.desc&limit=20`, {
@@ -143,6 +164,20 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         }
       }
     } catch {}
+  }
+
+  // 7. Battery Storage System Head-to-Head Comparisons
+  const popularBatteryComparisons = [
+    'enphase-iq-battery-5p-vs-tesla-powerwall-3',
+    'tesla-powerwall-2-vs-tesla-powerwall-3',
+    'byd-battery-box-premium-hvs-10-2-vs-sungrow-sbr096-9-6kwh-high-voltage',
+    'ecoflow-delta-pro-ultra-single-battery-vs-franklinwh-apower-13-6',
+    'eg4-electronics-eg4-wallmount-all-weather-280ah-14-3kwh-vs-tesla-powerwall-2',
+    'huawei-luna2000-10-s0-10kwh-vs-sungrow-sbr096-9-6kwh-high-voltage',
+  ];
+
+  for (const bComp of popularBatteryComparisons) {
+    addUrl(`${origin}/compare/batteries/${bComp}`, nowIso, 'weekly', '0.7');
   }
 
   const xml = [

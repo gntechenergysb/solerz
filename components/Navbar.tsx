@@ -49,6 +49,7 @@ const Navbar: React.FC = () => {
     { path: '/', label: 'Home', exact: true },
     { path: '/solar-panels', label: 'Solar Panels' },
     { path: '/inverters', label: 'Inverters' },
+    { path: '/batteries', label: 'Batteries' },
   ];
 
   const compareCount = selectedPanels.length;
@@ -208,17 +209,14 @@ const Navbar: React.FC = () => {
               );
             })}
 
-            {/* Coming soon items */}
+            {/* Database directory footer */}
             <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
               <span className="block px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                Coming Soon
+                Verified Hardware Catalog
               </span>
-              <div className="px-4 py-3 text-base font-medium text-slate-400 dark:text-slate-600">
-                Inverters
-              </div>
-              <div className="px-4 py-3 text-base font-medium text-slate-400 dark:text-slate-600">
-                Energy Storage
-              </div>
+              <p className="px-4 py-1 text-xs text-slate-400 dark:text-slate-500">
+                Solar Panels • Inverters • Battery Energy Storage
+              </p>
             </div>
           </div>
         </div>

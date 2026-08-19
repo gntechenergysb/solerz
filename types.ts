@@ -130,3 +130,66 @@ export interface InverterFilters {
   powerRange: 'all' | 'lt3k' | '3kto10k' | '10kto50k' | 'gt50k';
   isHybridOnly: boolean;
 }
+
+/**
+ * Battery types and application categories.
+ */
+export type BatteryChemistry = 'all' | 'LiFePO4' | 'NMC' | 'LTO' | 'Lead-Carbon' | 'Flow';
+export type BatteryApplication = 'all' | 'Residential' | 'Commercial' | 'Utility-Scale' | 'Portable';
+export type BatteryCoupling = 'all' | 'DC-Coupled' | 'AC-Coupled' | 'All-in-One';
+
+/**
+ * Lightweight battery summary for list view, search, and cards.
+ */
+export interface BatterySummary {
+  id: string;
+  slug: string;
+  brand_name: string;
+  model_name: string;
+  battery_type: string;
+  application_type: string;
+  coupling_type: string;
+  usable_capacity_kwh: number;
+  continuous_power_kw: number;
+  peak_power_kw: number | null;
+  nominal_voltage_v: number;
+  round_trip_efficiency_pct: number;
+  cycle_life_count: number | null;
+  warranty_years: number | null;
+  max_parallel_units: number | null;
+  ip_rating: string | null;
+  is_active: boolean;
+}
+
+/**
+ * Full battery detail including electrical specifications, scalability, and physical dimensions.
+ */
+export interface BatteryDetail extends BatterySummary {
+  brand_id: string | null;
+  nominal_capacity_kwh: number | null;
+  operating_voltage_min_v: number | null;
+  operating_voltage_max_v: number | null;
+  max_continuous_current_a: number | null;
+  depth_of_discharge_pct: number | null;
+  warranty_energy_throughput_mwh: number | null;
+  operating_temp_min_c: number | null;
+  operating_temp_max_c: number | null;
+  weight_kg: number | null;
+  dimensions_mm: string | null;
+  certifications: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Filter state for the batteries list page.
+ */
+export interface BatteryFilters {
+  search: string;
+  brandName: string;
+  batteryType: BatteryChemistry;
+  applicationType: BatteryApplication;
+  couplingType: BatteryCoupling;
+  capacityRange: 'all' | 'lt5k' | '5kto10k' | '10kto20k' | 'gt20k';
+  sortBy: 'capacity_desc' | 'power_desc' | 'efficiency_desc' | 'warranty_desc' | 'brand_asc';
+}
