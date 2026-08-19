@@ -1,0 +1,1412 @@
+[
+  {
+    "name": "Trina Solar",
+    "slug": "trina-solar",
+    "panels_count": 1384
+  },
+  {
+    "name": "Jinko Solar Co Ltd",
+    "slug": "jinko-solar-co-ltd",
+    "panels_count": 1166
+  },
+  {
+    "name": "United Renewable Energy Co Ltd",
+    "slug": "united-renewable-energy-co-ltd",
+    "panels_count": 809
+  },
+  {
+    "name": "Vietnam Sunergy Joint Stock Company",
+    "slug": "vietnam-sunergy-joint-stock-company",
+    "panels_count": 763
+  },
+  {
+    "name": "Qcells North America",
+    "slug": "qcells-north-america",
+    "panels_count": 708
+  },
+  {
+    "name": "LG Electronics Inc",
+    "slug": "lg-electronics-inc",
+    "panels_count": 651
+  },
+  {
+    "name": "Hanwha Qcells (Qidong) Co Ltd",
+    "slug": "hanwha-qcells-qidong-co-ltd",
+    "panels_count": 602
+  },
+  {
+    "name": "CSI Solar Co Ltd",
+    "slug": "csi-solar-co-ltd",
+    "panels_count": 536
+  },
+  {
+    "name": "SEG Solar Inc",
+    "slug": "seg-solar-inc",
+    "panels_count": 499
+  },
+  {
+    "name": "HYUNDAI ENERGY SOLUTIONS CO LTD",
+    "slug": "hyundai-energy-solutions-co-ltd",
+    "panels_count": 424
+  },
+  {
+    "name": "Phono Solar Technology Co Ltd",
+    "slug": "phono-solar-technology-co-ltd",
+    "panels_count": 405
+  },
+  {
+    "name": "Boviet Solar Technology Co Ltd",
+    "slug": "boviet-solar-technology-co-ltd",
+    "panels_count": 327
+  },
+  {
+    "name": "Mission Solar Energy LLC",
+    "slug": "mission-solar-energy-llc",
+    "panels_count": 313
+  },
+  {
+    "name": "JA Solar",
+    "slug": "ja-solar",
+    "panels_count": 312
+  },
+  {
+    "name": "Suzhou Talesun Solar Technologies Co Ltd",
+    "slug": "suzhou-talesun-solar-technologies-co-ltd",
+    "panels_count": 279
+  },
+  {
+    "name": "Silfab Solar Inc",
+    "slug": "silfab-solar-inc",
+    "panels_count": 275
+  },
+  {
+    "name": "Sonali Energees USA LLC",
+    "slug": "sonali-energees-usa-llc",
+    "panels_count": 273
+  },
+  {
+    "name": "LONGi Green Energy Technology Co Ltd",
+    "slug": "longi-green-energy-technology-co-ltd",
+    "panels_count": 260
+  },
+  {
+    "name": "Hansol Technics Co Ltd",
+    "slug": "hansol-technics-co-ltd",
+    "panels_count": 245
+  },
+  {
+    "name": "REC Group",
+    "slug": "rec-group",
+    "panels_count": 242
+  },
+  {
+    "name": "AXITEC",
+    "slug": "axitec",
+    "panels_count": 239
+  },
+  {
+    "name": "Jiangsu Runergy New Energy Technology Co Ltd",
+    "slug": "jiangsu-runergy-new-energy-technology-co-ltd",
+    "panels_count": 238
+  },
+  {
+    "name": "WAAREE ENERGIES LIMITED",
+    "slug": "waaree-energies-limited",
+    "panels_count": 233
+  },
+  {
+    "name": "Shinsung E&G Co Ltd",
+    "slug": "shinsung-e-g-co-ltd",
+    "panels_count": 230
+  },
+  {
+    "name": "G-Star Pte Ltd",
+    "slug": "g-star-pte-ltd",
+    "panels_count": 224
+  },
+  {
+    "name": "ZNSHINE PV-TECH Co Ltd",
+    "slug": "znshine-pv-tech-co-ltd",
+    "panels_count": 223
+  },
+  {
+    "name": "First Solar Inc",
+    "slug": "first-solar-inc",
+    "panels_count": 218
+  },
+  {
+    "name": "KOSOL ENERGIE PVT LTD",
+    "slug": "kosol-energie-pvt-ltd",
+    "panels_count": 216
+  },
+  {
+    "name": "Gintung Energy",
+    "slug": "gintung-energy",
+    "panels_count": 213
+  },
+  {
+    "name": "Risen Energy Co Ltd",
+    "slug": "risen-energy-co-ltd",
+    "panels_count": 212
+  },
+  {
+    "name": "ELITE Solar",
+    "slug": "elite-solar",
+    "panels_count": 201
+  },
+  {
+    "name": "S-Energy Co Ltd",
+    "slug": "s-energy-co-ltd",
+    "panels_count": 200
+  },
+  {
+    "name": "Centrosolar America",
+    "slug": "centrosolar-america",
+    "panels_count": 197
+  },
+  {
+    "name": "Auxin Solar",
+    "slug": "auxin-solar",
+    "panels_count": 187
+  },
+  {
+    "name": "Heliene",
+    "slug": "heliene",
+    "panels_count": 180
+  },
+  {
+    "name": "Zhejiang Sunpro Power Technology Co Ltd",
+    "slug": "zhejiang-sunpro-power-technology-co-ltd",
+    "panels_count": 172
+  },
+  {
+    "name": "PEIMAR",
+    "slug": "peimar",
+    "panels_count": 166
+  },
+  {
+    "name": "Aptos Solar Technology LLC",
+    "slug": "aptos-solar-technology-llc",
+    "panels_count": 164
+  },
+  {
+    "name": "Solar4America Technology Inc",
+    "slug": "solar4america-technology-inc",
+    "panels_count": 161
+  },
+  {
+    "name": "Philadelphia Solar",
+    "slug": "philadelphia-solar",
+    "panels_count": 158
+  },
+  {
+    "name": "Elin Energy (Sirius PV)",
+    "slug": "elin-energy-sirius-pv",
+    "panels_count": 152
+  },
+  {
+    "name": "PT IDN SOLAR TECH",
+    "slug": "pt-idn-solar-tech",
+    "panels_count": 152
+  },
+  {
+    "name": "Thornova Solar",
+    "slug": "thornova-solar",
+    "panels_count": 152
+  },
+  {
+    "name": "GermanSolar USA Inc",
+    "slug": "germansolar-usa-inc",
+    "panels_count": 149
+  },
+  {
+    "name": "Shanghai Aerospace Automobile Electromechanical Co Ltd",
+    "slug": "shanghai-aerospace-automobile-electromechanical-co-ltd",
+    "panels_count": 144
+  },
+  {
+    "name": "Suntech Power",
+    "slug": "suntech-power",
+    "panels_count": 133
+  },
+  {
+    "name": "Wuxi Suntech Power Co Ltd",
+    "slug": "wuxi-suntech-power-co-ltd",
+    "panels_count": 128
+  },
+  {
+    "name": "Seraphim Solar System CoLtd",
+    "slug": "seraphim-solar-system-coltd",
+    "panels_count": 127
+  },
+  {
+    "name": "GCL System Integration Technology Co Ltd",
+    "slug": "gcl-system-integration-technology-co-ltd",
+    "panels_count": 111
+  },
+  {
+    "name": "Hyperion Solar",
+    "slug": "hyperion-solar",
+    "panels_count": 108
+  },
+  {
+    "name": "SunPower",
+    "slug": "sunpower",
+    "panels_count": 107
+  },
+  {
+    "name": "CertainTeed",
+    "slug": "certainteed",
+    "panels_count": 106
+  },
+  {
+    "name": "New East Solar Energy (Cambodia) CoLtd",
+    "slug": "new-east-solar-energy-cambodia-coltd",
+    "panels_count": 106
+  },
+  {
+    "name": "SunSpark Technology Inc",
+    "slug": "sunspark-technology-inc",
+    "panels_count": 106
+  },
+  {
+    "name": "Chint New Energy Technology Co Ltd",
+    "slug": "chint-new-energy-technology-co-ltd",
+    "panels_count": 105
+  },
+  {
+    "name": "Solartech Energy",
+    "slug": "solartech-energy",
+    "panels_count": 104
+  },
+  {
+    "name": "Tangshan Haitai New Energy Technology Co Ltd",
+    "slug": "tangshan-haitai-new-energy-technology-co-ltd",
+    "panels_count": 101
+  },
+  {
+    "name": "Dehui Solar Power (Vietnam) CoLtd",
+    "slug": "dehui-solar-power-vietnam-coltd",
+    "panels_count": 98
+  },
+  {
+    "name": "HD HYUNDAI ENERGY SOLUTIONS CO LTD",
+    "slug": "hd-hyundai-energy-solutions-co-ltd",
+    "panels_count": 92
+  },
+  {
+    "name": "Topsun Co Ltd",
+    "slug": "topsun-co-ltd",
+    "panels_count": 88
+  },
+  {
+    "name": "Hengdian Group DMEGC Magnetics Co Ltd",
+    "slug": "hengdian-group-dmegc-magnetics-co-ltd",
+    "panels_count": 87
+  },
+  {
+    "name": "Prism Solar Technologies Inc",
+    "slug": "prism-solar-technologies-inc",
+    "panels_count": 86
+  },
+  {
+    "name": "Yingli Energy (China)",
+    "slug": "yingli-energy-china",
+    "panels_count": 85
+  },
+  {
+    "name": "RNG International Inc",
+    "slug": "rng-international-inc",
+    "panels_count": 83
+  },
+  {
+    "name": "Maxeon Solar Technologies Ltd",
+    "slug": "maxeon-solar-technologies-ltd",
+    "panels_count": 82
+  },
+  {
+    "name": "US Solar",
+    "slug": "us-solar",
+    "panels_count": 77
+  },
+  {
+    "name": "SOLEX ENERGY LTD",
+    "slug": "solex-energy-ltd",
+    "panels_count": 73
+  },
+  {
+    "name": "BYD Company Limited",
+    "slug": "byd-company-limited",
+    "panels_count": 70
+  },
+  {
+    "name": "Jiangsu Green Energy Power Technology Co Ltd",
+    "slug": "jiangsu-green-energy-power-technology-co-ltd",
+    "panels_count": 69
+  },
+  {
+    "name": "LOF SOLAR CORP",
+    "slug": "lof-solar-corp",
+    "panels_count": 68
+  },
+  {
+    "name": "Sun Gold Power Inc",
+    "slug": "sun-gold-power-inc",
+    "panels_count": 68
+  },
+  {
+    "name": "MSquare Energy Pty Ltd",
+    "slug": "msquare-energy-pty-ltd",
+    "panels_count": 66
+  },
+  {
+    "name": "Solarspace Technology Co Ltd",
+    "slug": "solarspace-technology-co-ltd",
+    "panels_count": 66
+  },
+  {
+    "name": "Anhui Rinengzhongtian Semiconductor Development",
+    "slug": "anhui-rinengzhongtian-semiconductor-development",
+    "panels_count": 65
+  },
+  {
+    "name": "Hanersun Energy Co Ltd",
+    "slug": "hanersun-energy-co-ltd",
+    "panels_count": 59
+  },
+  {
+    "name": "FreeVolt",
+    "slug": "freevolt",
+    "panels_count": 58
+  },
+  {
+    "name": "Win Win Precision Technology Co Ltd",
+    "slug": "win-win-precision-technology-co-ltd",
+    "panels_count": 58
+  },
+  {
+    "name": "Merlin Solar Technologies Inc",
+    "slug": "merlin-solar-technologies-inc",
+    "panels_count": 56
+  },
+  {
+    "name": "Renesola America",
+    "slug": "renesola-america",
+    "panels_count": 55
+  },
+  {
+    "name": "Shanghai ST Solar",
+    "slug": "shanghai-st-solar",
+    "panels_count": 55
+  },
+  {
+    "name": "TSEC",
+    "slug": "tsec",
+    "panels_count": 52
+  },
+  {
+    "name": "Amerisolar-Worldwide Energy and Manufacturing USA Co Ltd",
+    "slug": "amerisolar-worldwide-energy-and-manufacturing-usa-co-ltd",
+    "panels_count": 51
+  },
+  {
+    "name": "Lumos",
+    "slug": "lumos",
+    "panels_count": 50
+  },
+  {
+    "name": "Japan Solar (Infini Co Ltd)",
+    "slug": "japan-solar-infini-co-ltd",
+    "panels_count": 49
+  },
+  {
+    "name": "Advance Power",
+    "slug": "advance-power",
+    "panels_count": 48
+  },
+  {
+    "name": "ALTERNATIVE ENERGY (AE) SOLAR CO LTD",
+    "slug": "alternative-energy-ae-solar-co-ltd",
+    "panels_count": 48
+  },
+  {
+    "name": "Goldi Solar Private Limited",
+    "slug": "goldi-solar-private-limited",
+    "panels_count": 48
+  },
+  {
+    "name": "Meyer Burger (Industries) GmbH",
+    "slug": "meyer-burger-industries-gmbh",
+    "panels_count": 48
+  },
+  {
+    "name": "PT NUSA SOLAR INDONESIA",
+    "slug": "pt-nusa-solar-indonesia",
+    "panels_count": 48
+  },
+  {
+    "name": "Rayzon Solar Limited",
+    "slug": "rayzon-solar-limited",
+    "panels_count": 47
+  },
+  {
+    "name": "EMMVEE Photovoltaic Power Private Limited",
+    "slug": "emmvee-photovoltaic-power-private-limited",
+    "panels_count": 46
+  },
+  {
+    "name": "Wuxi Sunket New Energy Technology Co Ltd",
+    "slug": "wuxi-sunket-new-energy-technology-co-ltd",
+    "panels_count": 46
+  },
+  {
+    "name": "Chinaland Solar Energy",
+    "slug": "chinaland-solar-energy",
+    "panels_count": 45
+  },
+  {
+    "name": "Mitsubishi Electric",
+    "slug": "mitsubishi-electric",
+    "panels_count": 45
+  },
+  {
+    "name": "Solaria Corporation",
+    "slug": "solaria-corporation",
+    "panels_count": 45
+  },
+  {
+    "name": "Venus Energy Limited",
+    "slug": "venus-energy-limited",
+    "panels_count": 45
+  },
+  {
+    "name": "Jiangsu Xiehang New Energy Intelligent Equipment Co Ltd",
+    "slug": "jiangsu-xiehang-new-energy-intelligent-equipment-co-ltd",
+    "panels_count": 44
+  },
+  {
+    "name": "JOLYWOOD (TAIZHOU) SOLAR TECHNOLOGY CO LTD",
+    "slug": "jolywood-taizhou-solar-technology-co-ltd",
+    "panels_count": 44
+  },
+  {
+    "name": "Vikram Solar",
+    "slug": "vikram-solar",
+    "panels_count": 44
+  },
+  {
+    "name": "LENERGY POWER INC",
+    "slug": "lenergy-power-inc",
+    "panels_count": 42
+  },
+  {
+    "name": "Caterpillar Inc",
+    "slug": "caterpillar-inc",
+    "panels_count": 41
+  },
+  {
+    "name": "Lightway Green New Energy",
+    "slug": "lightway-green-new-energy",
+    "panels_count": 40
+  },
+  {
+    "name": "SolarJuice American Inc",
+    "slug": "solarjuice-american-inc",
+    "panels_count": 40
+  },
+  {
+    "name": "Sunpal Power Co Ltd",
+    "slug": "sunpal-power-co-ltd",
+    "panels_count": 40
+  },
+  {
+    "name": "TIDESOLAR PHILIPPINES CORPORATION",
+    "slug": "tidesolar-philippines-corporation",
+    "panels_count": 40
+  },
+  {
+    "name": "Mate Solar Co Ltd",
+    "slug": "mate-solar-co-ltd",
+    "panels_count": 39
+  },
+  {
+    "name": "Regitec Solar BV",
+    "slug": "regitec-solar-bv",
+    "panels_count": 38
+  },
+  {
+    "name": "Trina Solar CoLtd",
+    "slug": "trina-solar-coltd",
+    "panels_count": 38
+  },
+  {
+    "name": "AEG SOLAR ENERGY SRL",
+    "slug": "aeg-solar-energy-srl",
+    "panels_count": 36
+  },
+  {
+    "name": "WINAICO",
+    "slug": "winaico",
+    "panels_count": 36
+  },
+  {
+    "name": "La Solar LLC",
+    "slug": "la-solar-llc",
+    "panels_count": 35
+  },
+  {
+    "name": "Global Power Services LLC",
+    "slug": "global-power-services-llc",
+    "panels_count": 33
+  },
+  {
+    "name": "GOLDI SUN PRIVATE LIMITED",
+    "slug": "goldi-sun-private-limited",
+    "panels_count": 33
+  },
+  {
+    "name": "ES Foundry Corp",
+    "slug": "es-foundry-corp",
+    "panels_count": 32
+  },
+  {
+    "name": "Juli New Energy",
+    "slug": "juli-new-energy",
+    "panels_count": 32
+  },
+  {
+    "name": "APOS Energy",
+    "slug": "apos-energy",
+    "panels_count": 31
+  },
+  {
+    "name": "Eoplly New Energy Technology",
+    "slug": "eoplly-new-energy-technology",
+    "panels_count": 31
+  },
+  {
+    "name": "Bluesun Solar CoLtd",
+    "slug": "bluesun-solar-coltd",
+    "panels_count": 30
+  },
+  {
+    "name": "DONGGUAN SUNWORTH SOLAR ENERGY CO LTD",
+    "slug": "dongguan-sunworth-solar-energy-co-ltd",
+    "panels_count": 30
+  },
+  {
+    "name": "TOPCO SOLAR INC",
+    "slug": "topco-solar-inc",
+    "panels_count": 30
+  },
+  {
+    "name": "AMPS Solar",
+    "slug": "amps-solar",
+    "panels_count": 29
+  },
+  {
+    "name": "DualSun SAS",
+    "slug": "dualsun-sas",
+    "panels_count": 29
+  },
+  {
+    "name": "Recom",
+    "slug": "recom",
+    "panels_count": 28
+  },
+  {
+    "name": "SOLAREVER TECNOLOG A DE AMERICA SA DE CV",
+    "slug": "solarever-tecnolog-a-de-america-sa-de-cv",
+    "panels_count": 28
+  },
+  {
+    "name": "DEHUI SOLAR POWER INC",
+    "slug": "dehui-solar-power-inc",
+    "panels_count": 27
+  },
+  {
+    "name": "GermanSolar USA",
+    "slug": "germansolar-usa",
+    "panels_count": 27
+  },
+  {
+    "name": "Mitrex",
+    "slug": "mitrex",
+    "panels_count": 27
+  },
+  {
+    "name": "Shenglong PV-tech (Cambodia) Co LTD",
+    "slug": "shenglong-pv-tech-cambodia-co-ltd",
+    "panels_count": 27
+  },
+  {
+    "name": "Zebra Energy",
+    "slug": "zebra-energy",
+    "panels_count": 27
+  },
+  {
+    "name": "PREMIER ENERGIES PHOTOVOLTAIC PRIVATE Ltd",
+    "slug": "premier-energies-photovoltaic-private-ltd",
+    "panels_count": 26
+  },
+  {
+    "name": "Bila Solar Inc",
+    "slug": "bila-solar-inc",
+    "panels_count": 25
+  },
+  {
+    "name": "Bluesun Solar Energy Tech CoLtd",
+    "slug": "bluesun-solar-energy-tech-coltd",
+    "panels_count": 25
+  },
+  {
+    "name": "Hounen Solar America Inc",
+    "slug": "hounen-solar-america-inc",
+    "panels_count": 25
+  },
+  {
+    "name": "RECOM SILLIA",
+    "slug": "recom-sillia",
+    "panels_count": 25
+  },
+  {
+    "name": "Sinotec USA LLC",
+    "slug": "sinotec-usa-llc",
+    "panels_count": 25
+  },
+  {
+    "name": "Sungen Power LLC",
+    "slug": "sungen-power-llc",
+    "panels_count": 25
+  },
+  {
+    "name": "Sunny International Power",
+    "slug": "sunny-international-power",
+    "panels_count": 24
+  },
+  {
+    "name": "Tesla Inc",
+    "slug": "tesla-inc",
+    "panels_count": 24
+  },
+  {
+    "name": "IMPERIAL STAR SOLAR(CAMBODIA) CO LTD",
+    "slug": "imperial-star-solar-cambodia-co-ltd",
+    "panels_count": 23
+  },
+  {
+    "name": "SUNPLUS OPTIMUM LIMITED",
+    "slug": "sunplus-optimum-limited",
+    "panels_count": 23
+  },
+  {
+    "name": "Solar Frontier KK",
+    "slug": "solar-frontier-kk",
+    "panels_count": 22
+  },
+  {
+    "name": "Sunflare Co",
+    "slug": "sunflare-co",
+    "panels_count": 22
+  },
+  {
+    "name": "Shanghai Aerospace Automobile Electromechanical",
+    "slug": "shanghai-aerospace-automobile-electromechanical",
+    "panels_count": 21
+  },
+  {
+    "name": "Tata Power Renewables",
+    "slug": "tata-power-renewables",
+    "panels_count": 21
+  },
+  {
+    "name": "WYONE TRADING INC",
+    "slug": "wyone-trading-inc",
+    "panels_count": 21
+  },
+  {
+    "name": "Guangdong Golden Glass Technologies",
+    "slug": "guangdong-golden-glass-technologies",
+    "panels_count": 20
+  },
+  {
+    "name": "Orb Energy Private Limited",
+    "slug": "orb-energy-private-limited",
+    "panels_count": 20
+  },
+  {
+    "name": "Apollo Renewables Inc",
+    "slug": "apollo-renewables-inc",
+    "panels_count": 19
+  },
+  {
+    "name": "CHEN GUNES ENERJISI SANAYI VE TICARET LIMITED SIRKETI",
+    "slug": "chen-gunes-enerjisi-sanayi-ve-ticaret-limited-sirketi",
+    "panels_count": 19
+  },
+  {
+    "name": "LIGHT ENGINE ILUMINACAO SA",
+    "slug": "light-engine-iluminacao-sa",
+    "panels_count": 19
+  },
+  {
+    "name": "RECOM & Co Ltd",
+    "slug": "recom-co-ltd",
+    "panels_count": 19
+  },
+  {
+    "name": "Resun Solar Inc",
+    "slug": "resun-solar-inc",
+    "panels_count": 19
+  },
+  {
+    "name": "Star Solar Inc",
+    "slug": "star-solar-inc",
+    "panels_count": 19
+  },
+  {
+    "name": "Gautam Solar Pvt Ltd",
+    "slug": "gautam-solar-pvt-ltd",
+    "panels_count": 18
+  },
+  {
+    "name": "Mundra Solar PV Limited (Adani)",
+    "slug": "mundra-solar-pv-limited-adani",
+    "panels_count": 18
+  },
+  {
+    "name": "PANASONIC CORPORATION OF NORTH AMERICA",
+    "slug": "panasonic-corporation-of-north-america",
+    "panels_count": 18
+  },
+  {
+    "name": "PT SURYA PERTAMA INDONESIA",
+    "slug": "pt-surya-pertama-indonesia",
+    "panels_count": 18
+  },
+  {
+    "name": "SunEvo Solar Co Ltd",
+    "slug": "sunevo-solar-co-ltd",
+    "panels_count": 18
+  },
+  {
+    "name": "United Energy Co Ltd",
+    "slug": "united-energy-co-ltd",
+    "panels_count": 18
+  },
+  {
+    "name": "Next Energy Alliance LLC",
+    "slug": "next-energy-alliance-llc",
+    "panels_count": 17
+  },
+  {
+    "name": "Solarhome Tech Inc",
+    "slug": "solarhome-tech-inc",
+    "panels_count": 17
+  },
+  {
+    "name": "Convalt Manufacturing LLC",
+    "slug": "convalt-manufacturing-llc",
+    "panels_count": 16
+  },
+  {
+    "name": "Leapton Energy Co Ltd",
+    "slug": "leapton-energy-co-ltd",
+    "panels_count": 16
+  },
+  {
+    "name": "Energate Energy Inc",
+    "slug": "energate-energy-inc",
+    "panels_count": 15
+  },
+  {
+    "name": "Energate Enerji  retim San A",
+    "slug": "energate-enerji-retim-san-a",
+    "panels_count": 15
+  },
+  {
+    "name": "FS GREEN ENERGIES PRIVATE LIMITED",
+    "slug": "fs-green-energies-private-limited",
+    "panels_count": 15
+  },
+  {
+    "name": "Ningbo Victor Solar Technology Co Ltd",
+    "slug": "ningbo-victor-solar-technology-co-ltd",
+    "panels_count": 15
+  },
+  {
+    "name": "Saatvik Green Energy Limited",
+    "slug": "saatvik-green-energy-limited",
+    "panels_count": 15
+  },
+  {
+    "name": "Sunman (Zhenjiang) Co Ltd",
+    "slug": "sunman-zhenjiang-co-ltd",
+    "panels_count": 15
+  },
+  {
+    "name": "Suzhou Akcome Optronics Science & Technology Co Ltd",
+    "slug": "suzhou-akcome-optronics-science-technology-co-ltd",
+    "panels_count": 15
+  },
+  {
+    "name": "Translucent Solar LLC",
+    "slug": "translucent-solar-llc",
+    "panels_count": 15
+  },
+  {
+    "name": "Changzhou EGing Photovoltaic Technology Co Ltd",
+    "slug": "changzhou-eging-photovoltaic-technology-co-ltd",
+    "panels_count": 14
+  },
+  {
+    "name": "CW ENERJ  M HEND SL K T CARET VE SANAY  ANON M  RKET",
+    "slug": "cw-enerj-m-hend-sl-k-t-caret-ve-sanay-anon-m-rket",
+    "panels_count": 14
+  },
+  {
+    "name": "MAR SOLAR PANEL IMALATI VE ELEKTRIK URT DAG PRJ H Z SAN VE T C AS",
+    "slug": "mar-solar-panel-imalati-ve-elektrik-urt-dag-prj-h-z-san-ve-t-c-as",
+    "panels_count": 14
+  },
+  {
+    "name": "Nuuko Solar GmbH",
+    "slug": "nuuko-solar-gmbh",
+    "panels_count": 14
+  },
+  {
+    "name": "Reliance Industries Limited",
+    "slug": "reliance-industries-limited",
+    "panels_count": 14
+  },
+  {
+    "name": "Solarmax",
+    "slug": "solarmax",
+    "panels_count": 13
+  },
+  {
+    "name": "Toenergy Technology Hangzhou CoLtd",
+    "slug": "toenergy-technology-hangzhou-coltd",
+    "panels_count": 13
+  },
+  {
+    "name": "ASTORIOS Holding Inc",
+    "slug": "astorios-holding-inc",
+    "panels_count": 12
+  },
+  {
+    "name": "Energy America LLC",
+    "slug": "energy-america-llc",
+    "panels_count": 12
+  },
+  {
+    "name": "Flextronics",
+    "slug": "flextronics",
+    "panels_count": 12
+  },
+  {
+    "name": "LIGHT&HOPE ENERGY COLTD",
+    "slug": "light-hope-energy-coltd",
+    "panels_count": 12
+  },
+  {
+    "name": "SolarCity Corp",
+    "slug": "solarcity-corp",
+    "panels_count": 12
+  },
+  {
+    "name": "Sunrise Solartech",
+    "slug": "sunrise-solartech",
+    "panels_count": 12
+  },
+  {
+    "name": "Yingli Energy Development Co Ltd",
+    "slug": "yingli-energy-development-co-ltd",
+    "panels_count": 12
+  },
+  {
+    "name": "AE Solar GmbH",
+    "slug": "ae-solar-gmbh",
+    "panels_count": 11
+  },
+  {
+    "name": "Allesun Industries Inc",
+    "slug": "allesun-industries-inc",
+    "panels_count": 11
+  },
+  {
+    "name": "DE SOLAR(S) PTE LTD",
+    "slug": "de-solar-s-pte-ltd",
+    "panels_count": 11
+  },
+  {
+    "name": "Freedom Forever Procurement LLC",
+    "slug": "freedom-forever-procurement-llc",
+    "panels_count": 11
+  },
+  {
+    "name": "GAF Energy LLC",
+    "slug": "gaf-energy-llc",
+    "panels_count": 11
+  },
+  {
+    "name": "PT JAYA ELECTRICAL ENERGY",
+    "slug": "pt-jaya-electrical-energy",
+    "panels_count": 11
+  },
+  {
+    "name": "Tongwei Solar (Hefei)",
+    "slug": "tongwei-solar-hefei",
+    "panels_count": 11
+  },
+  {
+    "name": "Yotta Energy Inc",
+    "slug": "yotta-energy-inc",
+    "panels_count": 11
+  },
+  {
+    "name": "Anji Technology",
+    "slug": "anji-technology",
+    "panels_count": 10
+  },
+  {
+    "name": "Jetion Solar (China)",
+    "slug": "jetion-solar-china",
+    "panels_count": 10
+  },
+  {
+    "name": "Luxor Solar",
+    "slug": "luxor-solar",
+    "panels_count": 10
+  },
+  {
+    "name": "MECEN SOLAR VINA COLTD",
+    "slug": "mecen-solar-vina-coltd",
+    "panels_count": 10
+  },
+  {
+    "name": "Miasole",
+    "slug": "miasole",
+    "panels_count": 10
+  },
+  {
+    "name": "SKYCELL USA",
+    "slug": "skycell-usa",
+    "panels_count": 10
+  },
+  {
+    "name": "SOLAR LONG PV-TECH(CAMBODIA)COLTD",
+    "slug": "solar-long-pv-tech-cambodia-coltd",
+    "panels_count": 10
+  },
+  {
+    "name": "Solartech Power",
+    "slug": "solartech-power",
+    "panels_count": 10
+  },
+  {
+    "name": "SUNPLUS OPTIMUM INC",
+    "slug": "sunplus-optimum-inc",
+    "panels_count": 10
+  },
+  {
+    "name": "Xuzhou Futuresolar Co Ltd",
+    "slug": "xuzhou-futuresolar-co-ltd",
+    "panels_count": 10
+  },
+  {
+    "name": "Your Energy Solutions",
+    "slug": "your-energy-solutions",
+    "panels_count": 10
+  },
+  {
+    "name": "Du Pont Apollo",
+    "slug": "du-pont-apollo",
+    "panels_count": 9
+  },
+  {
+    "name": "DuCal Solar Technology LLC",
+    "slug": "ducal-solar-technology-llc",
+    "panels_count": 9
+  },
+  {
+    "name": "Gintech Energy",
+    "slug": "gintech-energy",
+    "panels_count": 9
+  },
+  {
+    "name": "Hanersun Technology Co Ltd",
+    "slug": "hanersun-technology-co-ltd",
+    "panels_count": 9
+  },
+  {
+    "name": "Jinzhou Jinmao Photovoltaic Technology",
+    "slug": "jinzhou-jinmao-photovoltaic-technology",
+    "panels_count": 9
+  },
+  {
+    "name": "Luxco",
+    "slug": "luxco",
+    "panels_count": 9
+  },
+  {
+    "name": "Magnus green solar LLC",
+    "slug": "magnus-green-solar-llc",
+    "panels_count": 9
+  },
+  {
+    "name": "Universal Solar Americas SA",
+    "slug": "universal-solar-americas-sa",
+    "panels_count": 9
+  },
+  {
+    "name": "Zetsol Energy Inc",
+    "slug": "zetsol-energy-inc",
+    "panels_count": 9
+  },
+  {
+    "name": "Alps Technology",
+    "slug": "alps-technology",
+    "panels_count": 8
+  },
+  {
+    "name": "Anhui Rinengzhongtian Semiconductor Development Co Ltd",
+    "slug": "anhui-rinengzhongtian-semiconductor-development-co-ltd",
+    "panels_count": 8
+  },
+  {
+    "name": "Applied Materials",
+    "slug": "applied-materials",
+    "panels_count": 8
+  },
+  {
+    "name": "BLUESUN GROUP LIMITED",
+    "slug": "bluesun-group-limited",
+    "panels_count": 8
+  },
+  {
+    "name": "Exiom Solution S A",
+    "slug": "exiom-solution-s-a",
+    "panels_count": 8
+  },
+  {
+    "name": "Optivolt Labs Inc",
+    "slug": "optivolt-labs-inc",
+    "panels_count": 8
+  },
+  {
+    "name": "Saatvik Green Energy (P) Limited",
+    "slug": "saatvik-green-energy-p-limited",
+    "panels_count": 8
+  },
+  {
+    "name": "Alexus Solar",
+    "slug": "alexus-solar",
+    "panels_count": 7
+  },
+  {
+    "name": "Changzhou Nesl Solartech",
+    "slug": "changzhou-nesl-solartech",
+    "panels_count": 7
+  },
+  {
+    "name": "Jetion Solar (China) CoLtd",
+    "slug": "jetion-solar-china-coltd",
+    "panels_count": 7
+  },
+  {
+    "name": "PT LESSO NEW ENERGY",
+    "slug": "pt-lesso-new-energy",
+    "panels_count": 7
+  },
+  {
+    "name": "Solarbest Energy-Tech (Zhejiang)",
+    "slug": "solarbest-energy-tech-zhejiang",
+    "panels_count": 7
+  },
+  {
+    "name": "Sonali Energees",
+    "slug": "sonali-energees",
+    "panels_count": 7
+  },
+  {
+    "name": "Grape Solar",
+    "slug": "grape-solar",
+    "panels_count": 6
+  },
+  {
+    "name": "Illuminate USA LLC",
+    "slug": "illuminate-usa-llc",
+    "panels_count": 6
+  },
+  {
+    "name": "Mateis Solar Corporation",
+    "slug": "mateis-solar-corporation",
+    "panels_count": 6
+  },
+  {
+    "name": "PowerShingle LLC",
+    "slug": "powershingle-llc",
+    "panels_count": 6
+  },
+  {
+    "name": "SOLAR UTILITIES INC",
+    "slug": "solar-utilities-inc",
+    "panels_count": 6
+  },
+  {
+    "name": "Zhongshan Ruike New Energy Co Ltd",
+    "slug": "zhongshan-ruike-new-energy-co-ltd",
+    "panels_count": 6
+  },
+  {
+    "name": "Ablytek",
+    "slug": "ablytek",
+    "panels_count": 5
+  },
+  {
+    "name": "Anji Dasol Solar Energy Science & Technology",
+    "slug": "anji-dasol-solar-energy-science-technology",
+    "panels_count": 5
+  },
+  {
+    "name": "Belinus Solar BV",
+    "slug": "belinus-solar-bv",
+    "panels_count": 5
+  },
+  {
+    "name": "Mundra Solar Energy Limited (Adani)",
+    "slug": "mundra-solar-energy-limited-adani",
+    "panels_count": 5
+  },
+  {
+    "name": "PT Deltamas Solusindo",
+    "slug": "pt-deltamas-solusindo",
+    "panels_count": 5
+  },
+  {
+    "name": "RSI Holding",
+    "slug": "rsi-holding",
+    "panels_count": 5
+  },
+  {
+    "name": "T-Solar Global",
+    "slug": "t-solar-global",
+    "panels_count": 5
+  },
+  {
+    "name": "Jackery Inc",
+    "slug": "jackery-inc",
+    "panels_count": 4
+  },
+  {
+    "name": "Jiangyin Hareon Power",
+    "slug": "jiangyin-hareon-power",
+    "panels_count": 4
+  },
+  {
+    "name": "Perlight Solar",
+    "slug": "perlight-solar",
+    "panels_count": 4
+  },
+  {
+    "name": "ReCreate",
+    "slug": "recreate",
+    "panels_count": 4
+  },
+  {
+    "name": "Solar Power (SPI)",
+    "slug": "solar-power-spi",
+    "panels_count": 4
+  },
+  {
+    "name": "AUO Corporation",
+    "slug": "auo-corporation",
+    "panels_count": 3
+  },
+  {
+    "name": "Greenlite Solar Canada",
+    "slug": "greenlite-solar-canada",
+    "panels_count": 3
+  },
+  {
+    "name": "Arka Energy Inc",
+    "slug": "arka-energy-inc",
+    "panels_count": 2
+  },
+  {
+    "name": "Enp Sonne Solar Technikk",
+    "slug": "enp-sonne-solar-technikk",
+    "panels_count": 2
+  },
+  {
+    "name": "Enphase Energy Inc",
+    "slug": "enphase-energy-inc",
+    "panels_count": 2
+  },
+  {
+    "name": "Ergosun Holdings LLC",
+    "slug": "ergosun-holdings-llc",
+    "panels_count": 2
+  },
+  {
+    "name": "GE Energy",
+    "slug": "ge-energy",
+    "panels_count": 2
+  },
+  {
+    "name": "Luma Resources LLC",
+    "slug": "luma-resources-llc",
+    "panels_count": 2
+  },
+  {
+    "name": "Perfect Source Technology",
+    "slug": "perfect-source-technology",
+    "panels_count": 2
+  },
+  {
+    "name": "Sharp",
+    "slug": "sharp",
+    "panels_count": 2
+  },
+  {
+    "name": "Solar Frame Solutions Inc",
+    "slug": "solar-frame-solutions-inc",
+    "panels_count": 2
+  },
+  {
+    "name": "Solar Liberty",
+    "slug": "solar-liberty",
+    "panels_count": 2
+  },
+  {
+    "name": "SUNSTYLE AG / LTD",
+    "slug": "sunstyle-ag-ltd",
+    "panels_count": 2
+  },
+  {
+    "name": "SunTegra",
+    "slug": "suntegra",
+    "panels_count": 2
+  },
+  {
+    "name": "Walters & Wolf Glass Co",
+    "slug": "walters-wolf-glass-co",
+    "panels_count": 2
+  },
+  {
+    "name": "Advanced Solar Power (Hangzhou)",
+    "slug": "advanced-solar-power-hangzhou",
+    "panels_count": 1
+  },
+  {
+    "name": "AIMS Power",
+    "slug": "aims-power",
+    "panels_count": 1
+  },
+  {
+    "name": "Bright Spot Solar LLC",
+    "slug": "bright-spot-solar-llc",
+    "panels_count": 1
+  },
+  {
+    "name": "Crossroads Solar",
+    "slug": "crossroads-solar",
+    "panels_count": 1
+  },
+  {
+    "name": "Exeltech",
+    "slug": "exeltech",
+    "panels_count": 1
+  },
+  {
+    "name": "GAF",
+    "slug": "gaf",
+    "panels_count": 1
+  },
+  {
+    "name": "Grenzebach Envelon GmbH",
+    "slug": "grenzebach-envelon-gmbh",
+    "panels_count": 1
+  },
+  {
+    "name": "HALEE Inc",
+    "slug": "halee-inc",
+    "panels_count": 1
+  },
+  {
+    "name": "Helios USA",
+    "slug": "helios-usa",
+    "panels_count": 1
+  },
+  {
+    "name": "Kaneka Corporation",
+    "slug": "kaneka-corporation",
+    "panels_count": 1
+  },
+  {
+    "name": "KB Solar LLC",
+    "slug": "kb-solar-llc",
+    "panels_count": 1
+  },
+  {
+    "name": "LUMA Resources",
+    "slug": "luma-resources",
+    "panels_count": 1
+  },
+  {
+    "name": "Messisolar New Energy Co Ltd",
+    "slug": "messisolar-new-energy-co-ltd",
+    "panels_count": 1
+  },
+  {
+    "name": "Midsummer AB",
+    "slug": "midsummer-ab",
+    "panels_count": 1
+  },
+  {
+    "name": "ONYX SOLAR ENERGY SL",
+    "slug": "onyx-solar-energy-sl",
+    "panels_count": 1
+  },
+  {
+    "name": "Over Easy Solar",
+    "slug": "over-easy-solar",
+    "panels_count": 1
+  },
+  {
+    "name": "Rare Manufacturing",
+    "slug": "rare-manufacturing",
+    "panels_count": 1
+  },
+  {
+    "name": "Solarbine",
+    "slug": "solarbine",
+    "panels_count": 1
+  },
+  {
+    "name": "SOLVIS doo",
+    "slug": "solvis-doo",
+    "panels_count": 1
+  },
+  {
+    "name": "Sova Solar Limited",
+    "slug": "sova-solar-limited",
+    "panels_count": 1
+  },
+  {
+    "name": "SunStyle",
+    "slug": "sunstyle",
+    "panels_count": 1
+  },
+  {
+    "name": "Toledo Solar Inc",
+    "slug": "toledo-solar-inc",
+    "panels_count": 1
+  },
+  {
+    "name": "Zhejiang Kingdom Solar Energy Technic",
+    "slug": "zhejiang-kingdom-solar-energy-technic",
+    "panels_count": 1
+  }
+]

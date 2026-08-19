@@ -1,0 +1,302 @@
+[
+  {
+    "brand": "JinkoSolar (晶科能源)",
+    "website": "https://www.jinkosolar.com",
+    "tech_support_email": "technicalsupport@jinkosolar.com",
+    "pan_request_email": "panfiles@jinkosolar.com",
+    "general_email": "info@jinkosolar.com",
+    "hq": "Shanghai, China / Global",
+    "portal_url": "https://www.jinkosolar.com/en/site/dwonload",
+    "notes": "Has dedicated global technical team for PVSyst PAN files. Very responsive to EPC and database requests."
+  },
+  {
+    "brand": "LONGi Solar (隆基绿能)",
+    "website": "https://www.longi.com",
+    "tech_support_email": "module-tech@longi.com",
+    "pan_request_email": "support-us@longi.com",
+    "general_email": "info@longi.com",
+    "hq": "Xi'an, China / Global",
+    "portal_url": "https://www.longi.com/en/download/",
+    "notes": "Official PVSyst PAN files package available from their global technical solutions center."
+  },
+  {
+    "brand": "Trina Solar (天合光能)",
+    "website": "https://www.trinasolar.com",
+    "tech_support_email": "TechnicalSupport.Global@trinasolar.com",
+    "pan_request_email": "techsupport.na@trinasolar.com",
+    "general_email": "trinacare@trinasolar.com",
+    "hq": "Changzhou, China / Global",
+    "portal_url": "https://www.trinasolar.com/en-glb/resources/downloads",
+    "notes": "Very active technical team; full Vertex N & Vertex S+ PAN and OND database available on request."
+  },
+  {
+    "brand": "JA Solar (晶澳科技)",
+    "website": "https://www.jasolar.com",
+    "tech_support_email": "service@jasolar.com",
+    "pan_request_email": "techsupport@jasolar.com",
+    "general_email": "sales@jasolar.com",
+    "hq": "Beijing, China / Global",
+    "portal_url": "https://www.jasolar.com/html/en/service/download/",
+    "notes": "DeepBlue 4.0 Pro series PAN files provided via customer service."
+  },
+  {
+    "brand": "Canadian Solar / CSI Solar (阿特斯)",
+    "website": "https://www.csisolar.com",
+    "tech_support_email": "technicalservice@csisolar.com",
+    "pan_request_email": "support@canadiansolar.com",
+    "general_email": "inquire.ca@csisolar.com",
+    "hq": "Guelph, Canada / Suzhou, China",
+    "portal_url": "https://www.csisolar.com/downloads/",
+    "notes": "TOPBiHiKu & HiKu7 PAN files maintained by Technical Service division."
+  },
+  {
+    "brand": "Hanwha Qcells (韩华Qcells)",
+    "website": "https://qcells.com",
+    "tech_support_email": "qcells-service@qcells.com",
+    "pan_request_email": "techsupport@qcells.com",
+    "general_email": "info@qcells.com",
+    "hq": "Seoul, South Korea / Thalheim, Germany",
+    "portal_url": "https://qcells.com/us/get-started/download-center",
+    "notes": "Q.TRON & Q.PEAK DUO series PAN files available on download center or via US/EU tech support."
+  },
+  {
+    "brand": "Astronergy / Chint Solar (正泰新能)",
+    "website": "https://www.astronergy.com",
+    "tech_support_email": "techsupport@astronergy.com",
+    "pan_request_email": "service.astronergy@chint.com",
+    "general_email": "info@astronergy.com",
+    "hq": "Hangzhou, China",
+    "portal_url": "https://www.astronergy.com/download-center",
+    "notes": "ASTRO N5/N7 TOPCon series files directly provided by pre-sales engineering."
+  },
+  {
+    "brand": "Tongwei Solar (通威太阳能)",
+    "website": "https://www.tw-solar.com",
+    "tech_support_email": "tw_techservice@tongwei.com",
+    "pan_request_email": "sales_twsolar@tongwei.com",
+    "general_email": "service@tongwei.com",
+    "hq": "Chengdu, China",
+    "portal_url": "https://www.tw-solar.com/en/down.html",
+    "notes": "TNC & THC HJT high efficiency series simulation files."
+  },
+  {
+    "brand": "Risen Energy (东方日升)",
+    "website": "https://www.risenenergy.com",
+    "tech_support_email": "techservice@risenenergy.com",
+    "pan_request_email": "info@risenenergy.com",
+    "general_email": "market@risenenergy.com",
+    "hq": "Ningbo, China",
+    "portal_url": "https://en.risenenergy.com/down/",
+    "notes": "Hyper-ion HJT 700W+ module PAN files available from product management."
+  },
+  {
+    "brand": "Huasun Energy (华晟新能源 - HJT 龙头)",
+    "website": "https://www.huasunsolar.com",
+    "tech_support_email": "technical.support@huasunsolar.com",
+    "pan_request_email": "sales@huasunsolar.com",
+    "general_email": "info@huasunsolar.com",
+    "hq": "Xuancheng, Anhui, China",
+    "portal_url": "https://www.huasunsolar.com/download",
+    "notes": "World leader in Heterojunction (HJT) 720W+ modules; very eager for international platform exposure."
+  },
+  {
+    "brand": "Aiko Solar (爱旭股份 - ABC 电池/组件)",
+    "website": "https://aikosolar.com",
+    "tech_support_email": "techsupport@aikosolar.com",
+    "pan_request_email": "service@aikosolar.com",
+    "general_email": "contact@aikosolar.com",
+    "hq": "Shenzhen, China",
+    "portal_url": "https://aikosolar.com/en/download-center/",
+    "notes": "All-Back-Contact (ABC) 24%+ efficiency modules; high international interest."
+  },
+  {
+    "brand": "SEG Solar Inc",
+    "website": "https://segsolar.com",
+    "tech_support_email": "tech@segsolar.com",
+    "pan_request_email": "support@segsolar.com",
+    "general_email": "info@segsolar.com",
+    "hq": "Houston, Texas, USA",
+    "portal_url": "https://segsolar.com/download",
+    "notes": "Yukon & Alpine series manufacturer; responsive US technical engineering team."
+  },
+  {
+    "brand": "REC Group (REC 太阳能)",
+    "website": "https://www.recgroup.com",
+    "tech_support_email": "techsupport.emea@recgroup.com",
+    "pan_request_email": "techsupport.us@recgroup.com",
+    "general_email": "post@recgroup.com",
+    "hq": "Oslo, Norway / Singapore",
+    "portal_url": "https://www.recgroup.com/en/downloads",
+    "notes": "Alpha Pure-R & Alpha Pure-RX HJT series; standard PVSyst PAN files package available."
+  },
+  {
+    "brand": "Maxeon Solar / SunPower",
+    "website": "https://maxeon.com",
+    "tech_support_email": "technicalsupport@maxeon.com",
+    "pan_request_email": "customers@maxeon.com",
+    "general_email": "info@maxeon.com",
+    "hq": "Singapore / San Jose, USA",
+    "portal_url": "https://maxeon.com/us/solar-panel-products/downloads",
+    "notes": "Maxeon 6/7 IBC modules and Performance 7 P-Series."
+  },
+  {
+    "brand": "Silfab Solar Inc",
+    "website": "https://silfabsolar.com",
+    "tech_support_email": "techsupport@silfabsolar.com",
+    "pan_request_email": "info@silfabsolar.com",
+    "general_email": "sales@silfabsolar.com",
+    "hq": "Toronto, Canada / Washington, USA",
+    "portal_url": "https://silfabsolar.com/downloads/",
+    "notes": "SIL Prime & Commercial series; US manufactured."
+  },
+  {
+    "brand": "Mission Solar Energy",
+    "website": "https://www.missionsolar.com",
+    "tech_support_email": "techsupport@missionsolar.com",
+    "pan_request_email": "info@missionsolar.com",
+    "general_email": "sales@missionsolar.com",
+    "hq": "San Antonio, Texas, USA",
+    "portal_url": "https://www.missionsolar.com/downloads/",
+    "notes": "MSE PERC 60/72 and TOPCon modules."
+  },
+  {
+    "brand": "Heliene Inc",
+    "website": "https://heliene.com",
+    "tech_support_email": "support@heliene.com",
+    "pan_request_email": "tech@heliene.com",
+    "general_email": "info@heliene.com",
+    "hq": "Sault Ste. Marie, Ontario, Canada / Minnesota, USA",
+    "portal_url": "https://heliene.com/downloads/",
+    "notes": "Leading North American module manufacturer."
+  },
+  {
+    "brand": "Hyundai Energy Solutions",
+    "website": "https://www.hyundai-es.co.kr",
+    "tech_support_email": "solar_tech@hyundai-es.co.kr",
+    "pan_request_email": "sales_solar@hyundai-es.co.kr",
+    "general_email": "info@hyundai-es.co.kr",
+    "hq": "Seoul, South Korea",
+    "portal_url": "https://www.hyundai-es.co.kr/en/support/download",
+    "notes": "Hyundai Shingled M6/M10 & TOPCon modules."
+  },
+  {
+    "brand": "Phono Solar (苏美达辉伦)",
+    "website": "https://www.phonosolar.com",
+    "tech_support_email": "tech@phonosolar.com",
+    "pan_request_email": "support@phonosolar.com",
+    "general_email": "info@phonosolar.com",
+    "hq": "Nanjing, China",
+    "portal_url": "https://www.phonosolar.com/download.html",
+    "notes": "Sumec Group subsidiary; Draco & TwinPlus series."
+  },
+  {
+    "brand": "Boviet Solar",
+    "website": "https://bovietsolar.com",
+    "tech_support_email": "techsupport@bovietsolar.com",
+    "pan_request_email": "info@bovietsolar.com",
+    "general_email": "sales@bovietsolar.com",
+    "hq": "Bac Giang, Vietnam / San Jose, USA",
+    "portal_url": "https://bovietsolar.com/download-center/",
+    "notes": "Vega & Gamma series N-type TOPCon modules."
+  },
+  {
+    "brand": "Aptos Solar Technology",
+    "website": "https://www.aptossolar.com",
+    "tech_support_email": "techsupport@aptossolar.com",
+    "pan_request_email": "info@aptossolar.com",
+    "general_email": "sales@aptossolar.com",
+    "hq": "Irvine, California, USA",
+    "portal_url": "https://www.aptossolar.com/downloads",
+    "notes": "DNA split cell solar modules."
+  },
+  {
+    "brand": "Suntech Power (无锡尚德)",
+    "website": "https://www.suntech-power.com",
+    "tech_support_email": "services@suntech-power.com",
+    "pan_request_email": "technical@suntech-power.com",
+    "general_email": "sales@suntech-power.com",
+    "hq": "Wuxi, China",
+    "portal_url": "https://www.suntech-power.com/download.html",
+    "notes": "Ultra V & Ultra X series."
+  },
+  {
+    "brand": "Seraphim Solar (赛拉弗)",
+    "website": "https://www.seraphim-energy.com",
+    "tech_support_email": "tech@seraphim-energy.com",
+    "pan_request_email": "info@seraphim-energy.com",
+    "general_email": "contact@seraphim-energy.com",
+    "hq": "Changzhou, China",
+    "portal_url": "https://www.seraphim-energy.com/downloads",
+    "notes": "Blade & S4/S5 N-TOPCon series."
+  },
+  {
+    "brand": "Talesun Solar (腾晖光伏)",
+    "website": "https://www.talesun.com",
+    "tech_support_email": "support@talesun.com",
+    "pan_request_email": "techservice@talesun.com",
+    "general_email": "sales@talesun.com",
+    "hq": "Suzhou, China",
+    "portal_url": "https://www.talesun.com/downloads",
+    "notes": "Bistar & Feistar series."
+  },
+  {
+    "brand": "AXITEC Solar",
+    "website": "https://www.axitecsolar.com",
+    "tech_support_email": "energy@axitecsolar.com",
+    "pan_request_email": "tech@axitecsolar.com",
+    "general_email": "info@axitecsolar.com",
+    "hq": "Boeblingen, Germany",
+    "portal_url": "https://www.axitecsolar.com/en/downloads",
+    "notes": "AXIperfect & AXIpremium German engineered modules."
+  },
+  {
+    "brand": "AE Solar GmbH",
+    "website": "https://ae-solar.com",
+    "tech_support_email": "service@ae-solar.com",
+    "pan_request_email": "tech@ae-solar.com",
+    "general_email": "info@ae-solar.com",
+    "hq": "Koenigsbrunn, Germany",
+    "portal_url": "https://ae-solar.com/downloads/",
+    "notes": "Aurora & Eclipse series; hot-spot free shading resistant modules."
+  },
+  {
+    "brand": "ZNSHINE Solar",
+    "website": "https://znshinesolar.com",
+    "tech_support_email": "tech@znshinesolar.com",
+    "pan_request_email": "info@znshinesolar.com",
+    "general_email": "sales@znshinesolar.com",
+    "hq": "Changzhou, China / Tokyo, Japan",
+    "portal_url": "https://znshinesolar.com/download-center/",
+    "notes": "Graphene coated self-cleaning PV modules."
+  },
+  {
+    "brand": "Runergy (润阳股份)",
+    "website": "https://www.runergy.com",
+    "tech_support_email": "techsupport@runergy.com",
+    "pan_request_email": "service@runergy.com",
+    "general_email": "info@runergy.com",
+    "hq": "Yancheng, Jiangsu, China",
+    "portal_url": "https://www.runergy.com/download",
+    "notes": "Hyperion N-type TOPCon bifacial modules."
+  },
+  {
+    "brand": "DAS Solar (一道新能)",
+    "website": "https://www.das-solar.com",
+    "tech_support_email": "service@das-solar.com",
+    "pan_request_email": "tech@das-solar.com",
+    "general_email": "info@das-solar.com",
+    "hq": "Quzhou, Zhejiang, China",
+    "portal_url": "https://www.das-solar.com/download",
+    "notes": "N-type TOPCon 3.0 Plus modules & lightweight flexible PV."
+  },
+  {
+    "brand": "DMEGC Solar (东磁太阳能)",
+    "website": "https://www.dmegcsolar.com",
+    "tech_support_email": "solar.service@dmegc.com.cn",
+    "pan_request_email": "tech@dmegcsolar.com",
+    "general_email": "solar@dmegc.com.cn",
+    "hq": "Dongyang, Zhejiang, China",
+    "portal_url": "https://www.dmegcsolar.com/download.html",
+    "notes": "Infinity N-type RT & Commercial series."
+  }
+]
