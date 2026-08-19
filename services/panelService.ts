@@ -10,11 +10,22 @@ const PAGE_SIZE = 24;
 export async function fetchBrands(): Promise<Brand[]> {
   const { data, error } = await supabase
     .from('brands')
-    .select('id, name, slug, tier_rating')
+    .select('id, name, slug, tier_rating, solar_panels(count)')
     .order('name');
 
   if (error) throw error;
-  return (data ?? []) as Brand[];
+
+  // Filter only brands that actually manufacture solar panels
+  const panelBrands = (data ?? [])
+    .filter((b: any) => b.solar_panels && b.solar_panels[0]?.count > 0)
+    .map((b: any) => ({
+      id: b.id,
+      name: b.name,
+      slug: b.slug,
+      tier_rating: b.tier_rating,
+    }));
+
+  return panelBrands as Brand[];
 }
 
 // ---------------------------------------------------------------------------

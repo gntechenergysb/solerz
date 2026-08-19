@@ -111,9 +111,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
               Reset filters
             </button>
           )}
-          <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
-            {totalResults.toLocaleString()} panels
-          </span>
+          {hasActiveFilters ? (
+            <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+              {totalResults.toLocaleString()} matching
+            </span>
+          ) : (
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+              Verified Catalog
+            </span>
+          )}
         </div>
       </div>
     </div>
