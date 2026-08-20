@@ -1,5 +1,6 @@
 /robots.txt    /robots.txt    200
 /sitemap.xml    /sitemap.xml    200
+/sitemaps/*     /sitemaps/:splat 200
 /solar-panels/* /solar-panels/:splat 200
 /inverters/*    /inverters/:splat    200
 /batteries/*    /batteries/:splat    200

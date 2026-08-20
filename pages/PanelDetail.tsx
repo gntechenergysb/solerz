@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeft,
   Zap,
   Thermometer,
-  Layers,
+  CircuitBoard,
   Ruler,
   Shield,
-  CircuitBoard,
+  Layers,
+  ArrowLeft,
+  Scale,
+  Sparkles,
+  ChevronRight,
   Sun,
 } from 'lucide-react';
-import { fetchPanelBySlug } from '../services/panelService';
+import { fetchPanelBySlug, fetchCompetitorComparisons, type CompetitorComparison } from '../services/panelService';
 import type { SolarPanelDetail } from '../types';
 
 /** Maps DB technol codes to human-readable labels */
@@ -105,6 +108,7 @@ const PanelDetailPage: React.FC = () => {
   const [panel, setPanel] = useState<SolarPanelDetail | null>(initialPanel);
   const [loading, setLoading] = useState(!initialPanel);
   const [notFound, setNotFound] = useState(false);
+  const [competitors, setCompetitors] = useState<CompetitorComparison[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -121,6 +125,10 @@ const PanelDetailPage: React.FC = () => {
           setNotFound(true);
         } else {
           setPanel(data);
+          // Fetch competitor comparisons in the same wattage bracket
+          fetchCompetitorComparisons(data)
+            .then(setCompetitors)
+            .catch(() => setCompetitors([]));
         }
       })
       .catch(() => setNotFound(true))
@@ -329,6 +337,79 @@ const PanelDetailPage: React.FC = () => {
           />
         </div>
       </Section>
+
+      {/* ================================================================= */}
+      {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}
+      {/* ================================================================= */}
+      {competitors.length > 0 && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/10 dark:text-amber-400">
+                <Scale className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  Top Rival Comparisons
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    ±20W Direct Competitors
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Compare {panel.model_name} side-by-side with rival modules in the same wattage class
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {competitors.map(({ competitor, compareUrl }) => {
+              const pDiff = Math.round(competitor.pnom_w - panel.pnom_w);
+              const pDiffLabel = pDiff === 0 ? 'Exact Match' : (pDiff > 0 ? `+${pDiff}W` : `${pDiff}W`);
+              
+              return (
+                <Link
+                  key={competitor.id}
+                  to={compareUrl}
+                  className="group relative flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-500 dark:text-slate-400 shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                      VS
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500 block truncate">
+                        {competitor.brand_name}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                        {competitor.model_name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {Math.round(competitor.pnom_w)}W
+                        </span>
+                        <span>•</span>
+                        <span>{competitor.module_efficiency_pct?.toFixed(1)}% Eff</span>
+                        <span>•</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${pDiff === 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : (pDiff > 0 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400')}`}>
+                          {pDiffLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 pl-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 dark:text-slate-300 transition-all">
+                      Compare
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Spacer for bottom padding */}
       <div className="h-4" />

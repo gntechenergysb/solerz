@@ -111,3 +111,39 @@ export async function fetchPanelBySlug(
   }
   return data as SolarPanelDetail;
 }
+
+// ---------------------------------------------------------------------------
+// Direct Competitor Comparisons (Programmatic SEO & Interlinking)
+// ---------------------------------------------------------------------------
+
+export interface CompetitorComparison {
+  competitor: SolarPanelSummary;
+  compareUrl: string;
+}
+
+export async function fetchCompetitorComparisons(
+  currentPanel: SolarPanelDetail
+): Promise<CompetitorComparison[]> {
+  const minP = Math.max(0, Math.round(currentPanel.pnom_w - 20));
+  const maxP = Math.round(currentPanel.pnom_w + 20);
+
+  const { data, error } = await supabase
+    .from('v_solar_panels_summary')
+    .select('*')
+    .neq('brand_id', currentPanel.brand_id)
+    .gte('pnom_w', minP)
+    .lte('pnom_w', maxP)
+    .order('pnom_w', { ascending: false })
+    .limit(6);
+
+  if (error || !data) return [];
+
+  return data.map((comp: any) => {
+    const sortedSlugs = [currentPanel.slug, comp.slug].sort().join('-vs-');
+    return {
+      competitor: comp as SolarPanelSummary,
+      compareUrl: `/compare/${sortedSlugs}`,
+    };
+  });
+}
+
