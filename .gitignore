@@ -7,16 +7,45 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Build artifacts
 node_modules
 dist
 dist-ssr
+dist-admin
 *.local
 .env*
 !.env.example
 
-# Large Data files & database pipeline scripts
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Internal Python tools & ingestion engines (Keep private)
+*.py
+
+# Database schema files & SQL scripts (Keep private)
+*.sql
+
+# Data dumps, spreadsheets & raw catalogs (Keep private)
 *.csv
-import_*.py
+*.tsv
+*.pan
+*.OND
+*.pdf
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!hooks.json
+!mcp_config.json
+
+# Internal tools directory
 tools/
 scripts/
 
