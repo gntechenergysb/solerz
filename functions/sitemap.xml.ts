@@ -17,6 +17,13 @@ export const onRequest: PagesFunction<Env> = async ({ request }) => {
     `${origin}/sitemaps/compare-panels-3.xml`,
     `${origin}/sitemaps/compare-panels-4.xml`,
     `${origin}/sitemaps/compare-panels-5.xml`,
+    `${origin}/sitemaps/compare-panels-6.xml`,
+    `${origin}/sitemaps/compare-panels-7.xml`,
+    `${origin}/sitemaps/compare-panels-8.xml`,
+    `${origin}/sitemaps/compare-panels-9.xml`,
+    `${origin}/sitemaps/compare-panels-10.xml`,
+    `${origin}/sitemaps/compare-panels-11.xml`,
+    `${origin}/sitemaps/compare-panels-12.xml`,
     `${origin}/sitemaps/compare-inverters.xml`,
     `${origin}/sitemaps/compare-batteries.xml`,
   ];

@@ -182,38 +182,83 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   }
 
   // -------------------------------------------------------------------------
-  // 6. Versus-Style Solar Panels Comparisons Matrix (Massive Expansion)
+  // 6. Versus-Style Solar Panels Comparisons Matrix (100k+ Super Matrix)
   // -------------------------------------------------------------------------
   else if (name.startsWith('compare-panels')) {
-    const isBatch1 = name === 'compare-panels-1'; // Utility 540W ~ 735W
-    const isBatch2 = name === 'compare-panels-2'; // Commercial 460W ~ 535W
-    const isBatch3 = name === 'compare-panels-3'; // Residential 400W ~ 455W
-    const isBatch4 = name === 'compare-panels-4'; // Small/Off-grid 300W ~ 395W
-    const isBatch5 = name === 'compare-panels-5'; // Cross-Wattage Battles (e.g. 700W vs 650W, 600W vs 550W)
-
     if (supabaseUrl && supabaseKey) {
-      if (isBatch5) {
-        // Cross-Wattage Major Battles (Versus.com style)
-        const crossPairs = [
-          [700, 650],
-          [680, 630],
-          [650, 600],
-          [600, 550],
-          [585, 550],
-          [550, 500],
-          [500, 450],
-          [450, 400],
-        ];
+      // 1) Direct Wattage Brackets (Batches 1 ~ 7)
+      const bracketMap: Record<string, number[]> = {
+        'compare-panels-1': [600, 620, 650, 660, 670, 680, 690, 700, 715, 730, 740, 750, 755], // 600W ~ 755W Utility Superheavy
+        'compare-panels-2': [540, 545, 550, 555, 560, 565, 570, 575, 580, 585, 590, 595],       // 540W ~ 595W Utility Standard
+        'compare-panels-3': [480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535],       // 480W ~ 535W C&I Mid
+        'compare-panels-4': [420, 425, 430, 435, 440, 445, 450, 455, 460, 465, 470, 475],       // 420W ~ 475W Residential High
+        'compare-panels-5': [360, 365, 370, 375, 380, 385, 390, 395, 400, 405, 410, 415],       // 360W ~ 415W Residential Standard
+        'compare-panels-6': [300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 350, 355],       // 300W ~ 355W Small/Commercial
+        'compare-panels-7': [100, 150, 180, 200, 220, 240, 250, 260, 270, 280, 290, 295],       // 100W ~ 295W Offgrid/Legacy
+      };
+
+      if (bracketMap[name]) {
+        const brackets = bracketMap[name];
+        for (const w of brackets) {
+          try {
+            const res = await fetch(
+              `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${w - 4}&pnom_w=lte.${w + 4}&order=module_efficiency_pct.desc.nullslast&limit=40`,
+              {
+                headers: {
+                  apikey: supabaseKey,
+                  Authorization: `Bearer ${supabaseKey}`,
+                  Accept: 'application/json',
+                },
+              }
+            );
+            if (res.ok) {
+              const list = (await res.json().catch(() => [])) as SimpleRow[];
+              for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                  if (list[i].brand_id !== list[j].brand_id) {
+                    const pairSlug = [list[i].slug, list[j].slug].sort().join('-vs-');
+                    addUrl(`${origin}/compare/${pairSlug}`, nowIso, 'weekly', '0.7');
+                  }
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+
+      // 2) Cross-Wattage Major Battles (Batches 8 ~ 10)
+      else if (name === 'compare-panels-8' || name === 'compare-panels-9' || name === 'compare-panels-10') {
+        const crossPairs =
+          name === 'compare-panels-8'
+            ? [
+                [750, 700], [700, 650], [680, 630], [650, 600], [620, 580],
+                [600, 550], [580, 540], [550, 500], [540, 480], [500, 450],
+              ]
+            : name === 'compare-panels-9'
+            ? [
+                [550, 400], [550, 450], [500, 400], [480, 400], [450, 400],
+                [450, 350], [420, 350], [400, 350], [400, 300], [350, 300],
+              ]
+            : [
+                [700, 500], [700, 400], [650, 500], [650, 400], [600, 450],
+                [600, 400], [600, 350], [550, 350], [550, 300], [500, 250],
+              ];
 
         for (const [wA, wB] of crossPairs) {
           try {
             const [resA, resB] = await Promise.all([
-              fetch(`${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${wA - 5}&pnom_w=lte.${wA + 5}&order=module_efficiency_pct.desc.nullslast&limit=25`, {
-                headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
-              }),
-              fetch(`${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${wB - 5}&pnom_w=lte.${wB + 5}&order=module_efficiency_pct.desc.nullslast&limit=25`, {
-                headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
-              }),
+              fetch(
+                `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${wA - 5}&pnom_w=lte.${wA + 5}&order=module_efficiency_pct.desc.nullslast&limit=35`,
+                {
+                  headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
+                }
+              ),
+              fetch(
+                `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${wB - 5}&pnom_w=lte.${wB + 5}&order=module_efficiency_pct.desc.nullslast&limit=35`,
+                {
+                  headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
+                }
+              ),
             ]);
 
             if (resA.ok && resB.ok) {
@@ -231,19 +276,15 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
             }
           } catch {}
         }
-      } else {
-        const brackets = isBatch1
-          ? [540, 545, 550, 555, 560, 570, 575, 580, 585, 590, 600, 620, 650, 660, 670, 700, 715, 730]
-          : isBatch2
-          ? [460, 465, 470, 475, 480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535]
-          : isBatch3
-          ? [400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455]
-          : [300, 310, 320, 330, 340, 350, 360, 370, 380, 390];
+      }
 
-        for (const w of brackets) {
+      // 3) Global Tier-1 Brand Battles (Batch 11)
+      else if (name === 'compare-panels-11') {
+        const brandWattages = [700, 660, 600, 580, 550, 500, 450, 430, 410, 400];
+        for (const w of brandWattages) {
           try {
             const res = await fetch(
-              `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${w - 5}&pnom_w=lte.${w + 5}&order=module_efficiency_pct.desc.nullslast&limit=30`,
+              `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${w - 10}&pnom_w=lte.${w + 10}&order=pnom_w.desc&limit=45`,
               {
                 headers: {
                   apikey: supabaseKey,
@@ -258,6 +299,43 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
                 for (let j = i + 1; j < list.length; j++) {
                   if (list[i].brand_id !== list[j].brand_id) {
                     const pairSlug = [list[i].slug, list[j].slug].sort().join('-vs-');
+                    addUrl(`${origin}/compare/${pairSlug}`, nowIso, 'weekly', '0.7');
+                  }
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+
+      // 4) Bifacial vs Monofacial Cross-Architecture Battles (Batch 12)
+      else if (name === 'compare-panels-12') {
+        const techWattages = [680, 650, 620, 590, 570, 540, 520, 480, 440, 420, 380];
+        for (const w of techWattages) {
+          try {
+            const [resBifacial, resMono] = await Promise.all([
+              fetch(
+                `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&is_bifacial=eq.true&pnom_w=gte.${w - 8}&pnom_w=lte.${w + 8}&limit=35`,
+                {
+                  headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
+                }
+              ),
+              fetch(
+                `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&is_bifacial=eq.false&pnom_w=gte.${w - 8}&pnom_w=lte.${w + 8}&limit=35`,
+                {
+                  headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
+                }
+              ),
+            ]);
+
+            if (resBifacial.ok && resMono.ok) {
+              const listA = (await resBifacial.json().catch(() => [])) as SimpleRow[];
+              const listB = (await resMono.json().catch(() => [])) as SimpleRow[];
+
+              for (const a of listA) {
+                for (const b of listB) {
+                  if (a.brand_id !== b.brand_id && a.slug !== b.slug) {
+                    const pairSlug = [a.slug, b.slug].sort().join('-vs-');
                     addUrl(`${origin}/compare/${pairSlug}`, nowIso, 'weekly', '0.7');
                   }
                 }
