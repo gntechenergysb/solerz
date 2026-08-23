@@ -50,6 +50,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   // -------------------------------------------------------------------------
   if (name === 'core') {
     addUrl(`${origin}/`, nowIso, 'daily', '1.0');
+    addUrl(`${origin}/calculator`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/solar-panels`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/batteries`, nowIso, 'daily', '0.9');

@@ -47,6 +47,7 @@ const Navbar: React.FC = () => {
 
   const navLinks = [
     { path: '/', label: 'Home', exact: true },
+    { path: '/calculator', label: 'System Sizer' },
     { path: '/solar-panels', label: 'Solar Panels' },
     { path: '/inverters', label: 'Inverters' },
     { path: '/batteries', label: 'Batteries' },

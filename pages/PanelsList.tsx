@@ -10,6 +10,13 @@ import ComparisonTray from '../components/ComparisonTray';
 
 const PAGE_SIZE = 24;
 
+const DEFAULT_FILTERS: PanelFilters = {
+  search: '',
+  brandId: '',
+  powerRange: 'all',
+  bifacialOnly: false,
+};
+
 const PanelsList: React.FC = () => {
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
@@ -19,10 +26,8 @@ const PanelsList: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<PanelFilters>({
+    ...DEFAULT_FILTERS,
     search: initialSearch,
-    brandId: '',
-    powerRange: 'all',
-    bifacialOnly: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -15,6 +15,7 @@ const InverterComparePage = React.lazy(() => import('./pages/InverterComparePage
 const BatteryComparePage = React.lazy(() => import('./pages/BatteryComparePage'));
 const BrandsList = React.lazy(() => import('./pages/BrandsList'));
 const BrandDetail = React.lazy(() => import('./pages/BrandDetail'));
+const SolarCalculatorPage = React.lazy(() => import('./pages/SolarCalculatorPage'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
@@ -34,6 +35,10 @@ const App: React.FC = () => {
               <Routes>
                 {/* Homepage — lightweight landing */}
                 <Route path="/" element={<HomePage />} />
+
+                {/* Solar System Sizer & Calculator */}
+                <Route path="/calculator" element={<SolarCalculatorPage />} />
+                <Route path="/system-sizer" element={<SolarCalculatorPage />} />
 
                 {/* Solar Panels */}
                 <Route path="/solar-panels" element={<PanelsList />} />
