@@ -15,8 +15,9 @@ import {
   Box,
   Scale,
   Award,
+  ChevronRight,
 } from 'lucide-react';
-import { fetchBatteryBySlug, fetchRelatedBatteries } from '../services/batteryService';
+import { fetchBatteryBySlug, fetchRelatedBatteries, fetchBatteryCompetitorComparisons, type BatteryCompetitorComparison } from '../services/batteryService';
 import type { BatteryDetail, BatterySummary } from '../types';
 import { useCompare } from '../contexts/CompareContext';
 import BatteryCard from '../components/BatteryCard';
@@ -99,6 +100,7 @@ const BatteryDetailPage: React.FC = () => {
 
   const [battery, setBattery] = useState<BatteryDetail | null>(initialBattery);
   const [related, setRelated] = useState<BatterySummary[]>([]);
+  const [competitors, setCompetitors] = useState<BatteryCompetitorComparison[]>([]);
   const [loading, setLoading] = useState(!initialBattery);
   const [notFound, setNotFound] = useState(false);
 
@@ -119,6 +121,9 @@ const BatteryDetailPage: React.FC = () => {
         else {
           setBattery(data);
           fetchRelatedBatteries(data, 4).then(setRelated);
+          fetchBatteryCompetitorComparisons(data)
+            .then(setCompetitors)
+            .catch(() => setCompetitors([]));
         }
       })
       .catch(() => setNotFound(true))
@@ -353,6 +358,79 @@ const BatteryDetailPage: React.FC = () => {
           <SpecRow label="Safety Standards & Certs" value={battery.certifications || 'UL 9540, UL 9540A, CE'} />
         </SectionCard>
       </div>
+
+      {/* ================================================================= */}
+      {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}
+      {/* ================================================================= */}
+      {competitors.length > 0 && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 dark:bg-purple-400/10 dark:text-purple-400">
+                <Scale className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  Top Rival Comparisons
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                    Similar Capacity Tier
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Compare {battery.model_name} side-by-side with rival storage systems in the same usable capacity tier
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {competitors.map(({ competitor, compareUrl }) => {
+              const capDiff = (competitor.usable_capacity_kwh - battery.usable_capacity_kwh);
+              const capDiffLabel = Math.abs(capDiff) < 0.2 ? 'Exact Match' : (capDiff > 0 ? `+${capDiff.toFixed(1)}kWh` : `${capDiff.toFixed(1)}kWh`);
+              
+              return (
+                <Link
+                  key={competitor.id}
+                  to={compareUrl}
+                  className="group relative flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-purple-500/50 dark:hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 transition-all"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-500 dark:text-slate-400 shrink-0 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                      VS
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500 block truncate">
+                        {competitor.brand_name}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors truncate">
+                        {competitor.model_name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {competitor.usable_capacity_kwh.toFixed(1)} kWh Usable
+                        </span>
+                        <span>•</span>
+                        <span>{competitor.continuous_power_kw ? `${competitor.continuous_power_kw}kW` : 'BESS'}</span>
+                        <span>•</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${Math.abs(capDiff) < 0.2 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : (capDiff > 0 ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400')}`}>
+                          {capDiffLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 pl-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-purple-600 group-hover:text-white text-slate-700 dark:text-slate-300 transition-all">
+                      Compare
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Related Batteries Recommendations */}
       {related.length > 0 && (

@@ -7,6 +7,7 @@ export const onRequest: PagesFunction<Env> = async ({ request }) => {
 
   const subSitemaps = [
     `${origin}/sitemaps/core.xml`,
+    `${origin}/sitemaps/brands.xml`,
     `${origin}/sitemaps/panels-1.xml`,
     `${origin}/sitemaps/panels-2.xml`,
     `${origin}/sitemaps/inverters.xml`,
@@ -14,6 +15,8 @@ export const onRequest: PagesFunction<Env> = async ({ request }) => {
     `${origin}/sitemaps/compare-panels-1.xml`,
     `${origin}/sitemaps/compare-panels-2.xml`,
     `${origin}/sitemaps/compare-panels-3.xml`,
+    `${origin}/sitemaps/compare-panels-4.xml`,
+    `${origin}/sitemaps/compare-panels-5.xml`,
     `${origin}/sitemaps/compare-inverters.xml`,
     `${origin}/sitemaps/compare-batteries.xml`,
   ];

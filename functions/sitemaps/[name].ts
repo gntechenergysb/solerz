@@ -53,10 +53,37 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     addUrl(`${origin}/solar-panels`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/batteries`, nowIso, 'daily', '0.9');
+    addUrl(`${origin}/brands`, nowIso, 'daily', '0.9');
   }
 
   // -------------------------------------------------------------------------
-  // 2. Solar Panels Catalog (Paginated by 15k)
+  // 2. Global 437 Brands Hubs
+  // -------------------------------------------------------------------------
+  else if (name === 'brands') {
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const res = await fetch(
+          `${supabaseUrl}/rest/v1/brands?select=slug,created_at&order=name.asc&limit=1000`,
+          {
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+              Accept: 'application/json',
+            },
+          }
+        );
+        if (res.ok) {
+          const rows = (await res.json().catch(() => [])) as SimpleRow[];
+          for (const r of rows) {
+            addUrl(`${origin}/brands/${r.slug}`, nowIso, 'weekly', '0.8');
+          }
+        }
+      } catch {}
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 3. Solar Panels Catalog (Paginated by 12k)
   // -------------------------------------------------------------------------
   else if (name === 'panels' || name === 'panels-1' || name === 'panels-2') {
     const offset = name === 'panels-2' ? 12000 : 0;
@@ -101,7 +128,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   }
 
   // -------------------------------------------------------------------------
-  // 3. Inverters Catalog
+  // 4. Inverters Catalog
   // -------------------------------------------------------------------------
   else if (name === 'inverters') {
     if (supabaseUrl && supabaseKey) {
@@ -128,7 +155,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   }
 
   // -------------------------------------------------------------------------
-  // 4. Battery Storage Systems Catalog
+  // 5. Battery Storage Systems Catalog
   // -------------------------------------------------------------------------
   else if (name === 'batteries') {
     if (supabaseUrl && supabaseKey) {
@@ -155,51 +182,95 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   }
 
   // -------------------------------------------------------------------------
-  // 5. High-Impact Solar Panel Comparisons Matrix (Top Wattage Brackets)
+  // 6. Versus-Style Solar Panels Comparisons Matrix (Massive Expansion)
   // -------------------------------------------------------------------------
   else if (name.startsWith('compare-panels')) {
-    const isBatch2 = name === 'compare-panels-2';
-    const isBatch3 = name === 'compare-panels-3';
-
-    // Target popular wattage segments across residential, commercial, utility
-    const brackets = isBatch3
-      ? [300, 310, 320, 330, 340, 350, 360, 370, 380, 390]
-      : isBatch2
-      ? [460, 470, 480, 490, 500, 510, 520, 530, 620, 630, 640, 680, 690, 710, 720, 730]
-      : [400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455, 540, 545, 550, 555, 580, 585, 590, 600, 650, 660, 670, 700];
+    const isBatch1 = name === 'compare-panels-1'; // Utility 540W ~ 735W
+    const isBatch2 = name === 'compare-panels-2'; // Commercial 460W ~ 535W
+    const isBatch3 = name === 'compare-panels-3'; // Residential 400W ~ 455W
+    const isBatch4 = name === 'compare-panels-4'; // Small/Off-grid 300W ~ 395W
+    const isBatch5 = name === 'compare-panels-5'; // Cross-Wattage Battles (e.g. 700W vs 650W, 600W vs 550W)
 
     if (supabaseUrl && supabaseKey) {
-      for (const w of brackets) {
-        try {
-          const res = await fetch(
-            `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${w - 5}&pnom_w=lte.${w + 5}&order=module_efficiency_pct.desc.nullslast&limit=30`,
-            {
-              headers: {
-                apikey: supabaseKey,
-                Authorization: `Bearer ${supabaseKey}`,
-                Accept: 'application/json',
-              },
-            }
-          );
-          if (res.ok) {
-            const list = (await res.json().catch(() => [])) as SimpleRow[];
-            // Create cross-brand comparison pairs
-            for (let i = 0; i < list.length; i++) {
-              for (let j = i + 1; j < list.length; j++) {
-                if (list[i].brand_id !== list[j].brand_id) {
-                  const pairSlug = [list[i].slug, list[j].slug].sort().join('-vs-');
-                  addUrl(`${origin}/compare/${pairSlug}`, nowIso, 'weekly', '0.7');
+      if (isBatch5) {
+        // Cross-Wattage Major Battles (Versus.com style)
+        const crossPairs = [
+          [700, 650],
+          [680, 630],
+          [650, 600],
+          [600, 550],
+          [585, 550],
+          [550, 500],
+          [500, 450],
+          [450, 400],
+        ];
+
+        for (const [wA, wB] of crossPairs) {
+          try {
+            const [resA, resB] = await Promise.all([
+              fetch(`${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${wA - 5}&pnom_w=lte.${wA + 5}&order=module_efficiency_pct.desc.nullslast&limit=25`, {
+                headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
+              }),
+              fetch(`${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${wB - 5}&pnom_w=lte.${wB + 5}&order=module_efficiency_pct.desc.nullslast&limit=25`, {
+                headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, Accept: 'application/json' },
+              }),
+            ]);
+
+            if (resA.ok && resB.ok) {
+              const listA = (await resA.json().catch(() => [])) as SimpleRow[];
+              const listB = (await resB.json().catch(() => [])) as SimpleRow[];
+
+              for (const a of listA) {
+                for (const b of listB) {
+                  if (a.brand_id !== b.brand_id && a.slug !== b.slug) {
+                    const pairSlug = [a.slug, b.slug].sort().join('-vs-');
+                    addUrl(`${origin}/compare/${pairSlug}`, nowIso, 'weekly', '0.7');
+                  }
                 }
               }
             }
-          }
-        } catch {}
+          } catch {}
+        }
+      } else {
+        const brackets = isBatch1
+          ? [540, 545, 550, 555, 560, 570, 575, 580, 585, 590, 600, 620, 650, 660, 670, 700, 715, 730]
+          : isBatch2
+          ? [460, 465, 470, 475, 480, 485, 490, 495, 500, 505, 510, 515, 520, 525, 530, 535]
+          : isBatch3
+          ? [400, 405, 410, 415, 420, 425, 430, 435, 440, 445, 450, 455]
+          : [300, 310, 320, 330, 340, 350, 360, 370, 380, 390];
+
+        for (const w of brackets) {
+          try {
+            const res = await fetch(
+              `${supabaseUrl}/rest/v1/solar_panels?select=slug,brand_id,pnom_w&is_active=eq.true&pnom_w=gte.${w - 5}&pnom_w=lte.${w + 5}&order=module_efficiency_pct.desc.nullslast&limit=30`,
+              {
+                headers: {
+                  apikey: supabaseKey,
+                  Authorization: `Bearer ${supabaseKey}`,
+                  Accept: 'application/json',
+                },
+              }
+            );
+            if (res.ok) {
+              const list = (await res.json().catch(() => [])) as SimpleRow[];
+              for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < list.length; j++) {
+                  if (list[i].brand_id !== list[j].brand_id) {
+                    const pairSlug = [list[i].slug, list[j].slug].sort().join('-vs-');
+                    addUrl(`${origin}/compare/${pairSlug}`, nowIso, 'weekly', '0.7');
+                  }
+                }
+              }
+            }
+          } catch {}
+        }
       }
     }
   }
 
   // -------------------------------------------------------------------------
-  // 6. Inverter Comparisons Matrix
+  // 7. Inverter Comparisons Matrix
   // -------------------------------------------------------------------------
   else if (name === 'compare-inverters') {
     const inverterPowerKW = [3, 5, 6, 8, 10, 12, 15, 20, 25, 30, 50, 100, 110, 125, 250, 330];
@@ -233,7 +304,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   }
 
   // -------------------------------------------------------------------------
-  // 7. Battery Storage System Comparisons Matrix
+  // 8. Battery Storage System Comparisons Matrix
   // -------------------------------------------------------------------------
   else if (name === 'compare-batteries') {
     if (supabaseUrl && supabaseKey) {

@@ -154,3 +154,39 @@ export async function searchInverters(
 
   return (data ?? []) as InverterSummary[];
 }
+
+// ---------------------------------------------------------------------------
+// Inverter Competitor Comparisons (Programmatic SEO & Interlinking)
+// ---------------------------------------------------------------------------
+
+export interface InverterCompetitorComparison {
+  competitor: InverterSummary;
+  compareUrl: string;
+}
+
+export async function fetchInverterCompetitorComparisons(
+  currentInverter: InverterDetail
+): Promise<InverterCompetitorComparison[]> {
+  const pMin = Math.max(0, Math.round(currentInverter.paco_w * 0.8));
+  const pMax = Math.round(currentInverter.paco_w * 1.2);
+
+  const { data, error } = await supabase
+    .from('v_inverters_summary')
+    .select('*')
+    .neq('brand_id', currentInverter.brand_id)
+    .gte('paco_w', pMin)
+    .lte('paco_w', pMax)
+    .order('paco_w', { ascending: false })
+    .limit(6);
+
+  if (error || !data) return [];
+
+  return data.map((comp: any) => {
+    const sortedSlugs = [currentInverter.slug, comp.slug].sort().join('-vs-');
+    return {
+      competitor: comp as InverterSummary,
+      compareUrl: `/compare/inverters/${sortedSlugs}`,
+    };
+  });
+}
+

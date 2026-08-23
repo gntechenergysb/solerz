@@ -175,3 +175,39 @@ export async function fetchRelatedBatteries(
 
   return (data as BatterySummary[]) || [];
 }
+
+// ---------------------------------------------------------------------------
+// Battery Storage Competitor Comparisons (Programmatic SEO & Interlinking)
+// ---------------------------------------------------------------------------
+
+export interface BatteryCompetitorComparison {
+  competitor: BatterySummary;
+  compareUrl: string;
+}
+
+export async function fetchBatteryCompetitorComparisons(
+  currentBattery: BatteryDetail
+): Promise<BatteryCompetitorComparison[]> {
+  const minCap = Math.max(1, currentBattery.usable_capacity_kwh * 0.6);
+  const maxCap = currentBattery.usable_capacity_kwh * 1.5;
+
+  const { data, error } = await supabase
+    .from('v_batteries_summary')
+    .select('*')
+    .neq('brand_id', currentBattery.brand_id)
+    .gte('usable_capacity_kwh', minCap)
+    .lte('usable_capacity_kwh', maxCap)
+    .order('usable_capacity_kwh', { ascending: false })
+    .limit(6);
+
+  if (error || !data) return [];
+
+  return data.map((comp: any) => {
+    const sortedSlugs = [currentBattery.slug, comp.slug].sort().join('-vs-');
+    return {
+      competitor: comp as BatterySummary,
+      compareUrl: `/compare/batteries/${sortedSlugs}`,
+    };
+  });
+}
+

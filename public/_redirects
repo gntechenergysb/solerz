@@ -4,6 +4,7 @@
 /solar-panels/* /solar-panels/:splat 200
 /inverters/*    /inverters/:splat    200
 /batteries/*    /batteries/:splat    200
+/brands/*       /brands/:splat       200
 /compare/*    /compare/:splat    200
 /listing/*    /listing/:splat    200
 /*    /index.html   200

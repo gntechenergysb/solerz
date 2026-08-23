@@ -50,6 +50,7 @@ const Navbar: React.FC = () => {
     { path: '/solar-panels', label: 'Solar Panels' },
     { path: '/inverters', label: 'Inverters' },
     { path: '/batteries', label: 'Batteries' },
+    { path: '/brands', label: 'Brands' },
   ];
 
   const compareCount = selectedPanels.length;

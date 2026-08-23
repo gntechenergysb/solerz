@@ -10,8 +10,10 @@ import {
   CircuitBoard,
   Cpu,
   Layers,
+  Scale,
+  ChevronRight,
 } from 'lucide-react';
-import { fetchInverterBySlug } from '../services/inverterService';
+import { fetchInverterBySlug, fetchInverterCompetitorComparisons, type InverterCompetitorComparison } from '../services/inverterService';
 import type { InverterDetail } from '../types';
 
 /** Null-safe format: returns the value with unit, or '—' */
@@ -102,23 +104,25 @@ const InverterDetailPage: React.FC = () => {
     return null;
   }, [slug]);
 
-  const [inverter, setInverter] = useState<InverterDetail | null>(initialInverter);
-  const [loading, setLoading] = useState(!initialInverter);
+  const [inverter, setInverter] = useState<InverterDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [competitors, setCompetitors] = useState<InverterCompetitorComparison[]>([]);
 
   useEffect(() => {
     if (!slug) return;
-    if (inverter && inverter.slug === slug) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     setNotFound(false);
     fetchInverterBySlug(slug)
       .then((data) => {
-        if (!data) setNotFound(true);
-        else setInverter(data);
+        if (!data) {
+          setNotFound(true);
+        } else {
+          setInverter(data);
+          fetchInverterCompetitorComparisons(data)
+            .then(setCompetitors)
+            .catch(() => setCompetitors([]));
+        }
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -363,6 +367,79 @@ const InverterDetailPage: React.FC = () => {
           />
         </SectionCard>
       </div>
+
+      {/* ================================================================= */}
+      {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}
+      {/* ================================================================= */}
+      {competitors.length > 0 && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/10 dark:text-amber-400">
+                <Scale className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  Top Rival Comparisons
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    Similar Power Class Competitors
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Compare {inverter.model_name} side-by-side with rival inverters in the same output bracket
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {competitors.map(({ competitor, compareUrl }) => {
+              const pDiffKW = ((competitor.paco_w - inverter.paco_w) / 1000.0);
+              const pDiffLabel = Math.abs(pDiffKW) < 0.1 ? 'Exact Match' : (pDiffKW > 0 ? `+${pDiffKW.toFixed(1)}kW` : `${pDiffKW.toFixed(1)}kW`);
+              
+              return (
+                <Link
+                  key={competitor.id}
+                  to={compareUrl}
+                  className="group relative flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-500/50 dark:hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/5 transition-all"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-500 dark:text-slate-400 shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                      VS
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500 block truncate">
+                        {competitor.brand_name}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
+                        {competitor.model_name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
+                          {(competitor.paco_w / 1000.0).toFixed(1)} kW
+                        </span>
+                        <span>•</span>
+                        <span>{competitor.efficiency_pct ? `${competitor.efficiency_pct.toFixed(1)}% Eff` : 'Inverter'}</span>
+                        <span>•</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${Math.abs(pDiffKW) < 0.1 ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : (pDiffKW > 0 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400')}`}>
+                          {pDiffLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 pl-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-amber-600 group-hover:text-white text-slate-700 dark:text-slate-300 transition-all">
+                      Compare
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Footer Info */}
       <div className="text-center pt-2">

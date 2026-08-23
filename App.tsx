@@ -13,6 +13,8 @@ const BatteryDetail = React.lazy(() => import('./pages/BatteryDetail'));
 const ComparePage = React.lazy(() => import('./pages/ComparePage'));
 const InverterComparePage = React.lazy(() => import('./pages/InverterComparePage'));
 const BatteryComparePage = React.lazy(() => import('./pages/BatteryComparePage'));
+const BrandsList = React.lazy(() => import('./pages/BrandsList'));
+const BrandDetail = React.lazy(() => import('./pages/BrandDetail'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
@@ -44,6 +46,10 @@ const App: React.FC = () => {
                 {/* Batteries */}
                 <Route path="/batteries" element={<BatteriesList />} />
                 <Route path="/batteries/:slug" element={<BatteryDetail />} />
+
+                {/* Global Brands Directory & Hubs */}
+                <Route path="/brands" element={<BrandsList />} />
+                <Route path="/brands/:slug" element={<BrandDetail />} />
 
                 {/* Versus Comparisons */}
                 <Route path="/compare/batteries/:slugs" element={<BatteryComparePage />} />
