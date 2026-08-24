@@ -94,6 +94,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
+    ...(panels.length < 2 ? ['<meta name="robots" content="noindex, nofollow" />'] : []),
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
@@ -170,10 +171,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   const html = injectHead(baseHtml, head.join('\n'));
 
   return new Response(html, {
+    status: panels.length >= 2 ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
       // Edge caching 24 hours on Cloudflare global CDN
-      'Cache-Control': 'public, max-age=0, s-maxage=86400',
+      'Cache-Control': panels.length >= 2 ? 'public, max-age=0, s-maxage=86400' : 'no-cache, no-store',
     },
   });
 };

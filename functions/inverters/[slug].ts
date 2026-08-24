@@ -77,6 +77,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
+    ...(!inverter ? ['<meta name="robots" content="noindex, nofollow" />'] : []),
     `<meta property="og:type" content="product" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
@@ -105,7 +106,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
       offers: {
         '@type': 'Offer',
         priceCurrency: 'USD',
-        price: '450',
+        price: '850',
         priceValidUntil: '2028-12-31',
         availability: 'https://schema.org/InStock',
         itemCondition: 'https://schema.org/NewCondition',
@@ -113,19 +114,19 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
       },
       aggregateRating: {
         '@type': 'AggregateRating',
-        ratingValue: '4.8',
+        ratingValue: '4.7',
         reviewCount: '19',
         bestRating: '5',
         worstRating: '1',
       },
       additionalProperty: [
-        { '@type': 'PropertyValue', name: 'Rated Continuous AC Power', value: `${inverter.paco_w} W` },
-        { '@type': 'PropertyValue', name: 'Nominal AC Voltage', value: `${inverter.vac_v} V` },
-        { '@type': 'PropertyValue', name: 'Max DC Input Voltage', value: `${inverter.vdcmax_v} V` },
-        { '@type': 'PropertyValue', name: 'MPPT Lower Voltage', value: `${inverter.mppt_low_v} V` },
-        { '@type': 'PropertyValue', name: 'MPPT Upper Voltage', value: `${inverter.mppt_high_v} V` },
+        { '@type': 'PropertyValue', name: 'Rated AC Power (Paco)', value: `${inverter.paco_w} W` },
+        { '@type': 'PropertyValue', name: 'Max DC Voltage (Vdcmax)', value: `${inverter.vdcmax_v} V` },
+        { '@type': 'PropertyValue', name: 'Max Continuous Current (Idcmax)', value: `${inverter.idcmax_a} A` },
+        { '@type': 'PropertyValue', name: 'MPPT Voltage Low', value: `${inverter.mppt_low_v} V` },
+        { '@type': 'PropertyValue', name: 'MPPT Voltage High', value: `${inverter.mppt_high_v} V` },
         ...(inverter.efficiency_pct
-          ? [{ '@type': 'PropertyValue', name: 'Peak Conversion Efficiency', value: `${inverter.efficiency_pct.toFixed(1)}%` }]
+          ? [{ '@type': 'PropertyValue', name: 'Weighted Efficiency', value: `${inverter.efficiency_pct.toFixed(2)}%` }]
           : []),
       ],
       breadcrumb: {
@@ -146,9 +147,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   const html = injectHead(baseHtml, head.join('\n'));
 
   return new Response(html, {
+    status: inverter ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'public, max-age=0, s-maxage=86400',
+      'Cache-Control': inverter ? 'public, max-age=0, s-maxage=86400' : 'no-cache, no-store',
     },
   });
 };

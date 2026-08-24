@@ -45,6 +45,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
+    ...(!brand ? ['<meta name="robots" content="noindex, nofollow" />'] : []),
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
@@ -58,9 +59,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   ];
 
   return new Response(injectHead(baseHtml, head.join('\n')), {
+    status: brand ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'public, max-age=0, s-maxage=3600',
+      'Cache-Control': brand ? 'public, max-age=0, s-maxage=3600' : 'no-cache, no-store',
     },
   });
 };
