@@ -21,6 +21,7 @@ import { fetchBatteryBySlug, fetchRelatedBatteries, fetchBatteryCompetitorCompar
 import type { BatteryDetail, BatterySummary } from '../types';
 import { useCompare } from '../contexts/CompareContext';
 import BatteryCard from '../components/BatteryCard';
+import DatasheetSection from '../components/DatasheetSection';
 
 /** Null-safe format: returns the value with unit, or '—' */
 const fmt = (
@@ -358,6 +359,17 @@ const BatteryDetailPage: React.FC = () => {
           <SpecRow label="Safety Standards & Certs" value={battery.certifications || 'UL 9540, UL 9540A, CE'} />
         </SectionCard>
       </div>
+
+      {/* ================================================================= */}
+      {/* Official Datasheet & Technical Documents */}
+      {/* ================================================================= */}
+      <DatasheetSection
+        category="Battery Storage"
+        brandName={battery.brand_name}
+        modelName={battery.model_name}
+        powerOrCapacity={`${battery.usable_capacity_kwh} kWh`}
+        datasheetUrl={battery.datasheet_url}
+      />
 
       {/* ================================================================= */}
       {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}

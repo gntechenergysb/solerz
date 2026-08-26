@@ -58,6 +58,7 @@ export interface SolarPanelDetail extends SolarPanelSummary {
   vmax_iec_v: number | null;
   vmax_ul_v: number | null;
   warranty_power_years: number | null;
+  datasheet_url?: string | null;
   raw_pan_content: string | null;
 }
 
@@ -114,6 +115,7 @@ export interface InverterDetail extends InverterSummary {
   c2: number | null;
   c3: number | null;
   cec_cert_date: string | null;
+  datasheet_url?: string | null;
   views_count: number;
   is_active: boolean;
   created_at: string;
@@ -177,6 +179,7 @@ export interface BatteryDetail extends BatterySummary {
   weight_kg: number | null;
   dimensions_mm: string | null;
   certifications: string | null;
+  datasheet_url?: string | null;
   created_at: string;
   updated_at: string;
 }

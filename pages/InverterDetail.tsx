@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { fetchInverterBySlug, fetchInverterCompetitorComparisons, type InverterCompetitorComparison } from '../services/inverterService';
 import type { InverterDetail } from '../types';
+import DatasheetSection from '../components/DatasheetSection';
 
 /** Null-safe format: returns the value with unit, or '—' */
 const fmt = (
@@ -367,6 +368,17 @@ const InverterDetailPage: React.FC = () => {
           />
         </SectionCard>
       </div>
+
+      {/* ================================================================= */}
+      {/* Official Datasheet & Technical Documents */}
+      {/* ================================================================= */}
+      <DatasheetSection
+        category="Inverter"
+        brandName={inverter.brand_name}
+        modelName={inverter.model_name}
+        powerOrCapacity={`${(inverter.paco_w / 1000).toFixed(1)} kW`}
+        datasheetUrl={inverter.datasheet_url}
+      />
 
       {/* ================================================================= */}
       {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}

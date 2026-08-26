@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { fetchPanelBySlug, fetchCompetitorComparisons, type CompetitorComparison } from '../services/panelService';
 import type { SolarPanelDetail } from '../types';
+import DatasheetSection from '../components/DatasheetSection';
 
 /** Maps DB technol codes to human-readable labels */
 const techLabel = (t: string | null): string => {
@@ -337,6 +338,17 @@ const PanelDetailPage: React.FC = () => {
           />
         </div>
       </Section>
+
+      {/* ================================================================= */}
+      {/* Official Datasheet & Technical Documents */}
+      {/* ================================================================= */}
+      <DatasheetSection
+        category="Solar Panel"
+        brandName={panel.brand_name}
+        modelName={panel.model_name}
+        powerOrCapacity={`${Math.round(panel.pnom_w)}W`}
+        datasheetUrl={panel.datasheet_url}
+      />
 
       {/* ================================================================= */}
       {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}
