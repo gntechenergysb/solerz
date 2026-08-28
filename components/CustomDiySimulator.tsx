@@ -33,6 +33,7 @@ import {
   type DiySystemConfig,
   type DiySimulationResult,
 } from '../services/diySimulatorService';
+import { submitLeadInquiry } from '../services/leadService';
 
 export const CustomDiySimulator: React.FC = () => {
   // --- Selected Hardware State ---
@@ -444,6 +445,81 @@ export const CustomDiySimulator: React.FC = () => {
             />
           </div>
         </div>
+
+        {/* Row 2: PSH Selector + Inverter Qty + Battery Qty */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-2 border-t border-slate-100 dark:border-slate-800 mt-1">
+          {/* Peak Sun Hours */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              ☀️ Peak Sun Hours / Location
+            </label>
+            <select
+              value={sunHours}
+              onChange={(e) => setSunHours(Number(e.target.value))}
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200"
+            >
+              <optgroup label="☀️ 5.5 – 6.0+ hrs — Very High Sun">
+                <option value={6.0}>6.0h — Desert, Middle East, Australia</option>
+                <option value={5.5}>5.5h — SW US, Spain, South Africa</option>
+              </optgroup>
+              <optgroup label="🌤️ 4.5 – 5.0 hrs — High / Tropical">
+                <option value={5.0}>5.0h — Latin America, India, Italy</option>
+                <option value={4.5}>4.5h — SE Asia, S. China, Turkey</option>
+              </optgroup>
+              <optgroup label="⛅ 3.5 – 4.0 hrs — Moderate">
+                <option value={4.0}>4.0h — US East, Japan, Korea</option>
+                <option value={3.5}>3.5h — Central Europe (DE, FR, PL)</option>
+              </optgroup>
+              <optgroup label="☁️ 2.5 – 3.0 hrs — Low / Northern">
+                <option value={3.0}>3.0h — UK, Netherlands, Canada</option>
+                <option value={2.5}>2.5h — Scandinavia, Baltic</option>
+              </optgroup>
+            </select>
+          </div>
+
+          {/* Inverter Quantity */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Inverter Quantity:
+              </label>
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                {inverterQuantity}x
+              </span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="6"
+              step="1"
+              value={inverterQuantity}
+              onChange={(e) => setInverterQuantity(Number(e.target.value))}
+              className="w-full accent-blue-500"
+            />
+          </div>
+
+          {/* Battery Quantity */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Battery Quantity:
+              </label>
+              <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                {selectedBattery ? `${batteryQuantity}x` : 'N/A'}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              value={batteryQuantity}
+              onChange={(e) => setBatteryQuantity(Number(e.target.value))}
+              className="w-full accent-purple-500"
+              disabled={!selectedBattery}
+            />
+          </div>
+        </div>
       </div>
 
       {/* ----------------------------------------------------------------- */}
@@ -576,7 +652,7 @@ export const CustomDiySimulator: React.FC = () => {
                   : 'bg-emerald-500'
               }`}
               style={{
-                width: '100%',
+                width: `${Math.min(100, Math.max(5, ((simulation.vmpStringV - (selectedInverter?.mppt_low_v || 160)) / (Math.max(1, (selectedInverter?.mppt_high_v || 550) - (selectedInverter?.mppt_low_v || 160)))) * 100))}%`,
               }}
             />
           </div>
@@ -758,6 +834,12 @@ export const CustomDiySimulator: React.FC = () => {
                   </div>
                 </div>
               ))}
+              {panelSearchResults.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  <p className="font-semibold">No panels found matching your search.</p>
+                  <p>Try a different keyword (e.g. brand name, wattage, or model).</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -815,6 +897,12 @@ export const CustomDiySimulator: React.FC = () => {
                   </div>
                 </div>
               ))}
+              {inverterSearchResults.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  <p className="font-semibold">No inverters found matching your search.</p>
+                  <p>Try a different keyword (e.g. Huawei, SMA, Deye, GoodWe).</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -872,6 +960,12 @@ export const CustomDiySimulator: React.FC = () => {
                   </div>
                 </div>
               ))}
+              {batterySearchResults.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  <p className="font-semibold">No batteries found matching your search.</p>
+                  <p>Try a different keyword (e.g. Tesla, BYD, Pylontech).</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -892,8 +986,18 @@ export const CustomDiySimulator: React.FC = () => {
 
             {!quoteSubmitted ? (
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
+                  const summary = `${totalPanels}x ${selectedPanel?.brand_name} ${selectedPanel?.model_name} (${seriesPerString}S × ${parallelStrings}P) + ${inverterQuantity}x ${selectedInverter?.brand_name} ${selectedInverter?.model_name}${selectedBattery ? ` + ${batteryQuantity}x ${selectedBattery.brand_name} ${selectedBattery.model_name}` : ''}`;
+                  await submitLeadInquiry({
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone || undefined,
+                    postalCode: formData.postalCode || undefined,
+                    source: 'diy-simulator',
+                    systemSummary: summary,
+                    systemKwp: simulation.totalArrayKwp,
+                  });
                   setQuoteSubmitted(true);
                 }}
                 className="space-y-4"
@@ -916,7 +1020,7 @@ export const CustomDiySimulator: React.FC = () => {
                   </div>
                   <div className="text-slate-500">
                     • {totalPanels}x {selectedPanel?.brand_name} {selectedPanel?.model_name} ({seriesPerString}S × {parallelStrings}P)<br />
-                    • 1x {selectedInverter?.brand_name} {selectedInverter?.model_name}<br />
+                    • {inverterQuantity}x {selectedInverter?.brand_name} {selectedInverter?.model_name}<br />
                     {selectedBattery && `• ${batteryQuantity}x ${selectedBattery.brand_name} ${selectedBattery.model_name}`}
                   </div>
                 </div>

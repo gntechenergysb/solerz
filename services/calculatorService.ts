@@ -1,6 +1,10 @@
 import { supabase } from './supabaseClient';
 import type { SolarPanelDetail } from '../types';
 
+/**
+ * Inverter data shape returned by the calculator hardware matcher.
+ * Uses select('*') so all columns are available.
+ */
 export interface InverterSummary {
   id: string;
   slug: string;
@@ -9,9 +13,15 @@ export interface InverterSummary {
   paco_w: number;
   vdcmax_v?: number;
   efficiency_pct?: number;
+  inverter_type?: string;
+  is_hybrid?: boolean;
   warranty_years?: number;
+  [key: string]: any; // Additional DB columns
 }
 
+/**
+ * Battery data shape returned by the calculator hardware matcher.
+ */
 export interface BatterySummary {
   id: string;
   slug: string;
@@ -21,6 +31,7 @@ export interface BatterySummary {
   nominal_capacity_kwh?: number;
   battery_type?: string;
   warranty_years?: number;
+  [key: string]: any;
 }
 
 export interface SizingInputs {
@@ -161,7 +172,7 @@ export async function fetchRecommendedHardware(
 
     const invertersRes = await supabase
       .from('inverters')
-      .select('id, slug, brand_name, model_name, paco_w, vdcmax_v, efficiency_pct, inverter_type')
+      .select('*')
       .eq('is_active', true)
       .gte('paco_w', inverterMinW)
       .lte('paco_w', inverterMaxW)
@@ -187,7 +198,7 @@ export async function fetchRecommendedHardware(
       const targetBatteryKwh = Math.max(5, Math.round((sizing.dailyKwhNeeded * 0.6) * 10) / 10);
       const batteriesRes = await supabase
         .from('batteries')
-        .select('id, slug, brand_name, model_name, usable_capacity_kwh, nominal_capacity_kwh, battery_type, warranty_years')
+        .select('*')
         .eq('is_active', true)
         .order('usable_capacity_kwh', { ascending: false })
         .limit(10);

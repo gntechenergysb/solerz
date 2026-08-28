@@ -32,6 +32,7 @@ import {
   type MatchedHardwareSet,
 } from '../services/calculatorService';
 import CustomDiySimulator from '../components/CustomDiySimulator';
+import { submitLeadInquiry } from '../services/leadService';
 
 const SolarCalculatorPage: React.FC = () => {
   // --- Mode State (Auto-Sizer vs Custom DIY Simulator) ---
@@ -115,8 +116,21 @@ const SolarCalculatorPage: React.FC = () => {
     window.print();
   };
 
-  const handleQuoteSubmit = (e: React.FormEvent) => {
+  const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const summary = activeSolution
+      ? `${activeSolution.panelCount}x ${activeSolution.panel?.brand_name} ${activeSolution.panel?.model_name} (${activeSolution.panel?.pnom_w}W) + ${activeSolution.inverter?.brand_name} ${activeSolution.inverter?.model_name}${activeSolution.battery ? ` + ${activeSolution.batteryCount}x ${activeSolution.battery.brand_name} ${activeSolution.battery.model_name}` : ''}`
+      : `${sizing.targetKwp} kWp system`;
+    await submitLeadInquiry({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || undefined,
+      postalCode: formData.postalCode || undefined,
+      comments: formData.comments || undefined,
+      source: 'auto-sizer',
+      systemSummary: summary,
+      systemKwp: sizing.targetKwp,
+    });
     setQuoteSubmitted(true);
   };
 
