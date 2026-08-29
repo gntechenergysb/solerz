@@ -16,6 +16,9 @@ import {
 import { fetchInverterBySlug, fetchInverterCompetitorComparisons, type InverterCompetitorComparison } from '../services/inverterService';
 import type { InverterDetail } from '../types';
 import DatasheetSection from '../components/DatasheetSection';
+import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
+import CrossProductRecommender from '../components/CrossProductRecommender';
+import { generateInverterExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Null-safe format: returns the value with unit, or '—' */
 const fmt = (
@@ -379,6 +382,22 @@ const InverterDetailPage: React.FC = () => {
         powerOrCapacity={`${(inverter.paco_w / 1000).toFixed(1)} kW`}
         datasheetUrl={inverter.datasheet_url}
       />
+
+      {/* ================================================================= */}
+      {/* Expert Analysis & Engineering Review (Solerz Deep Dive) */}
+      {/* ================================================================= */}
+      <ExpertAnalysisSection
+        insights={generateInverterExpertInsights(inverter)}
+        newsLinks={getRelatedNewsAndResourceLinks(inverter.brand_name, inverter.model_name, 'Inverter')}
+        category="Inverter"
+        brandName={inverter.brand_name}
+        modelName={inverter.model_name}
+      />
+
+      {/* ================================================================= */}
+      {/* Cross-Product Hardware Recommender (Ecosystem Internal Links) */}
+      {/* ================================================================= */}
+      <CrossProductRecommender sourceType="inverter" inverter={inverter} />
 
       {/* ================================================================= */}
       {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}

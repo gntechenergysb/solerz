@@ -22,6 +22,9 @@ import type { BatteryDetail, BatterySummary } from '../types';
 import { useCompare } from '../contexts/CompareContext';
 import BatteryCard from '../components/BatteryCard';
 import DatasheetSection from '../components/DatasheetSection';
+import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
+import CrossProductRecommender from '../components/CrossProductRecommender';
+import { generateBatteryExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Null-safe format: returns the value with unit, or '—' */
 const fmt = (
@@ -370,6 +373,22 @@ const BatteryDetailPage: React.FC = () => {
         powerOrCapacity={`${battery.usable_capacity_kwh} kWh`}
         datasheetUrl={battery.datasheet_url}
       />
+
+      {/* ================================================================= */}
+      {/* Expert Analysis & Engineering Review (Solerz Deep Dive) */}
+      {/* ================================================================= */}
+      <ExpertAnalysisSection
+        insights={generateBatteryExpertInsights(battery)}
+        newsLinks={getRelatedNewsAndResourceLinks(battery.brand_name, battery.model_name, 'Battery Storage')}
+        category="Battery Storage"
+        brandName={battery.brand_name}
+        modelName={battery.model_name}
+      />
+
+      {/* ================================================================= */}
+      {/* Cross-Product Hardware Recommender (Ecosystem Internal Links) */}
+      {/* ================================================================= */}
+      <CrossProductRecommender sourceType="battery" battery={battery} />
 
       {/* ================================================================= */}
       {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}

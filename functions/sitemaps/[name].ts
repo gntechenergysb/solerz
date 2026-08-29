@@ -55,6 +55,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/batteries`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/brands`, nowIso, 'daily', '0.9');
+    addUrl(`${origin}/guides`, nowIso, 'daily', '0.9');
+    addUrl(`${origin}/guides/topcon-vs-hjt-vs-perc-solar-cell-technology-guide`, nowIso, 'weekly', '0.8');
+    addUrl(`${origin}/guides/bifacial-solar-panels-efficiency-albedo-gain`, nowIso, 'weekly', '0.8');
+    addUrl(`${origin}/guides/string-inverter-vs-microinverter-comparison`, nowIso, 'weekly', '0.8');
+    addUrl(`${origin}/guides/solar-panel-temperature-coefficient-explained`, nowIso, 'weekly', '0.8');
+    addUrl(`${origin}/guides/lifepo4-vs-nmc-home-battery-chemistry-comparison`, nowIso, 'weekly', '0.8');
+    addUrl(`${origin}/guides/how-to-size-solar-system-and-calculate-savings`, nowIso, 'weekly', '0.8');
   }
 
   // -------------------------------------------------------------------------

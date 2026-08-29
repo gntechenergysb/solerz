@@ -16,6 +16,9 @@ import {
 import { fetchPanelBySlug, fetchCompetitorComparisons, type CompetitorComparison } from '../services/panelService';
 import type { SolarPanelDetail } from '../types';
 import DatasheetSection from '../components/DatasheetSection';
+import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
+import CrossProductRecommender from '../components/CrossProductRecommender';
+import { generatePanelExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Maps DB technol codes to human-readable labels */
 const techLabel = (t: string | null): string => {
@@ -349,6 +352,22 @@ const PanelDetailPage: React.FC = () => {
         powerOrCapacity={`${Math.round(panel.pnom_w)}W`}
         datasheetUrl={panel.datasheet_url}
       />
+
+      {/* ================================================================= */}
+      {/* Expert Analysis & Engineering Review (Solerz Deep Dive) */}
+      {/* ================================================================= */}
+      <ExpertAnalysisSection
+        insights={generatePanelExpertInsights(panel)}
+        newsLinks={getRelatedNewsAndResourceLinks(panel.brand_name, panel.model_name, 'Solar Panel')}
+        category="Solar Panel"
+        brandName={panel.brand_name}
+        modelName={panel.model_name}
+      />
+
+      {/* ================================================================= */}
+      {/* Cross-Product Hardware Recommender (Ecosystem Internal Links) */}
+      {/* ================================================================= */}
+      <CrossProductRecommender sourceType="panel" panel={panel} />
 
       {/* ================================================================= */}
       {/* Direct Competitor Head-to-Head Comparisons (Programmatic SEO) */}
