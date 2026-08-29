@@ -6,14 +6,12 @@ import {
   Sun,
   ArrowRight,
   Calculator,
-  BookOpen,
   Sparkles,
   ChevronRight,
   ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import type { SolarPanelDetail, InverterDetail, BatteryDetail } from '../types';
-import { SOLAR_GUIDES } from '../data/guidesData';
 
 interface CrossProductRecommenderProps {
   sourceType: 'panel' | 'inverter' | 'battery';
@@ -136,13 +134,10 @@ export const CrossProductRecommender: React.FC<CrossProductRecommenderProps> = (
     };
   }, [sourceType, panel?.id, inverter?.id, battery?.id]);
 
-  // Relevant educational guides
-  const relatedGuides = SOLAR_GUIDES.slice(0, 3);
-
   return (
     <div className="space-y-6 pt-2">
       {/* ----------------------------------------------------------------- */}
-      {/* 1. Cross-Category Compatible Hardware Links */}
+      {/* Compatible Hardware Ecosystem */}
       {/* ----------------------------------------------------------------- */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -262,56 +257,6 @@ export const CrossProductRecommender: React.FC<CrossProductRecommenderProps> = (
               ))}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* ----------------------------------------------------------------- */}
-      {/* 2. Authoritative Knowledge & Engineering Guides */}
-      {/* ----------------------------------------------------------------- */}
-      <div className="bg-slate-50 dark:bg-slate-900/60 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                Related Engineering Guides &amp; Research
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Master photovoltaic cell physics, inverter sizing, and storage chemistry
-              </p>
-            </div>
-          </div>
-
-          <Link
-            to="/guides"
-            className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
-          >
-            All Guides <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          {relatedGuides.map((guide) => (
-            <Link
-              key={guide.slug}
-              to={`/guides/${guide.slug}`}
-              className="group p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  {guide.category} • {guide.readTime}
-                </span>
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 line-clamp-2 transition-colors">
-                  {guide.title}
-                </h4>
-              </div>
-              <span className="text-[11px] font-semibold text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 pt-3 inline-flex items-center gap-1 transition-colors">
-                Read Guide <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Link>
-          ))}
         </div>
       </div>
     </div>
