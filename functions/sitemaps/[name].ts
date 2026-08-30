@@ -55,6 +55,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/batteries`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/brands`, nowIso, 'daily', '0.9');
+    addUrl(`${origin}/handbook`, nowIso, 'daily', '0.9');
   }
 
   // -------------------------------------------------------------------------

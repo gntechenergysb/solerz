@@ -16,6 +16,7 @@ const BatteryComparePage = React.lazy(() => import('./pages/BatteryComparePage')
 const BrandsList = React.lazy(() => import('./pages/BrandsList'));
 const BrandDetail = React.lazy(() => import('./pages/BrandDetail'));
 const SolarCalculatorPage = React.lazy(() => import('./pages/SolarCalculatorPage'));
+const HandbookPage = React.lazy(() => import('./pages/HandbookPage'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
@@ -39,6 +40,10 @@ const App: React.FC = () => {
                 {/* Solar System Sizer & Calculator */}
                 <Route path="/calculator" element={<SolarCalculatorPage />} />
                 <Route path="/system-sizer" element={<SolarCalculatorPage />} />
+
+                {/* Solar Engineering Handbook & Pocket Tips */}
+                <Route path="/handbook" element={<HandbookPage />} />
+                <Route path="/tips" element={<Navigate to="/handbook" replace />} />
 
                 {/* Solar Panels */}
                 <Route path="/solar-panels" element={<PanelsList />} />

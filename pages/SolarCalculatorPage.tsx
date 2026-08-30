@@ -32,6 +32,7 @@ import {
   type MatchedHardwareSet,
 } from '../services/calculatorService';
 import CustomDiySimulator from '../components/CustomDiySimulator';
+import ContextualTipCard from '../components/ContextualTipCard';
 import { submitLeadInquiry } from '../services/leadService';
 
 const SolarCalculatorPage: React.FC = () => {
@@ -851,6 +852,9 @@ const SolarCalculatorPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Contextual Pro Engineering Tip */}
+      <ContextualTipCard category="sizing" />
     </>
   )}
 

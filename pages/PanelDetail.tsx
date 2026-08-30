@@ -18,6 +18,7 @@ import type { SolarPanelDetail } from '../types';
 import DatasheetSection from '../components/DatasheetSection';
 import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
 import CrossProductRecommender from '../components/CrossProductRecommender';
+import ContextualTipCard from '../components/ContextualTipCard';
 import { generatePanelExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Maps DB technol codes to human-readable labels */
@@ -351,6 +352,12 @@ const PanelDetailPage: React.FC = () => {
         modelName={panel.model_name}
         powerOrCapacity={`${Math.round(panel.pnom_w)}W`}
         datasheetUrl={panel.datasheet_url}
+      />
+
+      {/* Contextual Pro Engineering Tip */}
+      <ContextualTipCard
+        isBifacial={panel.is_bifacial}
+        category="modules"
       />
 
       {/* ================================================================= */}

@@ -18,6 +18,7 @@ import type { InverterDetail } from '../types';
 import DatasheetSection from '../components/DatasheetSection';
 import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
 import CrossProductRecommender from '../components/CrossProductRecommender';
+import ContextualTipCard from '../components/ContextualTipCard';
 import { generateInverterExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Null-safe format: returns the value with unit, or '—' */
@@ -381,6 +382,12 @@ const InverterDetailPage: React.FC = () => {
         modelName={inverter.model_name}
         powerOrCapacity={`${(inverter.paco_w / 1000).toFixed(1)} kW`}
         datasheetUrl={inverter.datasheet_url}
+      />
+
+      {/* Contextual Pro Engineering Tip */}
+      <ContextualTipCard
+        isHybrid={inverter.is_hybrid}
+        category="inverters"
       />
 
       {/* ================================================================= */}
