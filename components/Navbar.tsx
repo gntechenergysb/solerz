@@ -46,13 +46,11 @@ const Navbar: React.FC = () => {
     location.pathname === path || location.pathname.startsWith(path + '/');
 
   const navLinks = [
-    { path: '/', label: 'Home', exact: true },
     { path: '/solar-panels', label: 'Solar Panels' },
     { path: '/inverters', label: 'Inverters' },
     { path: '/batteries', label: 'Batteries' },
     { path: '/brands', label: 'Brands' },
     { path: '/handbook', label: 'Handbook' },
-    { path: '/calculator', label: 'System Sizer' },
   ];
 
   const compareCount = selectedPanels.length;

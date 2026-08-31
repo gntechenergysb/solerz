@@ -25,6 +25,7 @@ import DatasheetSection from '../components/DatasheetSection';
 import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
 import CrossProductRecommender from '../components/CrossProductRecommender';
 import ContextualTipCard from '../components/ContextualTipCard';
+import AdSlotPlaceholder from '../components/AdSlotPlaceholder';
 import { generateBatteryExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Null-safe format: returns the value with unit, or '—' */
@@ -373,6 +374,12 @@ const BatteryDetailPage: React.FC = () => {
         modelName={battery.model_name}
         powerOrCapacity={`${battery.usable_capacity_kwh} kWh`}
         datasheetUrl={battery.datasheet_url}
+      />
+
+      {/* Ad / Battery Storage Partner Promotion Slot */}
+      <AdSlotPlaceholder
+        format="horizontal"
+        customText={`Compare battery storage availability, UL 9540 compliance packs & volume stock for ${battery.brand_name}.`}
       />
 
       {/* Contextual Pro Engineering Tip */}

@@ -19,6 +19,7 @@ import DatasheetSection from '../components/DatasheetSection';
 import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
 import CrossProductRecommender from '../components/CrossProductRecommender';
 import ContextualTipCard from '../components/ContextualTipCard';
+import AdSlotPlaceholder from '../components/AdSlotPlaceholder';
 import { generatePanelExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Maps DB technol codes to human-readable labels */
@@ -352,6 +353,13 @@ const PanelDetailPage: React.FC = () => {
         modelName={panel.model_name}
         powerOrCapacity={`${Math.round(panel.pnom_w)}W`}
         datasheetUrl={panel.datasheet_url}
+        panelDetail={panel}
+      />
+
+      {/* Ad / Hardware Partner Promotion Slot */}
+      <AdSlotPlaceholder
+        format="horizontal"
+        customText={`Compare wholesale stock & lead times for ${panel.brand_name} ${panel.model_name} panels.`}
       />
 
       {/* Contextual Pro Engineering Tip */}

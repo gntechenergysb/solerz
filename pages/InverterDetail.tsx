@@ -19,6 +19,7 @@ import DatasheetSection from '../components/DatasheetSection';
 import ExpertAnalysisSection from '../components/ExpertAnalysisSection';
 import CrossProductRecommender from '../components/CrossProductRecommender';
 import ContextualTipCard from '../components/ContextualTipCard';
+import AdSlotPlaceholder from '../components/AdSlotPlaceholder';
 import { generateInverterExpertInsights, getRelatedNewsAndResourceLinks } from '../services/seoInsightsService';
 
 /** Null-safe format: returns the value with unit, or '—' */
@@ -382,6 +383,12 @@ const InverterDetailPage: React.FC = () => {
         modelName={inverter.model_name}
         powerOrCapacity={`${(inverter.paco_w / 1000).toFixed(1)} kW`}
         datasheetUrl={inverter.datasheet_url}
+      />
+
+      {/* Ad / Inverter Partner Promotion Slot */}
+      <AdSlotPlaceholder
+        format="horizontal"
+        customText={`Get distribution pricing & rapid delivery for ${inverter.brand_name} ${inverter.model_name} inverters.`}
       />
 
       {/* Contextual Pro Engineering Tip */}

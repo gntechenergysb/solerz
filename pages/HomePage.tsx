@@ -293,7 +293,7 @@ const HomePage: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800/80 mb-6 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tracking-wide">
-              Photovoltaic Modules & Inverters • Global Solar Hardware Database
+              Global Solar &amp; Storage Hardware Directory • Datasheets &amp; PVsyst .PAN Files
             </span>
           </div>
 
@@ -308,8 +308,8 @@ const HomePage: React.FC = () => {
 
           {/* Subtitle */}
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed mb-8">
-            The definitive platform for solar engineers, installers, and project developers.
-            Compare STC electrical curves, temperature loss coefficients, and SDM physics across 280+ manufacturers.
+            The definitive technical directory for solar engineers, procurement specialists, and installers.
+            Access certified electrical curves, PVsyst .PAN simulation files, and official OEM datasheets across 280+ manufacturers.
           </p>
 
           {/* Interactive Fast Search Bar (Direct Action in Hero) */}
