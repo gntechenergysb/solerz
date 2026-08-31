@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
     <>
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - Preloaded & Zero CLS */}
             <Link to="/" className="flex items-center gap-2 group flex-none focus:outline-none" aria-label="Solerz Home">
               <img
@@ -69,7 +69,7 @@ const Navbar: React.FC = () => {
                 alt="Solerz Logo"
                 width="613"
                 height="158"
-                className="h-9 w-auto dark:hidden transition-transform duration-300 group-hover:scale-[1.02]"
+                className="h-7 sm:h-8 md:h-9 w-auto max-w-[120px] sm:max-w-[145px] md:max-w-[165px] dark:hidden transition-transform duration-300 group-hover:scale-[1.02]"
                 decoding="async"
                 // @ts-ignore
                 fetchpriority="high"
@@ -79,7 +79,7 @@ const Navbar: React.FC = () => {
                 alt="Solerz Logo"
                 width="613"
                 height="158"
-                className="h-9 w-auto hidden dark:block transition-transform duration-300 group-hover:scale-[1.02]"
+                className="h-7 sm:h-8 md:h-9 w-auto max-w-[120px] sm:max-w-[145px] md:max-w-[165px] hidden dark:block transition-transform duration-300 group-hover:scale-[1.02]"
                 decoding="async"
                 // @ts-ignore
                 fetchpriority="high"
@@ -87,7 +87,7 @@ const Navbar: React.FC = () => {
             </Link>
 
             {/* Desktop Nav Links */}
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => {
                 const active = link.exact
                   ? location.pathname === link.path
@@ -96,9 +96,9 @@ const Navbar: React.FC = () => {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       active
-                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -133,8 +133,8 @@ const Navbar: React.FC = () => {
               </button>
             </div>
 
-            {/* Mobile: right side buttons */}
-            <div className="flex sm:hidden items-center gap-1.5">
+            {/* Mobile & Tablet: right side buttons */}
+            <div className="flex lg:hidden items-center gap-1.5">
               {compareCount > 0 && (
                 <Link
                   to="/solar-panels"
@@ -180,9 +180,22 @@ const Navbar: React.FC = () => {
       >
         <div className="p-5">
           <div className="flex items-center justify-between mb-8">
-            <span className="text-lg font-bold text-slate-900 dark:text-white">
-              Menu
-            </span>
+            <Link to="/" onClick={() => setMobileOpen(false)} aria-label="Solerz Home">
+              <img
+                src="/solerz-logo-light.png"
+                alt="Solerz Logo"
+                width="613"
+                height="158"
+                className="h-7 w-auto dark:hidden"
+              />
+              <img
+                src="/solerz-logo-dark.png"
+                alt="Solerz Logo"
+                width="613"
+                height="158"
+                className="h-7 w-auto hidden dark:block"
+              />
+            </Link>
             <button
               onClick={() => setMobileOpen(false)}
               className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
