@@ -380,6 +380,9 @@ export const CustomDiySimulator: React.FC = () => {
               onChange={(e) => handleTotalPanelsChange(Number(e.target.value))}
               className="w-full accent-emerald-500"
             />
+            <p className="text-[10px] text-slate-400">
+              Array DC Power: {totalPanels} × {selectedPanel ? Math.round(selectedPanel.pnom_w) : 0}W
+            </p>
           </div>
 
           {/* Series per string */}
@@ -401,6 +404,9 @@ export const CustomDiySimulator: React.FC = () => {
               onChange={(e) => setSeriesPerString(Number(e.target.value))}
               className="w-full accent-emerald-500"
             />
+            <p className="text-[10px] text-slate-400">
+              Nominal Vmp: {simulation.vmpStringV}V (MPPT Window)
+            </p>
           </div>
 
           {/* Parallel Strings */}
@@ -422,6 +428,9 @@ export const CustomDiySimulator: React.FC = () => {
               onChange={(e) => setParallelStrings(Number(e.target.value))}
               className="w-full accent-emerald-500"
             />
+            <p className="text-[10px] text-slate-400">
+              Total Current: ~{selectedPanel ? (selectedPanel.isc_a * parallelStrings).toFixed(1) : 0}A Isc
+            </p>
           </div>
 
           {/* Lowest Winter Temp */}
@@ -443,6 +452,9 @@ export const CustomDiySimulator: React.FC = () => {
               onChange={(e) => setMinTempC(Number(e.target.value))}
               className="w-full accent-blue-500"
             />
+            <p className="text-[10px] text-slate-400">
+              NEC 690.7(A) Cold Voc: {simulation.vocColdV}V
+            </p>
           </div>
         </div>
 

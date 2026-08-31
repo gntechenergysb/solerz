@@ -376,7 +376,7 @@ const HandbookPage: React.FC = () => {
                     to="/calculator"
                     className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 text-[11px]"
                   >
-                    Apply in Calculator <ArrowRight className="w-3 h-3" />
+                    Simulate in System Sizer <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
               </div>
