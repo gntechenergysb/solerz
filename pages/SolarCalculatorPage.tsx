@@ -31,9 +31,16 @@ import {
   type SizingResults,
   type MatchedHardwareSet,
 } from '../services/calculatorService';
+import {
+  searchPanelsForDiy,
+  searchInvertersForDiy,
+  searchBatteriesForDiy,
+} from '../services/diySimulatorService';
+import type { SolarPanelDetail, InverterDetail, BatteryDetail } from '../types';
 import CustomDiySimulator from '../components/CustomDiySimulator';
 import ContextualTipCard from '../components/ContextualTipCard';
 import { submitLeadInquiry } from '../services/leadService';
+import { Search } from 'lucide-react';
 
 const SolarCalculatorPage: React.FC = () => {
   // --- Mode State (Auto-Sizer vs Custom DIY Simulator) ---
@@ -53,6 +60,19 @@ const SolarCalculatorPage: React.FC = () => {
   // --- Hardware solutions & loading ---
   const [solutions, setSolutions] = useState<MatchedHardwareSet[]>([]);
   const [loadingHardware, setLoadingHardware] = useState<boolean>(true);
+
+  // --- Swap Modals State ---
+  const [swapPanelModalOpen, setSwapPanelModalOpen] = useState<boolean>(false);
+  const [swapInverterModalOpen, setSwapInverterModalOpen] = useState<boolean>(false);
+  const [swapBatteryModalOpen, setSwapBatteryModalOpen] = useState<boolean>(false);
+
+  const [swapPanelQuery, setSwapPanelQuery] = useState<string>('');
+  const [swapInverterQuery, setSwapInverterQuery] = useState<string>('');
+  const [swapBatteryQuery, setSwapBatteryQuery] = useState<string>('');
+
+  const [panelSearchResults, setPanelSearchResults] = useState<SolarPanelDetail[]>([]);
+  const [inverterSearchResults, setInverterSearchResults] = useState<InverterDetail[]>([]);
+  const [batterySearchResults, setBatterySearchResults] = useState<BatteryDetail[]>([]);
 
   // --- Quote Modal state ---
   const [quoteModalOpen, setQuoteModalOpen] = useState<boolean>(false);
@@ -110,6 +130,95 @@ const SolarCalculatorPage: React.FC = () => {
       active = false;
     };
   }, [sizing.targetKwp, systemType, includeBattery]);
+
+  // Search debounces for swap modals
+  useEffect(() => {
+    if (swapPanelModalOpen) {
+      const timer = setTimeout(() => {
+        searchPanelsForDiy(swapPanelQuery).then(setPanelSearchResults);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [swapPanelQuery, swapPanelModalOpen]);
+
+  useEffect(() => {
+    if (swapInverterModalOpen) {
+      const timer = setTimeout(() => {
+        searchInvertersForDiy(swapInverterQuery).then(setInverterSearchResults);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [swapInverterQuery, swapInverterModalOpen]);
+
+  useEffect(() => {
+    if (swapBatteryModalOpen) {
+      const timer = setTimeout(() => {
+        searchBatteriesForDiy(swapBatteryQuery).then(setBatterySearchResults);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [swapBatteryQuery, swapBatteryModalOpen]);
+
+  // Swap panel in active solution
+  const handleSwapPanel = (newPanel: SolarPanelDetail) => {
+    if (!solutions[activeSolutionIdx]) return;
+    const targetWp = sizing.targetKwp * 1000;
+    const panelWp = newPanel.pnom_w || 400;
+    const panelCount = Math.max(2, Math.round(targetWp / panelWp));
+    const totalArrayKwp = Math.round(((panelCount * panelWp) / 1000) * 10) / 10;
+    const panelArea = newPanel.length_m && newPanel.width_m ? newPanel.length_m * newPanel.width_m : panelWp / 215;
+    const requiredAreaM2 = Math.round(panelCount * panelArea * 10) / 10;
+    const requiredAreaSqFt = Math.round(requiredAreaM2 * 10.7639);
+
+    const inverter = solutions[activeSolutionIdx].inverter;
+    const invKw = inverter ? (inverter.paco_w * (solutions[activeSolutionIdx].inverterCount || 1)) / 1000 : 1;
+    const dcAcRatio = invKw > 0 ? Math.round((totalArrayKwp / invKw) * 100) / 100 : 1.2;
+
+    const updated = [...solutions];
+    updated[activeSolutionIdx] = {
+      ...updated[activeSolutionIdx],
+      panel: newPanel,
+      panelCount,
+      totalArrayKwp,
+      requiredAreaM2,
+      requiredAreaSqFt,
+      dcAcRatio,
+    };
+    setSolutions(updated);
+    setSwapPanelModalOpen(false);
+  };
+
+  // Swap inverter in active solution
+  const handleSwapInverter = (newInverter: InverterDetail) => {
+    if (!solutions[activeSolutionIdx]) return;
+    const arrayKwp = solutions[activeSolutionIdx].totalArrayKwp;
+    const invKw = newInverter.paco_w / 1000;
+    const inverterCount = Math.max(1, Math.round(arrayKwp / (invKw * 1.25)));
+    const totalInvKw = invKw * inverterCount;
+    const dcAcRatio = totalInvKw > 0 ? Math.round((arrayKwp / totalInvKw) * 100) / 100 : 1.2;
+
+    const updated = [...solutions];
+    updated[activeSolutionIdx] = {
+      ...updated[activeSolutionIdx],
+      inverter: newInverter as any,
+      inverterCount,
+      dcAcRatio,
+    };
+    setSolutions(updated);
+    setSwapInverterModalOpen(false);
+  };
+
+  // Swap battery in active solution
+  const handleSwapBattery = (newBattery: BatteryDetail) => {
+    if (!solutions[activeSolutionIdx]) return;
+    const updated = [...solutions];
+    updated[activeSolutionIdx] = {
+      ...updated[activeSolutionIdx],
+      battery: newBattery as any,
+    };
+    setSolutions(updated);
+    setSwapBatteryModalOpen(false);
+  };
 
   const activeSolution = solutions[activeSolutionIdx] || solutions[0];
 
@@ -244,7 +353,7 @@ const SolarCalculatorPage: React.FC = () => {
                   onClick={() => setInputMode(inputMode === 'bill' ? 'kwh' : 'bill')}
                   className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
                 >
-                  Switch to {inputMode === 'bill' ? 'kWh Input' : 'Currency ($) Input'}
+                  Switch to {inputMode === 'bill' ? 'kWh Usage Input' : 'Currency ($) Bill Input'}
                 </button>
               </div>
 
@@ -252,24 +361,38 @@ const SolarCalculatorPage: React.FC = () => {
                 <>
                   <div className="flex items-center gap-3">
                     <div className="relative flex-1">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-base">$</span>
                       <input
                         type="number"
-                        min="20"
-                        max={systemType === 'commercial' ? '50000' : '3000'}
-                        step="10"
-                        value={monthlyBill}
-                        onChange={(e) => setMonthlyBill(Math.max(10, Number(e.target.value)))}
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        min="1"
+                        max="100000"
+                        placeholder="Type monthly bill..."
+                        value={monthlyBill === 0 ? '' : monthlyBill}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMonthlyBill(val === '' ? 0 : Math.max(0, Number(val)));
+                        }}
+                        className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
                       />
                     </div>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ month</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">/ month</span>
                   </div>
+
+                  {/* Range slider for rapid adjustment */}
+                  <input
+                    type="range"
+                    min={systemType === 'commercial' ? 500 : 50}
+                    max={systemType === 'commercial' ? 30000 : 2000}
+                    step={systemType === 'commercial' ? 250 : 25}
+                    value={monthlyBill || (systemType === 'commercial' ? 2000 : 250)}
+                    onChange={(e) => setMonthlyBill(Number(e.target.value))}
+                    className="w-full accent-emerald-500 cursor-pointer"
+                  />
 
                   {/* Quick Preset Buttons */}
                   <div className="flex flex-wrap gap-1.5">
                     {(systemType === 'residential'
-                      ? [100, 180, 250, 380, 500]
+                      ? [100, 180, 250, 380, 500, 800]
                       : [1000, 2500, 5000, 10000, 20000]
                     ).map((val) => (
                       <button
@@ -278,7 +401,7 @@ const SolarCalculatorPage: React.FC = () => {
                         onClick={() => setMonthlyBill(val)}
                         className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
                           monthlyBill === val
-                            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400'
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 font-bold'
                             : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                         }`}
                       >
@@ -288,20 +411,59 @@ const SolarCalculatorPage: React.FC = () => {
                   </div>
                 </>
               ) : (
-                <div className="flex items-center gap-3">
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="1"
+                        max="500000"
+                        placeholder="Type monthly kWh..."
+                        value={monthlyKwhInput === 0 ? '' : monthlyKwhInput}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMonthlyKwhInput(val === '' ? 0 : Math.max(0, Number(val)));
+                        }}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
+                      />
+                    </div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                      kWh / month
+                    </span>
+                  </div>
+
+                  {/* Range slider for kWh */}
                   <input
-                    type="number"
-                    min="100"
-                    max="200000"
-                    step="50"
-                    value={monthlyKwhInput}
-                    onChange={(e) => setMonthlyKwhInput(Math.max(50, Number(e.target.value)))}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    type="range"
+                    min={systemType === 'commercial' ? 2500 : 200}
+                    max={systemType === 'commercial' ? 150000 : 10000}
+                    step={systemType === 'commercial' ? 1000 : 100}
+                    value={monthlyKwhInput || (systemType === 'commercial' ? 11000 : 1400)}
+                    onChange={(e) => setMonthlyKwhInput(Number(e.target.value))}
+                    className="w-full accent-emerald-500 cursor-pointer"
                   />
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                    kWh / month
-                  </span>
-                </div>
+
+                  {/* Quick kWh presets */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {(systemType === 'residential'
+                      ? [500, 900, 1400, 2000, 3000]
+                      : [5000, 10000, 25000, 50000, 100000]
+                    ).map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setMonthlyKwhInput(val)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                          monthlyKwhInput === val
+                            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 font-bold'
+                            : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                        }`}
+                      >
+                        {val.toLocaleString()} kWh
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
 
@@ -631,12 +793,16 @@ const SolarCalculatorPage: React.FC = () => {
                     >
                       Technical Specs <ExternalLink className="w-3 h-3" />
                     </Link>
-                    <Link
-                      to="/solar-panels"
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSwapPanelModalOpen(true);
+                        searchPanelsForDiy(swapPanelQuery).then(setPanelSearchResults);
+                      }}
+                      className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline inline-flex items-center gap-1"
                     >
                       Swap Panel
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}
@@ -700,12 +866,16 @@ const SolarCalculatorPage: React.FC = () => {
                     >
                       Inverter Datasheet <ExternalLink className="w-3 h-3" />
                     </Link>
-                    <Link
-                      to="/inverters"
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSwapInverterModalOpen(true);
+                        searchInvertersForDiy(swapInverterQuery).then(setInverterSearchResults);
+                      }}
+                      className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline inline-flex items-center gap-1"
                     >
                       Swap Inverter
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}
@@ -769,12 +939,16 @@ const SolarCalculatorPage: React.FC = () => {
                     >
                       Battery Specs <ExternalLink className="w-3 h-3" />
                     </Link>
-                    <Link
-                      to="/batteries"
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSwapBatteryModalOpen(true);
+                        searchBatteriesForDiy(swapBatteryQuery).then(setBatterySearchResults);
+                      }}
+                      className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline inline-flex items-center gap-1"
                     >
                       Swap Battery
-                    </Link>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -857,6 +1031,243 @@ const SolarCalculatorPage: React.FC = () => {
       <ContextualTipCard category="sizing" />
     </>
   )}
+
+      {/* ----------------------------------------------------------------- */}
+      {/* 4. In-Place Swap Modals (Panels, Inverters, Batteries) */}
+      {/* ----------------------------------------------------------------- */}
+
+      {/* Swap Panel Modal */}
+      {swapPanelModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button
+              onClick={() => setSwapPanelModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1 mb-4">
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                Component Selection
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Swap Solar Panel Model
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Pick a replacement module from 21,750+ CEC certified models. Array size &amp; roof area will recalculate in real-time.
+              </p>
+            </div>
+
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search brand or model (e.g. LONGi, Trina, Jinko, 550W, Bifacial)..."
+                value={swapPanelQuery}
+                onChange={(e) => setSwapPanelQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100 dark:divide-slate-800">
+              {panelSearchResults.map((panel) => (
+                <div
+                  key={panel.id}
+                  onClick={() => handleSwapPanel(panel)}
+                  className="py-3 px-3 rounded-xl hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10 cursor-pointer transition-colors flex items-center justify-between group"
+                >
+                  <div className="pr-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      {panel.brand_name}
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      {panel.model_name}
+                    </h4>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <span>{panel.cell_type || 'Monocrystalline'}</span>
+                      <span>•</span>
+                      <span>{panel.module_efficiency_pct ? `${panel.module_efficiency_pct.toFixed(1)}% Eff` : 'High Eff'}</span>
+                      {panel.bifaciality_pct ? (
+                        <>
+                          <span>•</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Bifacial</span>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="text-right whitespace-nowrap">
+                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400 block">
+                      {panel.pnom_w} W
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold inline-block mt-0.5">
+                      Select ↵
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {panelSearchResults.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  <p className="font-semibold">Searching panel database...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Swap Inverter Modal */}
+      {swapInverterModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button
+              onClick={() => setSwapInverterModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1 mb-4">
+              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                Component Selection
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Swap Inverter Model
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose from 2,300+ string, hybrid, and micro-inverter models. Inverter count and DC/AC sizing will update automatically.
+              </p>
+            </div>
+
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search inverter (e.g. Enphase, SMA, SolarEdge, Fronius, Growatt, Hybrid)..."
+                value={swapInverterQuery}
+                onChange={(e) => setSwapInverterQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100 dark:divide-slate-800">
+              {inverterSearchResults.map((inv) => (
+                <div
+                  key={inv.id}
+                  onClick={() => handleSwapInverter(inv)}
+                  className="py-3 px-3 rounded-xl hover:bg-blue-50/50 dark:hover:bg-blue-500/10 cursor-pointer transition-colors flex items-center justify-between group"
+                >
+                  <div className="pr-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      {inv.brand_name}
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {inv.model_name}
+                    </h4>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <span>{inv.inverter_type || 'String'}</span>
+                      <span>•</span>
+                      <span>Max DC: {inv.vdcmax_v || 600}V</span>
+                      <span>•</span>
+                      <span>{inv.efficiency_pct ? `${inv.efficiency_pct.toFixed(1)}% Eff` : '98.5% Eff'}</span>
+                    </div>
+                  </div>
+                  <div className="text-right whitespace-nowrap">
+                    <span className="text-base font-black text-blue-600 dark:text-blue-400 block">
+                      {(inv.paco_w / 1000).toFixed(1)} kW
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold inline-block mt-0.5">
+                      Select ↵
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {inverterSearchResults.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  <p className="font-semibold">Searching inverter database...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Swap Battery Modal */}
+      {swapBatteryModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+            <button
+              onClick={() => setSwapBatteryModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1 mb-4">
+              <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
+                Component Selection
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Swap Energy Storage Battery
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Select your preferred home or commercial battery system (LiFePO4 / NMC).
+              </p>
+            </div>
+
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search battery (e.g. Tesla Powerwall, BYD, Enphase, Huawei, Pylontech)..."
+                value={swapBatteryQuery}
+                onChange={(e) => setSwapBatteryQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100 dark:divide-slate-800">
+              {batterySearchResults.map((bat) => (
+                <div
+                  key={bat.id}
+                  onClick={() => handleSwapBattery(bat)}
+                  className="py-3 px-3 rounded-xl hover:bg-purple-50/50 dark:hover:bg-purple-500/10 cursor-pointer transition-colors flex items-center justify-between group"
+                >
+                  <div className="pr-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      {bat.brand_name}
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                      {bat.model_name}
+                    </h4>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <span>{bat.battery_type || 'LiFePO4'}</span>
+                      <span>•</span>
+                      <span>Power: {bat.continuous_power_kw || '5.0'} kW</span>
+                    </div>
+                  </div>
+                  <div className="text-right whitespace-nowrap">
+                    <span className="text-base font-black text-purple-600 dark:text-purple-400 block">
+                      {bat.usable_capacity_kwh} kWh
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold inline-block mt-0.5">
+                      Select ↵
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {batterySearchResults.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  <p className="font-semibold">Searching battery database...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ----------------------------------------------------------------- */}
       {/* 5. Request Quote Modal */}
