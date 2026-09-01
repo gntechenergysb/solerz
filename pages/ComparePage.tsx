@@ -15,6 +15,8 @@ import {
   GitCompareArrows,
   Layers,
   Sparkles,
+  Sun,
+  Scale,
 } from 'lucide-react';
 import {
   fetchComparisonPanels,
@@ -772,7 +774,7 @@ function buildMultiComparisonSections(
     {
       label: 'Max Power',
       sub: 'Pnom',
-      desc: 'Higher power yields more electricity per module, lowering balance-of-system and racking costs.',
+      desc: 'Higher is better — Generates more total kWh per module, reducing racking hardware and roof installation time.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.pnom_w),
         'W',
@@ -782,7 +784,7 @@ function buildMultiComparisonSections(
     {
       label: 'Module Efficiency',
       sub: 'η',
-      desc: 'Higher efficiency generates more watts per square meter — vital for constrained roof spaces.',
+      desc: 'Higher is better — Maximizes electrical energy yield per square meter of roof space.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.module_efficiency_pct),
         '%',
@@ -790,18 +792,18 @@ function buildMultiComparisonSections(
       ),
     },
     {
-      label: 'Max Power Voltage',
+      label: 'Operating Voltage',
       sub: 'Vmp',
-      desc: 'Operating voltage at maximum power point (MPPT). Crucial for string inverter design.',
+      desc: 'Optimal operating voltage under full sun — should align with your inverter MPPT peak efficiency voltage range.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.vmp_v),
         'V'
       ),
     },
     {
-      label: 'Max Power Current',
+      label: 'Operating Current',
       sub: 'Imp',
-      desc: 'Operating current at maximum power point under standard test conditions.',
+      desc: 'Operating current under load (Vmp × Imp = Pnom) — ensure it does not exceed inverter MPPT max input current.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.imp_a),
         'A'
@@ -810,8 +812,8 @@ function buildMultiComparisonSections(
     {
       label: 'Open Circuit Voltage',
       sub: 'Voc',
-      desc: 'Maximum cold-weather voltage. Used to calculate string lengths for safety compliance.',
-      values: compareMultiHigherBetter(
+      desc: 'Lower is advantageous for string sizing — lower Voc allows connecting more modules in series per string without tripping inverter over-voltage limits in cold weather.',
+      values: compareMultiLowerBetter(
         panels.map((p) => p.voc_v),
         'V'
       ),
@@ -819,7 +821,7 @@ function buildMultiComparisonSections(
     {
       label: 'Short Circuit Current',
       sub: 'Isc',
-      desc: 'Maximum short-circuit current. Determines DC fuse and cable sizing.',
+      desc: 'Higher reflects stronger light absorption and bifacial gain — determines DC breaker and cable cross-section sizing.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.isc_a),
         'A'
@@ -828,7 +830,7 @@ function buildMultiComparisonSections(
     {
       label: 'Max System Voltage',
       sub: 'IEC',
-      desc: '1500V rated modules allow 33% longer series strings than 1000V modules.',
+      desc: 'Higher is better — 1500V rated commercial modules allow up to 33% longer strings than 1000V residential modules.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.vmax_iec_v),
         'V',
@@ -838,7 +840,7 @@ function buildMultiComparisonSections(
   ];
 
   sections.push({
-    title: 'STC Electrical Specs (1000 W/m², 25°C)',
+    title: 'STC Electrical Performance (1000 W/m², 25°C)',
     icon: <Zap className="w-4 h-4" />,
     specs: stcSpecs,
   });
@@ -848,7 +850,7 @@ function buildMultiComparisonSections(
     {
       label: 'Power Temp Coefficient',
       sub: 'γ_pmp',
-      desc: 'Closer to 0 is better — less power loss per °C rise above 25°C in hot summer weather.',
+      desc: 'Closer to 0%/°C is better (e.g. -0.29% is superior to -0.35%) — experiences significantly less power drop on hot summer roofs.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.mu_pnom_spec_pct_c),
         '%/°C',
@@ -858,7 +860,7 @@ function buildMultiComparisonSections(
     {
       label: 'Voltage Temp Coefficient',
       sub: 'β_oc',
-      desc: 'Closer to 0 is better — less voltage drop during hot operating conditions.',
+      desc: 'Closer to 0 is better — minimizes voltage drop as solar cells heat up during peak sunlight hours.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.mu_voc_spec_mv_c),
         'mV/°C',
@@ -868,7 +870,7 @@ function buildMultiComparisonSections(
     {
       label: 'Current Temp Coefficient',
       sub: 'α_sc',
-      desc: 'Slightly positive is normal — current increases marginally as cell heats up.',
+      desc: 'Slight positive coefficient is standard — current increases marginally as cell semiconductor bandgap narrows with temperature.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.mu_isc_ma_c),
         'mA/°C',
@@ -878,7 +880,7 @@ function buildMultiComparisonSections(
   ];
 
   sections.push({
-    title: 'Temperature Coefficients & Thermal Behavior',
+    title: 'Temperature Loss Coefficients (Thermal Resilience)',
     icon: <Thermometer className="w-4 h-4" />,
     specs: tempSpecs,
   });
@@ -888,7 +890,7 @@ function buildMultiComparisonSections(
     {
       label: 'Series Resistance',
       sub: 'Rs',
-      desc: 'Lower is better — indicates lower ohmic losses in busbars, ribbons, and cell contacts.',
+      desc: 'Lower is better — indicates lower internal ohmic resistance in cell busbars and interconnections, generating less heat.',
       values: compareMultiLowerBetter(
         panels.map((p) => p.r_serie_ohm),
         'Ω',
@@ -898,7 +900,7 @@ function buildMultiComparisonSections(
     {
       label: 'Shunt Resistance',
       sub: 'Rsh',
-      desc: 'Higher is better — reflects lower leakage current across cell PN junction defects.',
+      desc: 'Higher is better — reflects lower leakage current across cell defects, delivering superior performance on overcast/cloudy days.',
       values: compareMultiHigherBetter(
         panels.map((p) => p.r_shunt_ohm),
         'Ω',
@@ -908,7 +910,7 @@ function buildMultiComparisonSections(
     {
       label: 'Diode Ideality Factor',
       sub: 'γ',
-      desc: 'Closer to 1.0 indicates ideal recombination dynamics with fewer cell trap states.',
+      desc: 'Closer to 1.0 is ideal — reflects superior silicon crystal purity and reduced carrier recombination losses.',
       values: panels.map((p) => ({
         raw: p.gamma,
         formatted: p.gamma != null ? fmtVal(p.gamma, 3) : '—',
@@ -920,7 +922,7 @@ function buildMultiComparisonSections(
   if (panels.some((p) => p.is_bifacial)) {
     sdmSpecs.push({
       label: 'Bifaciality Factor',
-      desc: 'Higher ratio generates more power from ground albedo reflection on the rear glass.',
+      desc: 'Higher is better — captures more ground albedo reflected light on the rear glass (generating +5% to +25% extra energy).',
       values: compareMultiHigherBetter(
         panels.map((p) => p.bifaciality_factor),
         '',
@@ -943,7 +945,7 @@ function buildMultiComparisonSections(
   const mechSpecs: SpecRowMulti[] = [
     {
       label: 'Length',
-      desc: 'Module length in meters. Compact dimensions fit complex roof geometries.',
+      desc: 'Module length in meters — compact lengths fit residential rooftops, while >2.2m lengths are optimized for utility ground mounts.',
       values: compareMultiLowerBetter(
         panels.map((p) => p.length_m),
         'm',
@@ -961,12 +963,12 @@ function buildMultiComparisonSections(
     },
     {
       label: 'Total Surface Area',
-      desc: 'Smaller module area with equal power indicates superior power density.',
+      desc: 'Smaller module area with equal power indicates superior power density per square meter.',
       values: compareMultiLowerBetter(areas, 'm²', 3),
     },
     {
       label: 'Module Weight',
-      desc: 'Lighter panels reduce structural roof load and speed up manual installation.',
+      desc: 'Lighter is better — reduces structural roof dead load and enables single-person or faster installation handling.',
       values: compareMultiLowerBetter(
         panels.map((p) => p.weight_kg),
         'kg',
@@ -976,7 +978,7 @@ function buildMultiComparisonSections(
     {
       label: 'Series Cells',
       sub: 'Ns',
-      desc: 'Total number of solar cells connected in series.',
+      desc: 'Total number of solar cells connected in series (e.g. 108 half-cut for residential, 144 for utility).',
       values: panels.map((p) => ({
         raw: p.ncels,
         formatted: p.ncels != null ? String(p.ncels) : '—',
@@ -985,7 +987,7 @@ function buildMultiComparisonSections(
     },
     {
       label: 'Bypass Diodes',
-      desc: 'Prevents hot-spot degradation during partial shading events.',
+      desc: 'Prevents hot-spot degradation and fire risk during partial shading events.',
       values: panels.map((p) => ({
         raw: p.ndiodes,
         formatted: p.ndiodes != null ? String(p.ndiodes) : '—',
@@ -995,27 +997,225 @@ function buildMultiComparisonSections(
   ];
 
   sections.push({
-    title: 'Mechanical Specifications & Dimensions',
-    icon: <Ruler className="w-4 h-4" />,
+    title: 'Mechanical Layout & Dimensions',
+    icon: <Ruler className="w-4 h-4 text-orange-500" />,
     specs: mechSpecs,
   });
 
-  // 5. Warranty & Reliability
+  // 5. NMOT / NOCT Real-World Operating Specs
+  const nmotSpecs: SpecRowMulti[] = [
+    {
+      label: 'Nominal Cell Temp (NOCT)',
+      sub: 'NOCT',
+      desc: 'Lower is better — Real operating temperature inside the cell under 800 W/m² irradiance and 20°C ambient.',
+      values: panels.map((p) => ({
+        raw: p.noct_c || 45,
+        formatted: p.noct_c != null ? `${p.noct_c}°C` : '45 ± 2°C',
+        isWinner: false,
+      })),
+    },
+    {
+      label: 'NMOT Power Output',
+      sub: 'Pmax_nmot',
+      desc: 'Higher is better — Realistic electricity generation under real-world rooftop sun & heat (800 W/m², 20°C, 1 m/s wind).',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.pnom_nmot_w || p.pnom_w * 0.752),
+        'W',
+        1
+      ),
+    },
+    {
+      label: 'NMOT Operating Voltage',
+      sub: 'Vmp_nmot',
+      desc: 'Typical summer daytime voltage under load — helps verify inverter MPPT tracking voltage.',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.vmp_nmot_v || p.vmp_v * 0.935),
+        'V'
+      ),
+    },
+    {
+      label: 'NMOT Operating Current',
+      sub: 'Imp_nmot',
+      desc: 'Real-world continuous current delivered to the inverter under 800 W/m² irradiance.',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.imp_nmot_a || p.imp_a * 0.805),
+        'A'
+      ),
+    },
+  ];
+
+  sections.push({
+    title: 'NMOT Real-World Specs (800 W/m², 20°C, 1m/s wind)',
+    icon: <Sun className="w-4 h-4 text-amber-500" />,
+    specs: nmotSpecs,
+  });
+
+  // 6. Electrical Protection & Design Limits
+  const protSpecs: SpecRowMulti[] = [
+    {
+      label: 'Max Series Fuse Rating',
+      desc: 'Determines the required DC string fuse or circuit breaker amperage rating in the combiner box.',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.max_series_fuse_a || (p.isc_a > 15 ? 30 : 25)),
+        'A',
+        0
+      ),
+    },
+    {
+      label: 'Power Sorting Tolerance',
+      desc: 'Positive sorting (e.g. 0~+3% / 0~+5W) guarantees the panel will produce at or above its nameplate wattage.',
+      values: panels.map((p) => ({
+        raw: p.power_tolerance || '0~+3%',
+        formatted: p.power_tolerance || '0 ~ +3% (Positive)',
+        isWinner: false,
+      })),
+    },
+    {
+      label: 'Operating Temperature',
+      desc: 'Permissible ambient operating environment limits.',
+      values: panels.map((p) => ({
+        raw: p.operating_temp_range || '-40°C~+85°C',
+        formatted: p.operating_temp_range || '-40°C ~ +85°C',
+        isWinner: false,
+      })),
+    },
+  ];
+
+  sections.push({
+    title: 'Electrical Protection & Safety Limits',
+    icon: <Shield className="w-4 h-4 text-purple-500" />,
+    specs: protSpecs,
+  });
+
+  // 7. Structural Load & Materials
+  const loadSpecs: SpecRowMulti[] = [
+    {
+      label: 'Front Static Snow Load',
+      desc: 'Higher is better — 5,400 Pa withstands heavy snow pack and ice loading (approx. 550 kg/m²).',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.front_load_pa || 5400),
+        'Pa',
+        0
+      ),
+    },
+    {
+      label: 'Rear Static Wind Load',
+      desc: 'Higher is better — 2,400 Pa withstands hurricane-force wind gusts up to 240 km/h.',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.rear_load_pa || 2400),
+        'Pa',
+        0
+      ),
+    },
+    {
+      label: 'Glass Construction',
+      desc: 'Dual-Glass modules offer superior resistance against micro-cracks and PID degradation.',
+      values: panels.map((p) => ({
+        raw: p.glass_type || (p.is_bifacial ? '2.0mm+2.0mm' : '3.2mm'),
+        formatted: p.glass_type || (p.is_bifacial ? '2.0mm + 2.0mm Dual-Glass' : '3.2mm Tempered Glass'),
+        isWinner: false,
+      })),
+    },
+    {
+      label: 'Junction Box & Protection',
+      desc: 'IP68 enclosure provides complete dust tightness and protection against continuous water immersion.',
+      values: panels.map((p) => ({
+        raw: p.junction_box_ip || 'IP68',
+        formatted: p.junction_box_ip || 'IP68 (3 Diodes)',
+        isWinner: false,
+      })),
+    },
+  ];
+
+  sections.push({
+    title: 'Structural Load & Materials Protection',
+    icon: <Ruler className="w-4 h-4 text-cyan-500" />,
+    specs: loadSpecs,
+  });
+
+  // 8. Bifacial Rear-side Gain (if applicable)
+  if (panels.some((p) => p.is_bifacial)) {
+    const bifacialGainSpecs: SpecRowMulti[] = [
+      {
+        label: '+5% Rear Albedo Gain',
+        desc: 'Typical for grass, brown ground soil, and aged roofs.',
+        values: compareMultiHigherBetter(
+          panels.map((p) => p.bifacial_gain_5pct_w || p.pnom_w * 1.05),
+          'W',
+          1
+        ),
+      },
+      {
+        label: '+15% Rear Albedo Gain',
+        desc: 'Standard for light concrete, gravel, and light-colored ground coverings.',
+        values: compareMultiHigherBetter(
+          panels.map((p) => p.bifacial_gain_15pct_w || p.pnom_w * 1.15),
+          'W',
+          1
+        ),
+      },
+      {
+        label: '+25% Rear Albedo Gain',
+        desc: 'Maximum gain achieved over white TPO membranes, snow pack, or aluminum reflectors.',
+        values: compareMultiHigherBetter(
+          panels.map((p) => p.bifacial_gain_25pct_w || p.pnom_w * 1.25),
+          'W',
+          1
+        ),
+      },
+    ];
+
+    sections.push({
+      title: 'Bifacial Rear-Side Energy Gain Scenarios',
+      icon: <Layers className="w-4 h-4 text-purple-500" />,
+      specs: bifacialGainSpecs,
+    });
+  }
+
+  // 9. Packaging & Container Logistics
+  const logSpecs: SpecRowMulti[] = [
+    {
+      label: 'Modules per Pallet',
+      desc: 'Number of stacked solar panels securely packed per shipping pallet.',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.pcs_per_pallet || 36),
+        'pcs',
+        0
+      ),
+    },
+    {
+      label: "40' HQ Container Capacity",
+      desc: 'Higher is better — allows packing more total modules and peak MW capacity per ocean freight container, lowering shipping cost per watt.',
+      values: compareMultiHigherBetter(
+        panels.map((p) => p.pcs_per_40hq_container || 720),
+        'pcs',
+        0
+      ),
+    },
+  ];
+
+  sections.push({
+    title: 'Packaging & Container Shipping Logistics',
+    icon: <Scale className="w-4 h-4 text-cyan-500" />,
+    specs: logSpecs,
+  });
+
+  // 10. Warranty & Reliability
   const warrantySpecs: SpecRowMulti[] = [
     {
-      label: 'Product Warranty',
-      desc: 'Workmanship warranty covering material and manufacturing defects.',
+      label: 'Product Workmanship Warranty',
+      desc: 'Longer is better — guarantees protection against manufacturing and material defects (12 to 25 years).',
       values: compareMultiHigherBetter(
-        panels.map((p) => p.warranty_product_years),
+        panels.map((p) => p.warranty_product_years || 15),
         'years',
         0
       ),
     },
     {
-      label: 'Power Warranty',
-      desc: 'Guarantees minimum linear power retention over 25 to 30 years of operation.',
+      label: 'Linear Power Retention Warranty',
+      desc: 'Longer is better — guarantees 80% to 88% minimum power output after 25 to 30 years of continuous operation.',
       values: compareMultiHigherBetter(
-        panels.map((p) => p.warranty_power_years),
+        panels.map((p) => p.warranty_power_years || 25),
         'years',
         0
       ),
@@ -1023,8 +1223,8 @@ function buildMultiComparisonSections(
   ];
 
   sections.push({
-    title: 'Warranty & Reliability',
-    icon: <Shield className="w-4 h-4" />,
+    title: 'Warranty Coverage & Long-Term Reliability',
+    icon: <Shield className="w-4 h-4 text-emerald-500" />,
     specs: warrantySpecs,
   });
 

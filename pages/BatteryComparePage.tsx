@@ -456,14 +456,19 @@ const BatteryComparePage: React.FC = () => {
                   colSpan={batteries.length + (batteries.length < MAX_COMPARE ? 2 : 1)}
                   className="px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400"
                 >
-                  ⚡ Energy Storage & Power Output
+                  ⚡ Energy Storage &amp; Power Output
                 </td>
               </tr>
 
               {/* Usable Capacity */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Usable Energy Storage
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Usable Storage Capacity
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    Higher is better — Net kilowatt-hours (kWh) available to power home loads during grid outages or nighttime TOU peak rates.
+                  </p>
                 </td>
                 {batteries.map((b, idx) => {
                   const isWin = winners['usable_capacity_kwh'] === idx;
@@ -483,8 +488,13 @@ const BatteryComparePage: React.FC = () => {
 
               {/* Continuous Power */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Continuous Power Rating
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Continuous Power Output
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    Higher is better — Maximum steady kilowatt (kW) draw, determining how many heavy appliances (air conditioner, EV charger, oven) can run simultaneously.
+                  </p>
                 </td>
                 {batteries.map((b, idx) => {
                   const isWin = winners['continuous_power_kw'] === idx;
@@ -504,8 +514,13 @@ const BatteryComparePage: React.FC = () => {
 
               {/* Peak Power */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Peak Power Output (10s)
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Peak Surge Power (10s)
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    Higher is better — Short-burst electrical power required to start high inductive motor loads (well pumps, HVAC compressors).
+                  </p>
                 </td>
                 {batteries.map((b, idx) => {
                   const isWin = winners['peak_power_kw'] === idx;
@@ -525,8 +540,13 @@ const BatteryComparePage: React.FC = () => {
 
               {/* Coupling Architecture */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Coupling Architecture
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    System Architecture
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    AC-Coupled connects to any existing solar array; DC-Coupled integrates with hybrid inverters for higher round-trip efficiency.
+                  </p>
                 </td>
                 {batteries.map((b) => (
                   <td key={b.id} className={`p-4 text-sm text-slate-700 dark:text-slate-300 font-medium ${columnWidthClass}`}>
@@ -542,14 +562,19 @@ const BatteryComparePage: React.FC = () => {
                   colSpan={batteries.length + (batteries.length < MAX_COMPARE ? 2 : 1)}
                   className="px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400"
                 >
-                  🔋 Electrical & Voltage Architecture
+                  🔋 Electrical &amp; Voltage Architecture
                 </td>
               </tr>
 
               {/* Nominal Voltage */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Nominal DC Voltage
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Nominal DC Voltage
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    High-Voltage (HV 200V-500V) delivers higher efficiency with thinner cables; Low-Voltage (LV 48V) offers safer DIY scalability.
+                  </p>
                 </td>
                 {batteries.map((b) => (
                   <td key={b.id} className={`p-4 text-sm text-slate-700 dark:text-slate-300 font-semibold tabular-nums ${columnWidthClass}`}>
@@ -559,38 +584,15 @@ const BatteryComparePage: React.FC = () => {
                 {batteries.length < MAX_COMPARE && <td className={columnWidthClass} />}
               </tr>
 
-              {/* Operating Voltage Range */}
-              <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Operating Voltage Range
-                </td>
-                {batteries.map((b) => (
-                  <td key={b.id} className={`p-4 text-sm text-slate-700 dark:text-slate-300 font-semibold tabular-nums ${columnWidthClass}`}>
-                    {b.operating_voltage_min_v && b.operating_voltage_max_v
-                      ? `${b.operating_voltage_min_v}V – ${b.operating_voltage_max_v}V`
-                      : '—'}
-                  </td>
-                ))}
-                {batteries.length < MAX_COMPARE && <td className={columnWidthClass} />}
-              </tr>
-
-              {/* Max Current */}
-              <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Max Continuous Current
-                </td>
-                {batteries.map((b) => (
-                  <td key={b.id} className={`p-4 text-sm text-slate-700 dark:text-slate-300 font-semibold tabular-nums ${columnWidthClass}`}>
-                    {fmtVal(b.max_continuous_current_a, 'A', 1)}
-                  </td>
-                ))}
-                {batteries.length < MAX_COMPARE && <td className={columnWidthClass} />}
-              </tr>
-
               {/* Battery Chemistry */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Battery Chemistry
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Cell Chemistry
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    LFP (Lithium Iron Phosphate) offers maximum thermal runaway safety and 6,000+ cycle life; NMC offers compact energy density.
+                  </p>
                 </td>
                 {batteries.map((b) => (
                   <td key={b.id} className={`p-4 text-sm text-slate-700 dark:text-slate-300 font-medium ${columnWidthClass}`}>
@@ -606,14 +608,19 @@ const BatteryComparePage: React.FC = () => {
                   colSpan={batteries.length + (batteries.length < MAX_COMPARE ? 2 : 1)}
                   className="px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400"
                 >
-                  🌱 Efficiency, Degradation & Warranty
+                  🌱 Efficiency, Degradation &amp; Warranty
                 </td>
               </tr>
 
               {/* Round-Trip Efficiency */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Round-Trip Efficiency (RTE)
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Round-Trip Efficiency (RTE)
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    Higher is better (90%~96%) — Minimizes electricity loss during charge/discharge storage cycles.
+                  </p>
                 </td>
                 {batteries.map((b, idx) => {
                   const isWin = winners['round_trip_efficiency_pct'] === idx;
@@ -633,8 +640,13 @@ const BatteryComparePage: React.FC = () => {
 
               {/* Rated Cycle Life */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Rated Cycle Life
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Rated Cycle Life
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    Higher is better (6,000 to 8,000 cycles) — Guarantees 10 to 15+ years of daily cycling while retaining &gt;70-80% original capacity.
+                  </p>
                 </td>
                 {batteries.map((b, idx) => {
                   const isWin = winners['cycle_life_count'] === idx;
@@ -654,8 +666,13 @@ const BatteryComparePage: React.FC = () => {
 
               {/* Warranty Years */}
               <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Warranty Coverage
+                <td className="p-4">
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Manufacturer Warranty
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                    Longer is better — 10 to 15 years performance warranty covering minimum energy throughput guarantees.
+                  </p>
                 </td>
                 {batteries.map((b, idx) => {
                   const isWin = winners['warranty_years'] === idx;

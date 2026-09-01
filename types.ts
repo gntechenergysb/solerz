@@ -60,6 +60,36 @@ export interface SolarPanelDetail extends SolarPanelSummary {
   warranty_power_years: number | null;
   datasheet_url?: string | null;
   raw_pan_content: string | null;
+
+  // --- Group 1: NMOT / NOCT Real-World Specs (800 W/m², 20°C, 1m/s wind) ---
+  noct_c?: number | null;
+  pnom_nmot_w?: number | null;
+  vmp_nmot_v?: number | null;
+  imp_nmot_a?: number | null;
+  voc_nmot_v?: number | null;
+  isc_nmot_a?: number | null;
+
+  // --- Group 2: Electrical Protection & System Limits ---
+  max_series_fuse_a?: number | null;
+  power_tolerance?: string | null;
+  operating_temp_range?: string | null;
+
+  // --- Group 3: Mechanical Load & Materials ---
+  front_load_pa?: number | null;
+  rear_load_pa?: number | null;
+  glass_type?: string | null;
+  frame_type?: string | null;
+  junction_box_ip?: string | null;
+  connector_type?: string | null;
+
+  // --- Group 4: Bifacial Rear-side Gain (Dual-Glass) ---
+  bifacial_gain_5pct_w?: number | null;
+  bifacial_gain_15pct_w?: number | null;
+  bifacial_gain_25pct_w?: number | null;
+
+  // --- Group 5: Packaging & Logistics ---
+  pcs_per_pallet?: number | null;
+  pcs_per_40hq_container?: number | null;
 }
 
 /**

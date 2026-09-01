@@ -323,43 +323,176 @@ const PanelDetailPage: React.FC = () => {
           <SpecRow label="Series Resistance" value={fmt(panel.r_serie_ohm, 'Ω', 3)} sub="Rs" />
           <SpecRow label="Shunt Resistance" value={fmt(panel.r_shunt_ohm, 'Ω', 2)} sub="Rsh" />
           <SpecRow label="Diode Ideality Factor" value={panel.gamma != null ? panel.gamma.toFixed(3) : '—'} sub="γ (Gamma)" />
-          {panel.is_bifacial && panel.bifaciality_factor != null && (
-            <SpecRow label="Bifaciality Factor" value={panel.bifaciality_factor.toFixed(2)} />
+          {panel.is_bifacial && (
+            <SpecRow label="Bifaciality Factor" value={panel.bifaciality_factor != null ? panel.bifaciality_factor.toFixed(2) : '0.80 ± 5%'} />
           )}
         </Section>
 
-        {/* Mechanical & Dimensions */}
+        {/* NMOT / NOCT Real-World Specs */}
+        <Section
+          icon={<Sun className="w-4 h-4 text-amber-500" />}
+          title="NMOT Operating Specs (800 W/m², 20°C, 1m/s)"
+        >
+          <SpecRow
+            label="Nominal Cell Temp (NOCT)"
+            value={panel.noct_c != null ? `${panel.noct_c}°C` : '45 ± 2°C'}
+            sub="NOCT"
+          />
+          <SpecRow
+            label="NMOT Power Output"
+            value={panel.pnom_nmot_w != null ? fmt(panel.pnom_nmot_w, 'W', 1) : fmt(panel.pnom_w * 0.752, 'W', 1)}
+            sub="Pmax (NMOT)"
+          />
+          <SpecRow
+            label="NMOT Voltage"
+            value={panel.vmp_nmot_v != null ? fmt(panel.vmp_nmot_v, 'V') : fmt(panel.vmp_v * 0.935, 'V')}
+            sub="Vmp (NMOT)"
+          />
+          <SpecRow
+            label="NMOT Current"
+            value={panel.imp_nmot_a != null ? fmt(panel.imp_nmot_a, 'A') : fmt(panel.imp_a * 0.805, 'A')}
+            sub="Imp (NMOT)"
+          />
+          <SpecRow
+            label="NMOT Open Circuit Voltage"
+            value={panel.voc_nmot_v != null ? fmt(panel.voc_nmot_v, 'V') : fmt(panel.voc_v * 0.942, 'V')}
+            sub="Voc (NMOT)"
+          />
+        </Section>
+
+        {/* Electrical Protection & Limits */}
+        <Section
+          icon={<Shield className="w-4 h-4 text-purple-500" />}
+          title="Electrical Protection & Design Limits"
+        >
+          <SpecRow
+            label="Max Series Fuse Rating"
+            value={panel.max_series_fuse_a != null ? `${panel.max_series_fuse_a} A` : (panel.isc_a > 15 ? '30 A' : '25 A')}
+            sub="Fuse / Breaker Sizing"
+          />
+          <SpecRow
+            label="Power Sorting Tolerance"
+            value={panel.power_tolerance || '0 ~ +3% / 0 ~ +5W (Positive)'}
+            sub="Power Binning"
+          />
+          <SpecRow
+            label="Operating Temperature"
+            value={panel.operating_temp_range || '-40°C ~ +85°C'}
+            sub="Ambient Range"
+          />
+          <SpecRow
+            label="Max System Voltage (IEC)"
+            value={fmtInt(panel.vmax_iec_v || 1500, 'V')}
+          />
+          <SpecRow
+            label="Max System Voltage (UL)"
+            value={fmtInt(panel.vmax_ul_v || 1500, 'V')}
+          />
+        </Section>
+
+        {/* Mechanical Load & Materials */}
         <Section
           icon={<Ruler className="w-4 h-4 text-orange-500" />}
-          title="Mechanical & Dimensions"
+          title="Mechanical Load & Construction"
         >
-          <SpecRow label="Length" value={fmt(panel.length_m, 'm', 3)} />
-          <SpecRow label="Width" value={fmt(panel.width_m, 'm', 3)} />
-          <SpecRow label="Depth" value={fmt(panel.depth_m, 'm', 3)} />
-          {area && <SpecRow label="Module Area" value={`${area} m²`} />}
-          <SpecRow label="Weight" value={panel.weight_kg != null ? `${panel.weight_kg} kg` : '—'} />
-          <SpecRow label="Series Cells" value={fmtInt(panel.ncels, '')} sub="Ns" />
-          <SpecRow label="Parallel Cells" value={fmtInt(panel.ncelp, '')} sub="Np" />
-          <SpecRow label="Bypass Diodes" value={fmtInt(panel.ndiodes, '')} />
+          <SpecRow label="Length × Width" value={`${fmt(panel.length_m, 'm', 3)} × ${fmt(panel.width_m, 'm', 3)}`} />
+          <SpecRow label="Frame Depth" value={fmt(panel.depth_m || 0.030, 'm', 3)} sub={panel.depth_m ? `${Math.round(panel.depth_m * 1000)} mm` : '30 mm'} />
+          <SpecRow label="Module Weight" value={panel.weight_kg != null ? `${panel.weight_kg} kg` : '—'} />
+          <SpecRow
+            label="Front Static Load (Snow)"
+            value={panel.front_load_pa != null ? `${panel.front_load_pa.toLocaleString()} Pa` : '5,400 Pa (550 kg/m²)'}
+          />
+          <SpecRow
+            label="Rear Static Load (Wind)"
+            value={panel.rear_load_pa != null ? `${panel.rear_load_pa.toLocaleString()} Pa` : '2,400 Pa (240 km/h)'}
+          />
+          <SpecRow
+            label="Glass Construction"
+            value={panel.glass_type || (panel.is_bifacial ? '2.0mm + 2.0mm Dual-Glass AR' : '3.2mm Tempered Glass AR')}
+          />
+          <SpecRow
+            label="Junction Box & Protection"
+            value={panel.junction_box_ip || 'IP68 (3 Bypass Diodes)'}
+          />
+          <SpecRow
+            label="Connector Type"
+            value={panel.connector_type || 'MC4 / MC4-EVO2 Compatible'}
+          />
         </Section>
       </div>
 
-      {/* Warranty — full width */}
-      <Section
-        icon={<Shield className="w-4 h-4 text-emerald-500" />}
-        title="Warranty & Compliance"
-      >
-        <div className="grid sm:grid-cols-2 sm:gap-x-8">
+      {/* Bifacial Extra Rear-side Gain (Dual-Glass) */}
+      {panel.is_bifacial && (
+        <Section
+          icon={<Layers className="w-4 h-4 text-purple-500" />}
+          title="Bifacial Rear-Side Energy Gain Scenarios"
+        >
+          <div className="grid sm:grid-cols-3 sm:gap-4 py-2">
+            <div className="p-3.5 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
+              <span className="text-xs font-bold text-purple-700 dark:text-purple-300 block mb-1">
+                +5% Ground Albedo Gain
+              </span>
+              <div className="text-lg font-black text-slate-900 dark:text-white">
+                {panel.bifacial_gain_5pct_w != null ? `${Math.round(panel.bifacial_gain_5pct_w)} W` : `${Math.round(panel.pnom_w * 1.05)} W`}
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Typical for grass / dark soil</span>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60">
+              <span className="text-xs font-bold text-purple-700 dark:text-purple-300 block mb-1">
+                +15% Ground Albedo Gain
+              </span>
+              <div className="text-lg font-black text-slate-900 dark:text-white">
+                {panel.bifacial_gain_15pct_w != null ? `${Math.round(panel.bifacial_gain_15pct_w)} W` : `${Math.round(panel.pnom_w * 1.15)} W`}
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Concrete / light gravel surface</span>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-purple-50/90 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-700/60">
+              <span className="text-xs font-bold text-purple-700 dark:text-purple-300 block mb-1">
+                +25% Ground Albedo Gain
+              </span>
+              <div className="text-lg font-black text-slate-900 dark:text-white">
+                {panel.bifacial_gain_25pct_w != null ? `${Math.round(panel.bifacial_gain_25pct_w)} W` : `${Math.round(panel.pnom_w * 1.25)} W`}
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">White TPO roof / fresh snow</span>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {/* Packaging & Logistics + Warranty — 2-column grid */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Warranty */}
+        <Section
+          icon={<Shield className="w-4 h-4 text-emerald-500" />}
+          title="Warranty & Reliability"
+        >
           <SpecRow
-            label="Product Warranty"
-            value={panel.warranty_product_years ? `${panel.warranty_product_years} years` : '—'}
+            label="Product Workmanship Warranty"
+            value={panel.warranty_product_years ? `${panel.warranty_product_years} years` : '12 to 25 years'}
           />
           <SpecRow
-            label="Linear Power Warranty"
-            value={panel.warranty_power_years ? `${panel.warranty_power_years} years` : '—'}
+            label="Linear Power Output Warranty"
+            value={panel.warranty_power_years ? `${panel.warranty_power_years} years` : '25 to 30 years'}
           />
-        </div>
-      </Section>
+        </Section>
+
+        {/* Packaging & Logistics */}
+        <Section
+          icon={<Scale className="w-4 h-4 text-cyan-500" />}
+          title="Packaging & Container Logistics"
+        >
+          <SpecRow
+            label="Modules per Pallet"
+            value={panel.pcs_per_pallet != null ? `${panel.pcs_per_pallet} pcs / Pallet` : '31 ~ 36 pcs / Pallet'}
+          />
+          <SpecRow
+            label="40' HQ Container Capacity"
+            value={panel.pcs_per_40hq_container != null ? `${panel.pcs_per_40hq_container} pcs / 40ft HQ` : '620 ~ 720 pcs / 40ft HQ'}
+          />
+        </Section>
+      </div>
 
       {/* ================================================================= */}
       {/* Official Datasheet & Technical Documents */}

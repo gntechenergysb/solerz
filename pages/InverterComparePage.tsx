@@ -117,13 +117,13 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
         {
           label: 'Continuous AC Power',
           sub: 'Paco',
-          desc: 'Higher continuous real power generates more kilowatt-hours under high solar irradiance.',
+          desc: 'Higher is better — Maximum continuous real power delivered to your home or grid, determining total system energy output.',
           values: compareMultiHigherBetter(inverters.map((p) => p.paco_w), 'W', 0),
         },
         {
           label: 'Nominal AC Grid Voltage',
           sub: 'Vac',
-          desc: 'Grid connection voltage standard (e.g. 208V, 240V split-phase, 480V 3-phase).',
+          desc: 'Grid interconnection standard (e.g. 240V split-phase for residential, 208V/480V 3-phase for commercial).',
           values: inverters.map((p) => ({
             formatted: `${Math.round(p.vac_v)} V`,
             isWinner: false,
@@ -133,7 +133,7 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
         {
           label: 'Continuous AC Current',
           sub: 'Iac',
-          desc: 'Continuous output current for circuit breaker and electrical panel wiring.',
+          desc: 'Maximum output current under full load — determines the main electrical service panel breaker amperage required.',
           values: inverters.map((p) => ({
             formatted: `${(p.paco_w / p.vac_v).toFixed(1)} A`,
             isWinner: false,
@@ -142,7 +142,7 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
         },
         {
           label: 'Inverter Topology',
-          desc: 'System architecture classification.',
+          desc: 'System architecture classification (e.g. String Inverter, Microinverter, or Hybrid Storage Inverter).',
           values: inverters.map((p) => ({
             formatted: p.inverter_type,
             isWinner: false,
@@ -158,19 +158,19 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
         {
           label: 'Max DC Input Voltage',
           sub: 'Vdcmax',
-          desc: 'Higher maximum voltage permits longer module strings in cold weather without tripping.',
+          desc: 'Higher is better — 600V/1000V allows connecting longer module strings without tripping over-voltage safety shutdown in cold weather.',
           values: compareMultiHigherBetter(inverters.map((p) => p.vdcmax_v), 'V', 0),
         },
         {
           label: 'Max Continuous DC Current',
           sub: 'Idcmax',
-          desc: 'Maximum current intake accommodating modern high-current solar modules.',
+          desc: 'Higher is better — accommodates modern 18A-20A high-power bifacial solar modules without current clipping.',
           values: compareMultiHigherBetter(inverters.map((p) => p.idcmax_a), 'A', 1),
         },
         {
-          label: 'MPPT Operating Range',
+          label: 'MPPT Operating Window',
           sub: 'Vmppt',
-          desc: 'Full power tracking range under varying temperature and partial shading.',
+          desc: 'Wider range is better — tracks maximum power point across early morning, late afternoon, and extreme summer/winter temperatures.',
           values: inverters.map((p) => ({
             formatted: `${Math.round(p.mppt_low_v)} V – ${Math.round(p.mppt_high_v)} V`,
             isWinner: false,
@@ -180,7 +180,7 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
         {
           label: 'Nominal DC Voltage',
           sub: 'Vdco',
-          desc: 'DC operating voltage at peak conversion efficiency.',
+          desc: 'Ideal DC string voltage sweet spot where the inverter achieves its peak electrical conversion efficiency.',
           values: inverters.map((p) => ({
             formatted: `${Math.round(p.vdco_v)} V`,
             isWinner: false,
@@ -190,7 +190,7 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
         {
           label: 'Rated DC Input Power',
           sub: 'Pdco',
-          desc: 'DC input power required to produce full rated AC power.',
+          desc: 'DC input power required to produce full rated AC power — indicates internal power stage conversion ratio.',
           values: inverters.map((p) => ({
             formatted: fmtPower(p.pdco_w),
             isWinner: false,
@@ -204,26 +204,26 @@ function buildMultiInverterSections(inverters: InverterDetail[]): SectionData[] 
       icon: <Activity className="w-4 h-4 text-purple-500" />,
       specs: [
         {
-          label: 'Sandia Peak Efficiency',
+          label: 'Peak Conversion Efficiency',
           sub: 'η_max',
-          desc: 'Higher efficiency minimizes thermal loss and maximizes lifetime energy production.',
+          desc: 'Higher is better (97%~99%) — minimizes DC-to-AC conversion heat loss, generating more usable kWh over the system lifetime.',
           values: compareMultiHigherBetter(inverters.map((p) => p.efficiency_pct), '%', 1),
         },
         {
           label: 'Start-up Power Threshold',
           sub: 'Pso',
-          desc: 'Lower start-up power wakes up the inverter earlier at sunrise.',
+          desc: 'Lower is better — allows the inverter to wake up earlier at sunrise and produce power longer into the evening dusk.',
           values: compareMultiLowerBetter(inverters.map((p) => p.pso_w), 'W', 1),
         },
         {
           label: 'Nighttime Tare Loss',
           sub: 'Pnt',
-          desc: 'Lower tare loss reduces parasitic energy draw from the grid overnight.',
+          desc: 'Lower is better — reduces parasitic idle power consumption drawn from the electrical grid when the sun is down.',
           values: compareMultiLowerBetter(inverters.map((p) => p.pnt_w), 'W', 1),
         },
         {
           label: 'Battery Storage Ready',
-          desc: 'Integrated hybrid DC battery coupling.',
+          desc: 'Indicates whether the inverter has integrated DC-coupled battery charge controller ports for whole-home backup.',
           values: inverters.map((p) => ({
             formatted: p.is_hybrid ? 'Yes (Hybrid Storage)' : 'Standard Grid-Tied',
             isWinner: p.is_hybrid,
