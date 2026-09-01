@@ -184,14 +184,31 @@ const PanelDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back link */}
-      <Link
-        to="/solar-panels"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        All Solar Panels
-      </Link>
+      {/* SEO Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+        <Link to="/" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+          Home
+        </Link>
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        <Link to="/solar-panels" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+          Solar Panels
+        </Link>
+        {panel.brand_name && (
+          <>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <Link
+              to={`/brands/${encodeURIComponent(panel.brand_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))}`}
+              className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+            >
+              {panel.brand_name}
+            </Link>
+          </>
+        )}
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-slate-800 dark:text-slate-200 font-bold truncate max-w-[200px] sm:max-w-xs">
+          {panel.model_name}
+        </span>
+      </nav>
 
       {/* ================================================================= */}
       {/* Hero Card */}

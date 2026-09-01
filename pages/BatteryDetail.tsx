@@ -191,17 +191,28 @@ const BatteryDetailPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs font-medium text-slate-400">
-        <Link to="/" className="hover:text-purple-500 transition-colors">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+        <Link to="/" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
           Home
         </Link>
-        <span>/</span>
-        <Link to="/batteries" className="hover:text-purple-500 transition-colors">
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        <Link to="/batteries" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
           Batteries
         </Link>
-        <span>/</span>
-        <span className="text-slate-600 dark:text-slate-300 font-semibold truncate">
-          {battery.brand_name} {battery.model_name}
+        {battery.brand_name && (
+          <>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <Link
+              to={`/brands/${encodeURIComponent(battery.brand_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))}`}
+              className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium"
+            >
+              {battery.brand_name}
+            </Link>
+          </>
+        )}
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-slate-800 dark:text-slate-200 font-bold truncate max-w-[200px] sm:max-w-xs">
+          {battery.model_name}
         </span>
       </nav>
 

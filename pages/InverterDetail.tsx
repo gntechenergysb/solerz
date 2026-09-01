@@ -174,14 +174,31 @@ const InverterDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back link */}
-      <Link
-        to="/inverters"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        All Inverters
-      </Link>
+      {/* SEO Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+        <Link to="/" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+          Home
+        </Link>
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        <Link to="/inverters" className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+          Inverters
+        </Link>
+        {inverter.brand_name && (
+          <>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <Link
+              to={`/brands/${encodeURIComponent(inverter.brand_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))}`}
+              className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors font-medium"
+            >
+              {inverter.brand_name}
+            </Link>
+          </>
+        )}
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-slate-800 dark:text-slate-200 font-bold truncate max-w-[200px] sm:max-w-xs">
+          {inverter.model_name}
+        </span>
+      </nav>
 
       {/* ================================================================= */}
       {/* Hero Card */}
