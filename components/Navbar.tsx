@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sun, Moon, Zap, Menu, X, GitCompareArrows } from 'lucide-react';
 import { useCompare } from '../contexts/CompareContext';
+import { Logo } from './Logo';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -30,28 +31,31 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [mobileOpen]);
 
+  // Sync dark class to <html>
   const toggleTheme = () => {
     const next = !dark;
     setDark(next);
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('solerz_theme', next ? 'dark' : 'light');
-    // Update favicon
-    const favicon = document.getElementById('app-favicon') as HTMLLinkElement | null;
-    if (favicon) {
-      favicon.setAttribute('href', next ? '/icon-dark.png?v=20260202' : '/icon.png?v=20260202');
+    if (next) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   };
 
-  const isActive = (path: string) =>
-    location.pathname === path || location.pathname.startsWith(path + '/');
-
   const navLinks = [
-    { path: '/solar-panels', label: 'Solar Panels' },
-    { path: '/inverters', label: 'Inverters' },
-    { path: '/batteries', label: 'Batteries' },
-    { path: '/brands', label: 'Brands' },
-    { path: '/handbook', label: 'Handbook' },
+    { label: 'Solar Panels', path: '/solar-panels' },
+    { label: 'Inverters', path: '/inverters' },
+    { label: 'Batteries', path: '/batteries' },
+    { label: 'Brands', path: '/brands' },
+    { label: 'Handbook', path: '/handbook' },
   ];
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   const compareCount = selectedPanels.length;
 
@@ -60,36 +64,15 @@ const Navbar: React.FC = () => {
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80 border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
-            {/* Logo - Preloaded & Zero CLS */}
-            <Link to="/" className="flex items-center gap-2 group flex-none focus:outline-none" aria-label="Solerz Home">
-              <img
-                src="/solerz-logo-light.png"
-                alt="Solerz Logo"
-                width="613"
-                height="158"
-                className="h-7 sm:h-8 md:h-9 w-auto max-w-[120px] sm:max-w-[145px] md:max-w-[165px] dark:hidden transition-transform duration-300 group-hover:scale-[1.02]"
-                decoding="async"
-                // @ts-ignore
-                fetchpriority="high"
-              />
-              <img
-                src="/solerz-logo-dark.png"
-                alt="Solerz Logo"
-                width="613"
-                height="158"
-                className="h-7 sm:h-8 md:h-9 w-auto max-w-[120px] sm:max-w-[145px] md:max-w-[165px] hidden dark:block transition-transform duration-300 group-hover:scale-[1.02]"
-                decoding="async"
-                // @ts-ignore
-                fetchpriority="high"
-              />
+            {/* Logo - Instant 0ms Vector SVG */}
+            <Link to="/" className="flex items-center group flex-none focus:outline-none transition-transform duration-200 hover:scale-[1.02]" aria-label="Solerz Home">
+              <Logo size="md" />
             </Link>
 
             {/* Desktop Nav Links */}
             <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => {
-                const active = link.exact
-                  ? location.pathname === link.path
-                  : isActive(link.path);
+                const active = isActive(link.path);
                 return (
                   <Link
                     key={link.path}
@@ -178,21 +161,8 @@ const Navbar: React.FC = () => {
       >
         <div className="p-5">
           <div className="flex items-center justify-between mb-8">
-            <Link to="/" onClick={() => setMobileOpen(false)} aria-label="Solerz Home">
-              <img
-                src="/solerz-logo-light.png"
-                alt="Solerz Logo"
-                width="613"
-                height="158"
-                className="h-7 w-auto dark:hidden"
-              />
-              <img
-                src="/solerz-logo-dark.png"
-                alt="Solerz Logo"
-                width="613"
-                height="158"
-                className="h-7 w-auto hidden dark:block"
-              />
+            <Link to="/" onClick={() => setMobileOpen(false)} aria-label="Solerz Home" className="flex items-center">
+              <Logo size="sm" />
             </Link>
             <button
               onClick={() => setMobileOpen(false)}
