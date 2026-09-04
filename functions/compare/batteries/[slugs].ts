@@ -112,9 +112,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   const finalHtml = injectHead(baseHtml, headInjections.join('\n  '));
 
   return new Response(finalHtml, {
+    status: batteries.length >= 2 ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'public, max-age=0, s-maxage=86400',
+      'Cache-Control': batteries.length >= 2 ? 'public, max-age=0, s-maxage=86400' : 'no-cache, no-store',
     },
   });
 };

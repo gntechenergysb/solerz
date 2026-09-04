@@ -17,6 +17,7 @@ const BrandsList = React.lazy(() => import('./pages/BrandsList'));
 const BrandDetail = React.lazy(() => import('./pages/BrandDetail'));
 const SolarCalculatorPage = React.lazy(() => import('./pages/SolarCalculatorPage'));
 const HandbookPage = React.lazy(() => import('./pages/HandbookPage'));
+const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
@@ -70,8 +71,8 @@ const App: React.FC = () => {
                 <Route path="/panels" element={<Navigate to="/solar-panels" replace />} />
                 <Route path="/panels/:slug" element={<LegacyPanelRedirect />} />
 
-                {/* Catch-all */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* Catch-all 404 handler to prevent Soft 404 SEO issues */}
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
           </main>

@@ -144,9 +144,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   const html = injectHead(baseHtml, head.join('\n'));
 
   return new Response(html, {
+    status: inverters.length >= 2 ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': 'public, max-age=0, s-maxage=86400',
+      'Cache-Control': inverters.length >= 2 ? 'public, max-age=0, s-maxage=86400' : 'no-cache, no-store',
     },
   });
 };
