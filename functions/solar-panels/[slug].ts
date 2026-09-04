@@ -72,7 +72,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
     ...(!panel ? ['<meta name="robots" content="noindex, nofollow" />'] : []),
-    `<meta property="og:type" content="product" />`,
+    `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
@@ -85,45 +85,38 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   ];
 
   if (panel) {
+    const additionalProperties = [
+      { '@type': 'PropertyValue', name: 'Rated Maximum Power (Pmax)', value: `${Math.round(panel.pnom_w)} W` },
+      ...(panel.module_efficiency_pct
+        ? [{ '@type': 'PropertyValue', name: 'Module Efficiency', value: `${panel.module_efficiency_pct.toFixed(1)}%` }]
+        : []),
+      { '@type': 'PropertyValue', name: 'Voltage at Pmax (Vmp)', value: `${panel.vmp_v} V` },
+      { '@type': 'PropertyValue', name: 'Current at Pmax (Imp)', value: `${panel.imp_a} A` },
+      { '@type': 'PropertyValue', name: 'Open-Circuit Voltage (Voc)', value: `${panel.voc_v} V` },
+      { '@type': 'PropertyValue', name: 'Short-Circuit Current (Isc)', value: `${panel.isc_a} A` },
+      { '@type': 'PropertyValue', name: 'Power Temperature Coefficient', value: `${panel.mu_pnom_spec_pct_c}%/°C` },
+      ...(panel.length_m && panel.width_m
+        ? [{ '@type': 'PropertyValue', name: 'Dimensions (L x W)', value: `${Math.round(panel.length_m * 1000)} x ${Math.round(panel.width_m * 1000)} mm` }]
+        : []),
+      ...(panel.weight_kg
+        ? [{ '@type': 'PropertyValue', name: 'Weight', value: `${panel.weight_kg} kg` }]
+        : []),
+    ];
+
     const jsonLd = {
       '@context': 'https://schema.org/',
       '@type': 'Product',
       name: `${panel.brand_name} ${panel.model_name}`,
-      sku: panel.slug,
       mpn: panel.model_name,
+      model: panel.model_name,
+      image: [`${origin}/theme_logo.png`],
       description,
       brand: {
         '@type': 'Brand',
         name: panel.brand_name,
       },
-      category: 'Solar Panel',
-      offers: {
-        '@type': 'Offer',
-        priceCurrency: 'USD',
-        price: '180',
-        priceValidUntil: '2028-12-31',
-        availability: 'https://schema.org/InStock',
-        itemCondition: 'https://schema.org/NewCondition',
-        url: canonical,
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.8',
-        reviewCount: '32',
-        bestRating: '5',
-        worstRating: '1',
-      },
-      additionalProperty: [
-        { '@type': 'PropertyValue', name: 'Rated Maximum Power (Pmax)', value: `${Math.round(panel.pnom_w)} W` },
-        ...(panel.module_efficiency_pct
-          ? [{ '@type': 'PropertyValue', name: 'Module Efficiency', value: `${panel.module_efficiency_pct.toFixed(1)}%` }]
-          : []),
-        { '@type': 'PropertyValue', name: 'Voltage at Pmax (Vmp)', value: `${panel.vmp_v} V` },
-        { '@type': 'PropertyValue', name: 'Current at Pmax (Imp)', value: `${panel.imp_a} A` },
-        { '@type': 'PropertyValue', name: 'Open-Circuit Voltage (Voc)', value: `${panel.voc_v} V` },
-        { '@type': 'PropertyValue', name: 'Short-Circuit Current (Isc)', value: `${panel.isc_a} A` },
-        { '@type': 'PropertyValue', name: 'Power Temperature Coefficient', value: `${panel.mu_pnom_spec_pct_c}%/°C` },
-      ],
+      category: 'Solar Photovoltaic Panels',
+      additionalProperty: additionalProperties,
       breadcrumb: {
         '@type': 'BreadcrumbList',
         itemListElement: [

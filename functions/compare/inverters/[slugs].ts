@@ -99,7 +99,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<meta name="twitter:image" content="${origin}/theme_logo.png" />`,
   ];
 
-  // Schema.org JSON-LD Structured Data
+  // Schema.org JSON-LD Structured Data for Technical Comparison
   if (inverters.length >= 2) {
     const jsonLd = {
       '@context': 'https://schema.org/',
@@ -114,27 +114,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
           '@type': 'Product',
           position: idx + 1,
           name: `${p.brand_name} ${p.model_name}`,
-          sku: p.slug,
           mpn: p.model_name,
+          model: p.model_name,
+          image: [`${origin}/theme_logo.png`],
           brand: { '@type': 'Brand', name: p.brand_name },
           description: `${p.brand_name} ${p.model_name} ${p.paco_w >= 1000 ? (p.paco_w / 1000).toFixed(1) + 'kW' : Math.round(p.paco_w) + 'W'} Inverter with ${p.efficiency_pct ? p.efficiency_pct.toFixed(1) + '% Sandia efficiency' : 'high efficiency'}.`,
-          offers: {
-            '@type': 'AggregateOffer',
-            priceCurrency: 'USD',
-            lowPrice: '350',
-            highPrice: '1200',
-            offerCount: '1',
-            priceValidUntil: '2028-12-31',
-            availability: 'https://schema.org/InStock',
-            url: `${origin}/inverters/${p.slug}`,
-          },
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: '4.8',
-            reviewCount: '19',
-            bestRating: '5',
-            worstRating: '1',
-          },
           additionalProperty: [
             { '@type': 'PropertyValue', name: 'Continuous AC Power', value: `${p.paco_w} W` },
             { '@type': 'PropertyValue', name: 'Grid Voltage', value: `${p.vac_v} V` },

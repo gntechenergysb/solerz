@@ -107,7 +107,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<meta name="twitter:image" content="${origin}/theme_logo.png" />`,
   ];
 
-  // Schema.org JSON-LD Structured Data for Google Rich Snippets (with complete offers & ratings)
+  // Schema.org JSON-LD Structured Data for Technical Comparison
   if (panels.length >= 2) {
     const jsonLd = {
       '@context': 'https://schema.org/',
@@ -122,27 +122,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
           '@type': 'Product',
           position: idx + 1,
           name: `${p.brand_name} ${p.model_name}`,
-          sku: p.slug,
           mpn: p.model_name,
+          model: p.model_name,
+          image: [`${origin}/theme_logo.png`],
           brand: { '@type': 'Brand', name: p.brand_name },
           description: `${p.brand_name} ${p.model_name} ${Math.round(p.pnom_w)}W Photovoltaic Module with ${p.module_efficiency_pct ? p.module_efficiency_pct.toFixed(1) + '% efficiency' : 'high efficiency'}.`,
-          offers: {
-            '@type': 'AggregateOffer',
-            priceCurrency: 'USD',
-            lowPrice: '120',
-            highPrice: '380',
-            offerCount: '1',
-            priceValidUntil: '2028-12-31',
-            availability: 'https://schema.org/InStock',
-            url: `${origin}/solar-panels/${p.slug}`,
-          },
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: '4.8',
-            reviewCount: '24',
-            bestRating: '5',
-            worstRating: '1',
-          },
           additionalProperty: [
             { '@type': 'PropertyValue', name: 'Max Power (Pnom)', value: `${Math.round(p.pnom_w)} W` },
             ...(p.module_efficiency_pct
