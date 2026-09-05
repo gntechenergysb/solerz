@@ -56,6 +56,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     addUrl(`${origin}/batteries`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/brands`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/handbook`, nowIso, 'daily', '0.9');
+    addUrl(`${origin}/about`, nowIso, 'monthly', '0.7');
+    addUrl(`${origin}/contact`, nowIso, 'monthly', '0.7');
+    addUrl(`${origin}/privacy`, nowIso, 'monthly', '0.5');
+    addUrl(`${origin}/terms`, nowIso, 'monthly', '0.5');
   }
 
   // -------------------------------------------------------------------------

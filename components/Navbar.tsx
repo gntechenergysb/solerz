@@ -48,8 +48,9 @@ const Navbar: React.FC = () => {
     { label: 'Solar Panels', path: '/solar-panels' },
     { label: 'Inverters', path: '/inverters' },
     { label: 'Batteries', path: '/batteries' },
-    { label: 'Brands', path: '/brands' },
+    { label: 'Calculator', path: '/calculator' },
     { label: 'Handbook', path: '/handbook' },
+    { label: 'Brands', path: '/brands' },
   ];
 
   const isActive = (path: string) => {

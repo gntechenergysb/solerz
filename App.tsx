@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import { CompareProvider } from './contexts/CompareContext';
 
@@ -18,6 +19,10 @@ const BrandDetail = React.lazy(() => import('./pages/BrandDetail'));
 const SolarCalculatorPage = React.lazy(() => import('./pages/SolarCalculatorPage'));
 const HandbookPage = React.lazy(() => import('./pages/HandbookPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
+const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
+const TermsPage = React.lazy(() => import('./pages/TermsPage'));
+const AboutPage = React.lazy(() => import('./pages/AboutPage'));
+const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center py-20">
@@ -67,9 +72,17 @@ const App: React.FC = () => {
                 <Route path="/compare/inverters/:slugs" element={<InverterComparePage />} />
                 <Route path="/compare/:slugs" element={<ComparePage />} />
 
+                {/* Legal & Compliance Pages (AdSense & Liability Protection) */}
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/disclaimer" element={<Navigate to="/terms" replace />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+
                 {/* Legacy redirects */}
                 <Route path="/panels" element={<Navigate to="/solar-panels" replace />} />
                 <Route path="/panels/:slug" element={<LegacyPanelRedirect />} />
+                <Route path="/compare" element={<Navigate to="/solar-panels" replace />} />
 
                 {/* Catch-all 404 handler to prevent Soft 404 SEO issues */}
                 <Route path="*" element={<NotFoundPage />} />
@@ -77,16 +90,7 @@ const App: React.FC = () => {
             </Suspense>
           </main>
 
-          <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-8 mt-auto">
-            <div className="max-w-7xl mx-auto px-6 text-center text-slate-400 dark:text-slate-500 text-sm">
-              <p className="mb-2">
-                &copy; {new Date().getFullYear()} Solerz. Photovoltaic hardware data platform.
-              </p>
-              <p className="text-xs text-slate-400 dark:text-slate-600">
-                Solar hardware specifications & photovoltaic database. For reference only.
-              </p>
-            </div>
-          </footer>
+          <Footer />
         </div>
       </CompareProvider>
     </BrowserRouter>
