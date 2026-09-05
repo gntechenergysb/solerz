@@ -119,22 +119,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
         '@type': 'ItemList',
         numberOfItems: panels.length,
         itemListElement: panels.map((p, idx) => ({
-          '@type': 'Product',
+          '@type': 'Thing',
           position: idx + 1,
           name: `${p.brand_name} ${p.model_name}`,
-          mpn: p.model_name,
-          model: p.model_name,
-          image: [`${origin}/theme_logo.png`],
-          brand: { '@type': 'Brand', name: p.brand_name },
-          description: `${p.brand_name} ${p.model_name} ${Math.round(p.pnom_w)}W Photovoltaic Module with ${p.module_efficiency_pct ? p.module_efficiency_pct.toFixed(1) + '% efficiency' : 'high efficiency'}.`,
-          additionalProperty: [
-            { '@type': 'PropertyValue', name: 'Max Power (Pnom)', value: `${Math.round(p.pnom_w)} W` },
-            ...(p.module_efficiency_pct
-              ? [{ '@type': 'PropertyValue', name: 'Module Efficiency', value: `${p.module_efficiency_pct.toFixed(1)}%` }]
-              : []),
-            { '@type': 'PropertyValue', name: 'Max Power Voltage (Vmp)', value: `${p.vmp_v} V` },
-            { '@type': 'PropertyValue', name: 'Max Power Current (Imp)', value: `${p.imp_a} A` },
-          ],
+          description: `${p.brand_name} ${p.model_name} ${Math.round(p.pnom_w)}W Photovoltaic Module.`,
         })),
       },
       breadcrumb: {

@@ -111,19 +111,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
         '@type': 'ItemList',
         numberOfItems: inverters.length,
         itemListElement: inverters.map((p, idx) => ({
-          '@type': 'Product',
+          '@type': 'Thing',
           position: idx + 1,
           name: `${p.brand_name} ${p.model_name}`,
-          mpn: p.model_name,
-          model: p.model_name,
-          image: [`${origin}/theme_logo.png`],
-          brand: { '@type': 'Brand', name: p.brand_name },
-          description: `${p.brand_name} ${p.model_name} ${p.paco_w >= 1000 ? (p.paco_w / 1000).toFixed(1) + 'kW' : Math.round(p.paco_w) + 'W'} Inverter with ${p.efficiency_pct ? p.efficiency_pct.toFixed(1) + '% Sandia efficiency' : 'high efficiency'}.`,
-          additionalProperty: [
-            { '@type': 'PropertyValue', name: 'Continuous AC Power', value: `${p.paco_w} W` },
-            { '@type': 'PropertyValue', name: 'Grid Voltage', value: `${p.vac_v} V` },
-            { '@type': 'PropertyValue', name: 'Max DC Voltage', value: `${p.vdcmax_v} V` },
-          ],
+          description: `${p.brand_name} ${p.model_name} ${p.paco_w >= 1000 ? (p.paco_w / 1000).toFixed(1) + 'kW' : Math.round(p.paco_w) + 'W'} Inverter.`,
         })),
       },
       breadcrumb: {
