@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Zap,
@@ -239,6 +239,10 @@ const PopularCompareCard: React.FC<PopularCompareProps> = ({
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [heroSearch, setHeroSearch] = useState('');
+
+  useEffect(() => {
+    document.title = 'Solerz | Solar Panel, Inverter & Storage Specs Database';
+  }, []);
 
   const handleHeroSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

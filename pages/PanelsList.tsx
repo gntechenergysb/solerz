@@ -37,8 +37,9 @@ const PanelsList: React.FC = () => {
   // The actual search value sent to the API (debounced)
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
 
-  // Load brands once
+  // Load brands once and set title
   useEffect(() => {
+    document.title = 'Photovoltaic Solar Panels Specifications Database | Solerz';
     fetchBrands()
       .then(setBrands)
       .catch((err) => console.error('Failed to load brands:', err));

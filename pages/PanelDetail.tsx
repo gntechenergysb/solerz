@@ -129,15 +129,20 @@ const PanelDetailPage: React.FC = () => {
       .then((data) => {
         if (!data) {
           setNotFound(true);
+          document.title = 'Solar Panel Not Found | Solerz';
         } else {
           setPanel(data);
+          document.title = `${data.brand_name} ${data.model_name} (${Math.round(data.pnom_w)}W) Specs & PAN File | Solerz`;
           // Fetch competitor comparisons in the same wattage bracket
           fetchCompetitorComparisons(data)
             .then(setCompetitors)
             .catch(() => setCompetitors([]));
         }
       })
-      .catch(() => setNotFound(true))
+      .catch(() => {
+        setNotFound(true);
+        document.title = 'Solar Panel Not Found | Solerz';
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 

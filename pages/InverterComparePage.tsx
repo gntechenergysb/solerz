@@ -350,6 +350,14 @@ const InverterComparePage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [slugList]);
 
+  // Update page title when inverters change
+  useEffect(() => {
+    if (inverters.length >= 2) {
+      const names = inverters.map((p) => `${p.brand_name} ${p.model_name}`).join(' vs ');
+      document.title = `${names} | Solar Inverter Comparison | Solerz`;
+    }
+  }, [inverters]);
+
   // Build comparison sections
   const sections = useMemo(() => {
     if (inverters.length < 2) return [];

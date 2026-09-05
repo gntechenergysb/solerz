@@ -43,6 +43,10 @@ import { submitLeadInquiry } from '../services/leadService';
 import { Search } from 'lucide-react';
 
 const SolarCalculatorPage: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Free Solar PV Sizing & Hardware Match Calculator | Solerz';
+  }, []);
+
   // --- Mode State (Auto-Sizer vs Custom DIY Simulator) ---
   const [calculatorMode, setCalculatorMode] = useState<'auto-sizer' | 'diy-simulator'>('auto-sizer');
 

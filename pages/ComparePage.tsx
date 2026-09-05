@@ -198,6 +198,14 @@ const ComparePage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [slugList]);
 
+  // Update page title when panels change
+  useEffect(() => {
+    if (panels.length >= 2) {
+      const names = panels.map((p) => `${p.brand_name} ${p.model_name}`).join(' vs ');
+      document.title = `${names} | Solar Panel Comparison | Solerz`;
+    }
+  }, [panels]);
+
   // Search when modal opens, query changes, or brand filter changes
   useEffect(() => {
     if (!isAddModalOpen) return;

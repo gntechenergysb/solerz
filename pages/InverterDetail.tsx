@@ -123,14 +123,20 @@ const InverterDetailPage: React.FC = () => {
       .then((data) => {
         if (!data) {
           setNotFound(true);
+          document.title = 'Inverter Not Found | Solerz';
         } else {
           setInverter(data);
+          const powerStr = data.paco_w ? (data.paco_w >= 1000 ? `${(data.paco_w / 1000).toFixed(1)}kW` : `${data.paco_w}W`) : '';
+          document.title = `${data.brand_name} ${data.model_name} ${powerStr ? `(${powerStr}) ` : ''}Specs & Datasheet | Solerz`;
           fetchInverterCompetitorComparisons(data)
             .then(setCompetitors)
             .catch(() => setCompetitors([]));
         }
       })
-      .catch(() => setNotFound(true))
+      .catch(() => {
+        setNotFound(true);
+        document.title = 'Inverter Not Found | Solerz';
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 

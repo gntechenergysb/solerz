@@ -61,8 +61,9 @@ const BatteriesList: React.FC = () => {
     [setSearchParams]
   );
 
-  // Load distinct brands once
+  // Load distinct brands once and set title
   useEffect(() => {
+    document.title = 'Solar Energy Storage & Battery Systems Directory | Solerz';
     fetchBatteryBrands().then(setBrands);
   }, []);
 

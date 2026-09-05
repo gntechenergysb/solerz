@@ -36,8 +36,9 @@ const InvertersList: React.FC = () => {
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
 
-  // Load brands list once
+  // Load brands list once and set title
   useEffect(() => {
+    document.title = 'Solar Inverters Specifications & Efficiency Directory | Solerz';
     fetchInverterBrands()
       .then(setBrands)
       .catch((err) => console.error('Failed to load inverter brands:', err));
