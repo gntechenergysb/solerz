@@ -131,8 +131,8 @@ const ComparePage: React.FC = () => {
     if (typeof window !== 'undefined' && (window as any).__INITIAL_PANELS__) {
       const init = (window as any).__INITIAL_PANELS__ as SolarPanelDetail[];
       if (
-        init &&
-        init.length >= 2 &&
+        Array.isArray(init) &&
+        init.length === slugList.length &&
         init.every((p, idx) => p.slug === slugList[idx])
       ) {
         return init;
@@ -161,9 +161,9 @@ const ComparePage: React.FC = () => {
       return;
     }
 
-    // If initial SSR data matches current slugs, skip client fetch for main panels
+    // If current panels match current slugs exactly, skip fetch
     if (
-      panels.length >= 2 &&
+      panels.length === slugList.length &&
       panels.every((p, idx) => p.slug === slugList[idx])
     ) {
       setLoading(false);

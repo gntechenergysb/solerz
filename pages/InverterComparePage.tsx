@@ -297,8 +297,8 @@ const InverterComparePage: React.FC = () => {
     if (typeof window !== 'undefined' && (window as any).__INITIAL_INVERTERS__) {
       const init = (window as any).__INITIAL_INVERTERS__ as InverterDetail[];
       if (
-        init &&
-        init.length >= 2 &&
+        Array.isArray(init) &&
+        init.length === slugList.length &&
         init.every((p, idx) => p.slug === slugList[idx])
       ) {
         return init;
@@ -326,7 +326,7 @@ const InverterComparePage: React.FC = () => {
     }
 
     if (
-      inverters.length >= 2 &&
+      inverters.length === slugList.length &&
       inverters.every((p, idx) => p.slug === slugList[idx])
     ) {
       setLoading(false);
@@ -392,7 +392,8 @@ const InverterComparePage: React.FC = () => {
   };
 
   const handleAddInverter = (newInverter: InverterSummary) => {
-    const combinedSlugs = Array.from(new Set([...inverters.map((p) => p.slug), newInverter.slug]))
+    if (slugList.length >= 4 || slugList.includes(newInverter.slug)) return;
+    const combinedSlugs = Array.from(new Set([...slugList, newInverter.slug]))
       .sort()
       .join('-vs-');
     setIsAddModalOpen(false);
