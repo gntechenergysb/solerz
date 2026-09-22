@@ -50,6 +50,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   // -------------------------------------------------------------------------
   if (name === 'core') {
     addUrl(`${origin}/`, nowIso, 'daily', '1.0');
+    addUrl(`${origin}/arena`, nowIso, 'daily', '1.0');
     addUrl(`${origin}/calculator`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/solar-panels`, nowIso, 'daily', '0.9');
     addUrl(`${origin}/inverters`, nowIso, 'daily', '0.9');
@@ -60,6 +61,34 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     addUrl(`${origin}/contact`, nowIso, 'monthly', '0.7');
     addUrl(`${origin}/privacy`, nowIso, 'monthly', '0.5');
     addUrl(`${origin}/terms`, nowIso, 'monthly', '0.5');
+  }
+
+  // -------------------------------------------------------------------------
+  // 1.5 Handbook Technical Engineering Guides
+  // -------------------------------------------------------------------------
+  else if (name === 'handbook') {
+    addUrl(`${origin}/handbook`, nowIso, 'daily', '1.0');
+    const tipSlugs = [
+      'bifacial-mounting-height-rule',
+      'winter-solstice-row-pitch-calculation',
+      'bypass-diode-hotspot-threshold',
+      'ntype-vs-ptype-low-light-physics',
+      'cold-voc-temperature-compensation',
+      'dc-voltage-drop-cable-sizing',
+      'summer-mppt-low-voltage-trap',
+      'dc-ac-oversizing-ratio-economics',
+      'lifepo4-subzero-charging-hazard',
+      'high-voltage-vs-low-voltage-battery-loss',
+      'depth-of-discharge-cycle-longevity',
+      'battery-c-rate-and-surge-power',
+      'psh-vs-sunshine-hours-distinction',
+      'rapid-shutdown-nec-compliance',
+      'module-soiling-self-cleaning-tilt',
+      'grounding-and-equipotential-bonding',
+    ];
+    for (const slug of tipSlugs) {
+      addUrl(`${origin}/handbook/${slug}`, nowIso, 'weekly', '0.9');
+    }
   }
 
   // -------------------------------------------------------------------------

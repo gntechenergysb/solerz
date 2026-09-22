@@ -73,3 +73,11 @@ export const injectHead = (html: string, headMarkup: string) => {
   if (idx === -1) return html;
   return `${html.slice(0, idx)}\n${headMarkup}\n${html.slice(idx)}`;
 };
+
+export const injectRootContent = (html: string, contentMarkup: string) => {
+  return html.replace(
+    /<div id="root">([\s\S]*?)<\/div>/i,
+    `<div id="root">\n${contentMarkup}\n</div>`
+  );
+};
+

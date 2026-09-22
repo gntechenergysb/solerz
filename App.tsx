@@ -18,6 +18,8 @@ const BrandsList = React.lazy(() => import('./pages/BrandsList'));
 const BrandDetail = React.lazy(() => import('./pages/BrandDetail'));
 const SolarCalculatorPage = React.lazy(() => import('./pages/SolarCalculatorPage'));
 const HandbookPage = React.lazy(() => import('./pages/HandbookPage'));
+const HandbookDetailPage = React.lazy(() => import('./pages/HandbookDetailPage'));
+const ArenaPage = React.lazy(() => import('./pages/ArenaPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
 const TermsPage = React.lazy(() => import('./pages/TermsPage'));
@@ -43,12 +45,17 @@ const App: React.FC = () => {
                 {/* Homepage — lightweight landing */}
                 <Route path="/" element={<HomePage />} />
 
+                {/* Solerz Arena — Global Hardware Leaderboard */}
+                <Route path="/arena" element={<ArenaPage />} />
+                <Route path="/leaderboard" element={<Navigate to="/arena" replace />} />
+
                 {/* Solar System Sizer & Calculator */}
                 <Route path="/calculator" element={<SolarCalculatorPage />} />
                 <Route path="/system-sizer" element={<SolarCalculatorPage />} />
 
                 {/* Solar Engineering Handbook & Pocket Tips */}
                 <Route path="/handbook" element={<HandbookPage />} />
+                <Route path="/handbook/:slug" element={<HandbookDetailPage />} />
                 <Route path="/tips" element={<Navigate to="/handbook" replace />} />
 
                 {/* Solar Panels */}

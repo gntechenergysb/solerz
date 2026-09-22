@@ -1,5 +1,16 @@
 import type { Env, PagesFunction } from '../_utils';
-import { escapeHtml, fetchIndexHtml, getOrigin, injectHead, supabaseRestGet } from '../_utils';
+import {
+  escapeHtml,
+  fetchIndexHtml,
+  getOrigin,
+  injectHead,
+  injectRootContent,
+  supabaseRestGet,
+} from '../_utils';
+import {
+  generateEngineeringHeuristics,
+  renderFullComparisonPrerenderHtml,
+} from '../_engineering';
 
 type PanelRow = {
   id: string;
@@ -71,9 +82,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   // Title: "Model A vs Model B — Solar Panel Comparison | Solerz"
   const modelNames = panels.map((p) => p.model_name).join(' vs ');
-  const title = panels.length >= 2
-    ? `${modelNames} — Solar Panel Comparison | Solerz`
-    : 'Solar Panel Comparison | Solerz';
+  const title =
+    panels.length >= 2
+      ? `${modelNames} — Solar Panel Engineering Comparison | Solerz`
+      : 'Solar Panel Comparison | Solerz';
 
   // Description with rich specs for high CTR
   const descDetails = panels
@@ -87,14 +99,30 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   const description =
     panels.length >= 2
-      ? `Side-by-side comparison of ${descDetails}. Compare STC power output, efficiency, temperature coefficients, single diode model, dimensions, and warranties.`
+      ? `Side-by-side engineering comparison of ${descDetails}. In-depth physics evaluation of cold Voc surge, thermal derating at 65°C, 25-yr degradation, bifacial albedo gain, cable I²R losses, and 10kW BOS footprint.`
       : 'Compare solar panels side-by-side on Solerz. Full technical specifications, efficiency, temperature ratings, and dimensions.';
+
+  // Smart indexing: Only index realistic, high-intent comparisons within 85W delta
+  const isReasonableMatch =
+    panels.length >= 2 &&
+    (() => {
+      const powers = panels.map((p) => p.pnom_w);
+      const delta = Math.max(...powers) - Math.min(...powers);
+      return delta <= 85;
+    })();
+
+  const robotsTag =
+    panels.length < 2
+      ? '<meta name="robots" content="noindex, nofollow" />'
+      : isReasonableMatch
+      ? '<meta name="robots" content="index, follow" />'
+      : '<meta name="robots" content="noindex, follow" />';
 
   const head = [
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
-    ...(panels.length < 2 ? ['<meta name="robots" content="noindex, nofollow" />'] : []),
+    robotsTag,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="Solerz" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
@@ -107,8 +135,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     `<meta name="twitter:image" content="${origin}/theme_logo.png" />`,
   ];
 
-  // Schema.org JSON-LD Structured Data for Technical Comparison
+  let prerenderedContent = '';
+
+  // Schema.org JSON-LD Structured Data & Heuristics Calculation
   if (panels.length >= 2) {
+    const verdicts = generateEngineeringHeuristics(panels);
+    prerenderedContent = renderFullComparisonPrerenderHtml(panels, verdicts);
+
     const jsonLd = {
       '@context': 'https://schema.org/',
       '@type': 'WebPage',
@@ -140,7 +173,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     head.push(`<script>window.__INITIAL_PANELS__ = ${JSON.stringify(panels)};</script>`);
   }
 
-  const html = injectHead(baseHtml, head.join('\n'));
+  let html = injectHead(baseHtml, head.join('\n'));
+
+  // Inject server-rendered HTML into <div id="root"> so crawlers (Googlebot, AdSense review bots)
+  // receive full technical analysis on initial HTTP response with zero blank screens.
+  if (prerenderedContent) {
+    html = injectRootContent(html, prerenderedContent);
+  }
 
   return new Response(html, {
     status: panels.length >= 2 ? 200 : 404,
@@ -151,3 +190,4 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     },
   });
 };
+

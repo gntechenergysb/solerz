@@ -48,10 +48,12 @@ const Navbar: React.FC = () => {
     { label: 'Solar Panels', path: '/solar-panels' },
     { label: 'Inverters', path: '/inverters' },
     { label: 'Batteries', path: '/batteries' },
+    { label: 'Arena', path: '/arena' },
     { label: 'Calculator', path: '/calculator' },
     { label: 'Handbook', path: '/handbook' },
     { label: 'Brands', path: '/brands' },
   ];
+
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -176,9 +178,7 @@ const Navbar: React.FC = () => {
 
           <div className="space-y-2">
             {navLinks.map((link) => {
-              const active = link.exact
-                ? location.pathname === link.path
-                : isActive(link.path);
+              const active = isActive(link.path);
               return (
                 <Link
                   key={link.path}

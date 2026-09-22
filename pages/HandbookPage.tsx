@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { SOLAR_TIPS, type SolarEngineeringTip } from '../data/solarTipsData';
+import { SOLAR_STANDARDS, type SolarStandardDoc } from '../data/solarStandardsData';
+import { SOLAR_LITERATURE, type SolarLiteratureDoc } from '../data/solarLiteratureData';
 import {
   BookOpen,
   Lightbulb,
@@ -20,11 +23,14 @@ import {
   Building,
   CheckCircle2,
   Scale,
+  GraduationCap,
+  Library,
+  Layers,
+  Flame,
+  Wind,
 } from 'lucide-react';
-import { SOLAR_TIPS, type SolarEngineeringTip } from '../data/solarTipsData';
-import { SOLAR_STANDARDS, type SolarStandardDoc } from '../data/solarStandardsData';
 
-type ViewMode = 'tips' | 'standards';
+type ViewMode = 'tips' | 'standards' | 'literature';
 
 const HandbookPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('tips');
@@ -61,6 +67,24 @@ const HandbookPage: React.FC = () => {
             name: std.title,
             description: std.scope,
             url: std.officialPortalUrl,
+          })),
+        },
+        {
+          '@type': 'ItemList',
+          name: 'Curated Solar Energy Engineering Literature & Textbooks',
+          description: 'Peer-reviewed academic textbooks, national laboratory research, and industrial technical whitepapers.',
+          numberOfItems: SOLAR_LITERATURE.length,
+          itemListElement: SOLAR_LITERATURE.map((lit, idx) => ({
+            '@type': 'ListItem',
+            position: idx + 1,
+            item: {
+              '@type': 'Book',
+              name: lit.title,
+              author: lit.authors,
+              publisher: lit.publisher,
+              isbn: lit.isbnOrId,
+              description: lit.scope,
+            },
           })),
         },
       ],
@@ -100,6 +124,18 @@ const HandbookPage: React.FC = () => {
     { key: 'installation', label: 'Installation & NEC', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
   ];
 
+  // Literature categories
+  const literatureCategories = [
+    { key: 'all', label: 'All Literature', icon: <Library className="w-3.5 h-3.5" /> },
+    { key: 'modules', label: 'PV Physics & Cells', icon: <Sun className="w-3.5 h-3.5" /> },
+    { key: 'inverters', label: 'Inverters & Grid', icon: <Zap className="w-3.5 h-3.5" /> },
+    { key: 'batteries', label: 'Storage & BESS', icon: <Battery className="w-3.5 h-3.5" /> },
+    { key: 'mounting', label: 'Mounting & Wind', icon: <Wind className="w-3.5 h-3.5" /> },
+    { key: 'bos', label: 'BOS & Fire Safety', icon: <Flame className="w-3.5 h-3.5" /> },
+    { key: 'simulation', label: 'System Design & Modeling', icon: <Calculator className="w-3.5 h-3.5" /> },
+    { key: 'codes', label: 'Codes & NABCEP', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+  ];
+
   // Standards Issuing Bodies
   const issuingBodies = ['all', 'IEC', 'NEC', 'UL', 'IEEE'];
 
@@ -131,6 +167,21 @@ const HandbookPage: React.FC = () => {
       std.issuingBody.toLowerCase().includes(query) ||
       std.keyRequirements.some((r) => r.toLowerCase().includes(query));
     return matchesCategory && matchesBody && matchesSearch;
+  });
+
+  // Filtered Literature
+  const filteredLiterature = SOLAR_LITERATURE.filter((lit) => {
+    const matchesCategory = selectedCategory === 'all' || lit.category === selectedCategory;
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      query === '' ||
+      lit.title.toLowerCase().includes(query) ||
+      lit.authors.toLowerCase().includes(query) ||
+      lit.publisher.toLowerCase().includes(query) ||
+      lit.isbnOrId.toLowerCase().includes(query) ||
+      lit.scope.toLowerCase().includes(query) ||
+      lit.keyTopics.some((t) => t.toLowerCase().includes(query));
+    return matchesCategory && matchesSearch;
   });
 
   const handleCopy = (id: string, textToCopy: string) => {
@@ -176,17 +227,17 @@ const HandbookPage: React.FC = () => {
       </div>
 
       {/* ----------------------------------------------------------------- */}
-      {/* 2. Main View Mode Tabs (Tips vs Standards) */}
+      {/* 2. Main View Mode Tabs (Tips vs Standards vs Literature) */}
       {/* ----------------------------------------------------------------- */}
       <div className="flex items-center justify-center">
-        <div className="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex gap-1.5">
+        <div className="p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm inline-flex gap-1.5 flex-wrap justify-center">
           <button
             type="button"
             onClick={() => {
               setViewMode('tips');
               setSelectedCategory('all');
             }}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+            className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               viewMode === 'tips'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -203,7 +254,7 @@ const HandbookPage: React.FC = () => {
               setSelectedCategory('all');
               setSelectedBodyFilter('all');
             }}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+            className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
               viewMode === 'standards'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -211,6 +262,22 @@ const HandbookPage: React.FC = () => {
           >
             <FileText className="w-4 h-4" />
             International Standards ({SOLAR_STANDARDS.length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode('literature');
+              setSelectedCategory('all');
+            }}
+            className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              viewMode === 'literature'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            Curated Literature &amp; Books ({SOLAR_LITERATURE.length})
           </button>
         </div>
       </div>
@@ -227,7 +294,9 @@ const HandbookPage: React.FC = () => {
             placeholder={
               viewMode === 'tips'
                 ? 'Search formulas, MPPT, bifacial, cold Voc, NEC 690...'
-                : 'Search standards: IEC 61215, UL 9540, IEEE 1547, Rapid Shutdown...'
+                : viewMode === 'standards'
+                ? 'Search standards: IEC 61215, UL 9540, IEEE 1547, Rapid Shutdown...'
+                : 'Search literature: Duffie Beckman, Green, PVEL, Sandia, Teodorescu, Plett...'
             }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -245,7 +314,12 @@ const HandbookPage: React.FC = () => {
 
         {/* Category Pills (Horizontal Scroll on Mobile) */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full justify-start sm:justify-center no-scrollbar px-2">
-          {(viewMode === 'tips' ? tipCategories : standardCategories).map((cat) => (
+          {(viewMode === 'tips'
+            ? tipCategories
+            : viewMode === 'standards'
+            ? standardCategories
+            : literatureCategories
+          ).map((cat) => (
             <button
               key={cat.key}
               type="button"
@@ -312,54 +386,55 @@ const HandbookPage: React.FC = () => {
                   {/* Title & Core Question */}
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 dark:text-white leading-snug">
-                      {tip.title}
+                      <Link
+                        to={`/handbook/${tip.slug}`}
+                        className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                      >
+                        {tip.title}
+                      </Link>
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 italic">
                       "{tip.question}"
                     </p>
                   </div>
+                </div>
 
-                  {/* Formula / Rule Code Block */}
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
-                    <code className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 break-all">
-                      📐 {tip.formulaOrRule}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(tip.id, tip.formulaOrRule)}
-                      className="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-emerald-500 shrink-0 transition-colors shadow-xs"
-                      title="Copy Formula"
-                    >
-                      {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
+                {/* Summary */}
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {tip.summary}
+                </p>
+
+                {/* Formula or Rule Box */}
+                <div className="rounded-2xl bg-slate-900 p-3.5 text-xs text-emerald-400 font-mono flex items-center justify-between gap-2 border border-slate-800">
+                  <div className="overflow-x-auto no-scrollbar">
+                    <code>{tip.formulaOrRule}</code>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(tip.id, tip.formulaOrRule)}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors shrink-0"
+                    title="Copy rule to clipboard"
+                  >
+                    {isCopied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
 
-                  {/* Summary */}
-                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {tip.summary}
-                  </p>
-
-                  {/* Explanation */}
-                  <div className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Engineering Context:
+                {/* Pitfall Box */}
+                <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 flex items-start gap-2 text-xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="text-amber-900 dark:text-amber-300">
+                    <span className="font-bold block mb-0.5">Field Pitfall:</span>
+                    <span className="text-amber-800/90 dark:text-amber-400/90 leading-relaxed">
+                      {tip.pitfall}
                     </span>
-                    {tip.explanation}
-                  </div>
-
-                  {/* Pitfall Box */}
-                  <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 flex items-start gap-2 text-xs">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                    <div className="text-amber-900 dark:text-amber-300">
-                      <span className="font-bold block mb-0.5">Field Pitfall:</span>
-                      <span className="text-amber-800/90 dark:text-amber-400/90 leading-relaxed">
-                        {tip.pitfall}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
-                {/* Tag pills */}
+                {/* Tag pills & Link to Full Article */}
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {tip.tags.slice(0, 3).map((tag, idx) => (
@@ -373,10 +448,10 @@ const HandbookPage: React.FC = () => {
                   </div>
 
                   <Link
-                    to="/calculator"
-                    className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 text-[11px]"
+                    to={`/handbook/${tip.slug}`}
+                    className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 text-xs"
                   >
-                    Simulate in System Sizer <ArrowRight className="w-3 h-3" />
+                    Read Full Engineering Guide <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </div>
@@ -470,16 +545,185 @@ const HandbookPage: React.FC = () => {
         </div>
       )}
 
+      {/* ----------------------------------------------------------------- */}
+      {/* 6. Curated Authoritative Literature View Mode */}
+      {/* ----------------------------------------------------------------- */}
+      {viewMode === 'literature' && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/20 text-xs sm:text-sm text-slate-700 dark:text-slate-300 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="font-bold text-slate-900 dark:text-white block">
+                  Peer-Reviewed Academic &amp; Industry Corpus
+                </span>
+                <span>
+                  The foundational physical literature powering Solerz engineering heuristics, PVsyst loss models, and NABCEP design standards.
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="font-black text-emerald-600 dark:text-emerald-400 text-base">
+                {filteredLiterature.length}
+              </span>{' '}
+              <span className="text-slate-500 text-xs">Essential Volumes</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {filteredLiterature.map((lit) => (
+              <div
+                key={lit.id}
+                className="group p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-3">
+                  {/* Category & Authority Badge */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                    <span className="font-bold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                      {lit.categoryLabel}
+                    </span>
+                    <span className="font-semibold text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                      {lit.authorityLevel}
+                    </span>
+                  </div>
+
+                  {/* Title & Subtitle */}
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
+                      {lit.title}
+                    </h3>
+                    {lit.subtitle && (
+                      <p className="text-xs text-slate-500 mt-0.5 font-medium">{lit.subtitle}</p>
+                    )}
+                  </div>
+
+                  {/* Authors & Publisher metadata */}
+                  <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-bold text-slate-900 dark:text-slate-200">
+                        {lit.authors}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">
+                        {lit.year} {lit.edition ? `• ${lit.edition}` : ''}
+                      </span>
+                    </div>
+                    {lit.affiliation && (
+                      <p className="text-[11px] text-slate-500 italic">{lit.affiliation}</p>
+                    )}
+                    <div className="flex items-center justify-between text-[11px] pt-1 text-slate-500">
+                      <span>{lit.publisher}</span>
+                      <span className="font-mono">{lit.isbnOrId}</span>
+                    </div>
+                  </div>
+
+                  {/* Scope description */}
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {lit.scope}
+                  </p>
+
+                  {/* Key Topics */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      Core Engineering Takeaways:
+                    </span>
+                    <ul className="space-y-1 text-xs text-slate-700 dark:text-slate-300">
+                      {lit.keyTopics.slice(0, 3).map((topic, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-emerald-500 font-bold mt-0.5">•</span>
+                          <span className="leading-relaxed">{topic}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Recommended Chapters */}
+                  {lit.recommendedChapters && lit.recommendedChapters.length > 0 && (
+                    <div className="pt-2 text-xs">
+                      <span className="font-bold text-[11px] text-slate-500 uppercase tracking-wider block mb-1">
+                        High-Yield Chapters:
+                      </span>
+                      <div className="space-y-1">
+                        {lit.recommendedChapters.slice(0, 2).map((ch, idx) => (
+                          <div
+                            key={idx}
+                            className="p-1.5 px-2.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/70 text-[11px] text-slate-600 dark:text-slate-400 font-medium"
+                          >
+                            {ch}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Action Links */}
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(lit.id, `${lit.authors} (${lit.year}). ${lit.title}. ${lit.publisher}. ${lit.isbnOrId}`)}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors"
+                      title="Copy APA Citation"
+                    >
+                      {copiedId === lit.id ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-500" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Cite / ISBN</span>
+                        </>
+                      )}
+                    </button>
+
+                    {lit.officialOrOpenUrl && (
+                      <a
+                        href={lit.officialOrOpenUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Official Portal
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={lit.annasArchiveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline text-xs"
+                      title="Search digital archive for full-text PDF"
+                    >
+                      <Search className="w-3 h-3" />
+                      Find PDF <ArrowRight className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Empty Search State */}
       {((viewMode === 'tips' && filteredTips.length === 0) ||
-        (viewMode === 'standards' && filteredStandards.length === 0)) && (
+        (viewMode === 'standards' && filteredStandards.length === 0) ||
+        (viewMode === 'literature' && filteredLiterature.length === 0)) && (
         <div className="text-center py-16 space-y-3">
           <BookOpen className="w-12 h-12 text-slate-400 mx-auto" />
           <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
             No entries found for "{searchQuery}"
           </h3>
           <p className="text-xs text-slate-500">
-            Try searching for terms like "IEC", "NEC 690", "UL 9540", "MPPT", "Bifacial", or "Cold Voc".
+            Try searching for terms like "IEC", "NEC 690", "UL 9540", "MPPT", "Bifacial", "Duffie", or "Cold Voc".
           </p>
         </div>
       )}

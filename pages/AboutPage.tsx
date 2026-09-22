@@ -105,16 +105,45 @@ const AboutPage: React.FC = () => {
         </div>
 
         {/* Data Curation & Engineering Integrity */}
-        <section className="bg-white dark:bg-slate-900/60 rounded-2xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+        <section className="bg-white dark:bg-slate-900/60 rounded-2xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-500" />
-            Data Curation & Engineering Quality
+            First-Principles Engineering Benchmarking Methodology
           </h3>
           <p className="text-sm">
-            All records in our database undergo multi-tiered automated extraction and rigorous parameter cross-checks against published manufacturer documentation (STC flash test data, single-diode model coefficients, and CAD dimension drawings).
+            Unlike commercial sales directories or subjective review aggregators, every quantitative comparison, Solerz Rating score (0–100), and climate degradation projection on <strong>Solerz</strong> is mathematically computed from first-principles semiconductor physics and published laboratory test certificates:
+          </p>
+          <ul className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 pl-2">
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-500 font-bold mt-0.5">•</span>
+              <span><strong>Photovoltaic Module Qualification (IEC 61215:2021 &amp; IEC 61730:2023)</strong>: Thermal cycling fatigue, damp heat encapsulant stability, and mechanical wind/snow load endurance (2400 Pa / 5400 Pa).</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-500 font-bold mt-0.5">•</span>
+              <span><strong>Inverter &amp; Grid Interconnection (IEEE 1547-2018 &amp; UL 1741 SB)</strong>: MPPT voltage boundaries, Volt-VAR autonomous grid regulation, and Sandia weighted conversion efficiency modeling.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-500 font-bold mt-0.5">•</span>
+              <span><strong>Energy Storage Fire Safety (UL 9540 &amp; NFPA 855)</strong>: 4-tier thermal runaway propagation evaluation, cell chemistry stability, and C-rate continuous load discharge limits.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-emerald-500 font-bold mt-0.5">•</span>
+              <span><strong>National Electrical Code (NEC Article 690 &amp; 705)</strong>: Temperature-adjusted Voc string sizing calculations down to -35°C and 120% busbar interconnection safety compliance.</span>
+            </li>
+          </ul>
+        </section>
+
+        {/* Editorial Independence & Non-Bias Declaration */}
+        <section className="bg-white dark:bg-slate-900/60 rounded-2xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Cpu className="w-5 h-5 text-blue-500" />
+            Editorial Independence &amp; Academic Integrity
+          </h3>
+          <p className="text-sm">
+            Solerz operates as an independent clean energy intelligence repository. We do not accept sponsored product placements or paid ranking enhancements. All hardware comparisons, Solerz Ratings, and Arena leaderboards are strictly deterministic and reproducible by any certified NABCEP professional engineer.
           </p>
           <p className="text-sm">
-            We actively invite engineering feedback, corrections, and datasheet submissions from manufacturers, installers, and academic researchers to keep Solerz the most reliable open solar repository on the web.
+            We actively invite engineering feedback, corrections, and datasheet submissions from manufacturers, EPC installers, and academic researchers to keep Solerz the most reliable open solar repository on the web.
           </p>
         </section>
 
