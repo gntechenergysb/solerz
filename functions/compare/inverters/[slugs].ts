@@ -240,7 +240,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     status: inverters.length >= 2 ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      'Cache-Control': inverters.length >= 2 ? 'public, max-age=0, s-maxage=86400' : 'no-cache, no-store',
+      'Cache-Control': inverters.length >= 2 ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=120' : 'no-cache, no-store',
     },
   });
 };

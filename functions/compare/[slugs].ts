@@ -180,8 +180,8 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     status: panels.length >= 2 ? 200 : 404,
     headers: {
       'Content-Type': 'text/html; charset=UTF-8',
-      // Edge caching 24 hours on Cloudflare global CDN
-      'Cache-Control': panels.length >= 2 ? 'public, max-age=0, s-maxage=86400' : 'no-cache, no-store',
+      // Short edge caching to allow immediate updates on deployment
+      'Cache-Control': panels.length >= 2 ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=120' : 'no-cache, no-store',
     },
   });
 };

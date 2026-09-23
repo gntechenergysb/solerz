@@ -587,6 +587,73 @@ const ComparePage: React.FC = () => {
       </div>
 
       {/* ================================================================= */}
+      {/* KEY ADVANTAGES SUMMARY FOR EACH PANEL */}
+      {/* ================================================================= */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-emerald-500" />
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+            Key Advantages &amp; Standouts
+          </h3>
+        </div>
+
+        <div
+          className={`grid gap-4 ${
+            columnCount === 2
+              ? 'grid-cols-1 md:grid-cols-2'
+              : columnCount === 3
+              ? 'grid-cols-1 md:grid-cols-3'
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+          }`}
+        >
+          {panels.map((panel, pIdx) => {
+            const wins: string[] = [];
+            sections.forEach((sec) => {
+              sec.specs.forEach((sp) => {
+                if (sp.values[pIdx]?.isWinner) {
+                  wins.push(`${sp.label} (${sp.values[pIdx].formatted})`);
+                }
+              });
+            });
+
+            return (
+              <div
+                key={panel.id}
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+              >
+                <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                    {panel.brand_name}
+                  </span>
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
+                    {panel.model_name}
+                  </h4>
+                </div>
+
+                {wins.length > 0 ? (
+                  <ul className="space-y-2">
+                    {wins.map((w, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400"
+                      >
+                        <Trophy className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-none" />
+                        <span>{w}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+                    Competitive specs balanced across all metrics.
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ================================================================= */}
       {/* SOLERZ DETERMINISTIC ENGINEERING HEURISTICS & PHYSICS VERDICTS */}
       {/* ================================================================= */}
       {filteredVerdicts.length > 0 && (
@@ -749,73 +816,6 @@ const ComparePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ================================================================= */}
-      {/* KEY ADVANTAGES SUMMARY FOR EACH PANEL */}
-      {/* ================================================================= */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-emerald-500" />
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-            Key Advantages &amp; Standouts
-          </h3>
-        </div>
-
-        <div
-          className={`grid gap-4 ${
-            columnCount === 2
-              ? 'grid-cols-1 md:grid-cols-2'
-              : columnCount === 3
-              ? 'grid-cols-1 md:grid-cols-3'
-              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-          }`}
-        >
-          {panels.map((panel, pIdx) => {
-            const wins: string[] = [];
-            sections.forEach((sec) => {
-              sec.specs.forEach((sp) => {
-                if (sp.values[pIdx]?.isWinner) {
-                  wins.push(`${sp.label} (${sp.values[pIdx].formatted})`);
-                }
-              });
-            });
-
-            return (
-              <div
-                key={panel.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
-              >
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
-                    {panel.brand_name}
-                  </span>
-                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
-                    {panel.model_name}
-                  </h4>
-                </div>
-
-                {wins.length > 0 ? (
-                  <ul className="space-y-2">
-                    {wins.map((w, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400"
-                      >
-                        <Trophy className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-none" />
-                        <span>{w}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-slate-400 dark:text-slate-500 italic">
-                    Competitive specs balanced across all metrics.
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* ================================================================= */}
       {/* RELATED COMPARISONS */}
