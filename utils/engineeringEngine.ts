@@ -972,13 +972,13 @@ export function renderFullComparisonPrerenderHtml(
   panels: PanelLike[],
   verdicts: EngineeringVerdict[]
 ): string {
-  const verdictsHtml = renderVerdictsToPrerenderHtml(panels, verdicts);
   const specsTableHtml = renderComparisonSpecsTableHtml(panels);
+  const verdictsHtml = renderVerdictsToPrerenderHtml(panels, verdicts);
 
   return `
   <main id="ssr-prerendered-root" style="background-color: #ffffff; color: #0f172a; padding: 20px 0 60px 0;">
-    ${verdictsHtml}
     ${specsTableHtml}
+    ${verdictsHtml}
   </main>
   `;
 }

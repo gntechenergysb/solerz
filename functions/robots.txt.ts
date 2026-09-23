@@ -5,6 +5,9 @@ export const onRequest: PagesFunction<Env> = async ({ request }) => {
   const origin = getOrigin(request);
 
   const body = [
+    'User-agent: Mediapartners-Google',
+    'Allow: /',
+    '',
     'User-agent: *',
     'Allow: /',
     'Disallow: /dashboard',

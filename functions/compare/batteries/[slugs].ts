@@ -149,6 +149,29 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
         </p>
       </div>
 
+      <!-- Comparison Specs Table -->
+      <div style="border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 30px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+              <th style="padding: 12px 20px; color: #64748b;">Parameter</th>
+              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(b1.brand_name)} ${escapeHtml(b1.model_name)}</th>
+              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(b2.brand_name)} ${escapeHtml(b2.model_name)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Usable Capacity</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${cap1} kWh</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${cap2} kWh</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Continuous Power</td><td style="padding: 10px 20px; font-weight: 700;">${pwr1} kW</td><td style="padding: 10px 20px; font-weight: 700;">${pwr2} kW</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Peak Power</td><td style="padding: 10px 20px; font-weight: 700;">${b1.peak_power_kw ? `${b1.peak_power_kw} kW` : '—'}</td><td style="padding: 10px 20px; font-weight: 700;">${b2.peak_power_kw ? `${b2.peak_power_kw} kW` : '—'}</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Round-Trip Efficiency</td><td style="padding: 10px 20px; font-weight: 700;">${rte1} %</td><td style="padding: 10px 20px; font-weight: 700;">${rte2} %</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Battery Chemistry</td><td style="padding: 10px 20px; font-weight: 700;">${escapeHtml(b1.battery_type || 'LiFePO4')}</td><td style="padding: 10px 20px; font-weight: 700;">${escapeHtml(b2.battery_type || 'LiFePO4')}</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Nominal Voltage</td><td style="padding: 10px 20px; font-weight: 700;">${b1.nominal_voltage_v} V</td><td style="padding: 10px 20px; font-weight: 700;">${b2.nominal_voltage_v} V</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Cycle Life</td><td style="padding: 10px 20px; font-weight: 700;">${b1.cycle_life_count || 6000} Cycles</td><td style="padding: 10px 20px; font-weight: 700;">${b2.cycle_life_count || 6000} Cycles</td></tr>
+            <tr><td style="padding: 10px 20px; color: #64748b;">Warranty Period</td><td style="padding: 10px 20px; font-weight: 700;">${b1.warranty_years || 10} Years</td><td style="padding: 10px 20px; font-weight: 700;">${b2.warranty_years || 10} Years</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <!-- Engineering Verdicts -->
       <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 30px;">
         <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 16px;">
@@ -178,29 +201,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
             Rated round-trip AC efficiency is <strong>${rte1}%</strong> vs <strong>${rte2}%</strong>. Over a standard 10-year warranty span (approx. 4,000 cycles at full depth of discharge), an efficiency variance of ${Math.abs(Number(rte1) - Number(rte2)).toFixed(1)}% prevents up to <strong>${(4000 * Math.min(cap1, cap2) * Math.abs(Number(rte1) - Number(rte2)) / 100).toFixed(0)} kWh</strong> of lost electrical energy from dissipating as ambient heat.
           </p>
         </div>
-      </div>
-
-      <!-- Comparison Specs Table -->
-      <div style="border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 30px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-          <thead>
-            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-              <th style="padding: 12px 20px; color: #64748b;">Parameter</th>
-              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(b1.brand_name)} ${escapeHtml(b1.model_name)}</th>
-              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(b2.brand_name)} ${escapeHtml(b2.model_name)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Usable Capacity</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${cap1} kWh</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${cap2} kWh</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Continuous Power</td><td style="padding: 10px 20px; font-weight: 700;">${pwr1} kW</td><td style="padding: 10px 20px; font-weight: 700;">${pwr2} kW</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Peak Power</td><td style="padding: 10px 20px; font-weight: 700;">${b1.peak_power_kw ? `${b1.peak_power_kw} kW` : '—'}</td><td style="padding: 10px 20px; font-weight: 700;">${b2.peak_power_kw ? `${b2.peak_power_kw} kW` : '—'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Round-Trip Efficiency</td><td style="padding: 10px 20px; font-weight: 700;">${rte1} %</td><td style="padding: 10px 20px; font-weight: 700;">${rte2} %</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Battery Chemistry</td><td style="padding: 10px 20px; font-weight: 700;">${escapeHtml(b1.battery_type || 'LiFePO4')}</td><td style="padding: 10px 20px; font-weight: 700;">${escapeHtml(b2.battery_type || 'LiFePO4')}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Nominal Voltage</td><td style="padding: 10px 20px; font-weight: 700;">${b1.nominal_voltage_v} V</td><td style="padding: 10px 20px; font-weight: 700;">${b2.nominal_voltage_v} V</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Cycle Life</td><td style="padding: 10px 20px; font-weight: 700;">${b1.cycle_life_count || 6000} Cycles</td><td style="padding: 10px 20px; font-weight: 700;">${b2.cycle_life_count || 6000} Cycles</td></tr>
-            <tr><td style="padding: 10px 20px; color: #64748b;">Warranty Period</td><td style="padding: 10px 20px; font-weight: 700;">${b1.warranty_years || 10} Years</td><td style="padding: 10px 20px; font-weight: 700;">${b2.warranty_years || 10} Years</td></tr>
-          </tbody>
-        </table>
       </div>
 
       <!-- Cross Links -->

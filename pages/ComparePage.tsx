@@ -499,6 +499,94 @@ const ComparePage: React.FC = () => {
       </div>
 
       {/* ================================================================= */}
+      {/* 100% ALIGNED SPECIFICATION COMPARISON SECTIONS */}
+      {/* ================================================================= */}
+      <div className="space-y-6">
+        {sections.map((section) => (
+
+          <div
+            key={section.title}
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
+          >
+            {/* Category Header */}
+            <div className="flex items-center gap-2.5 px-5 sm:px-6 py-3.5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
+              <div className="p-1.5 rounded-lg bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm">
+                {section.icon}
+              </div>
+              <h2 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                {section.title}
+              </h2>
+            </div>
+
+            {/* Spec rows: Left label (w-72) + Right aligned values grid */}
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/70">
+              {section.specs.map((spec, i) => (
+                <div
+                  key={i}
+                  className="p-4 sm:px-6 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                >
+                  <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
+                    {/* Left Spec Label & Explanation (w-72 exact match with top header) */}
+                    <div className="w-full lg:w-72 flex-none pr-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                          {spec.label}
+                        </span>
+                        {spec.sub && (
+                          <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            {spec.sub}
+                          </span>
+                        )}
+                      </div>
+                      {spec.desc && (
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                          {spec.desc}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Right Values Grid (100% aligned with header cards) */}
+                    <div className={`flex-1 grid gap-3.5 ${gridColumnsClass}`}>
+                      {spec.values.map((v, valIdx) => (
+                        <div
+                          key={valIdx}
+                          className={`p-2.5 rounded-xl text-left flex items-center justify-between gap-1 transition-all ${
+                            v.isWinner
+                              ? 'bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-700/60 font-bold text-emerald-800 dark:text-emerald-300 shadow-sm'
+                              : 'text-slate-700 dark:text-slate-300 font-medium'
+                          }`}
+                        >
+                          <span className="text-xs sm:text-sm tabular-nums truncate">
+                            {v.formatted}
+                          </span>
+                          {v.isWinner && (
+                            <Trophy
+                              className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-none ml-1"
+                              title="Best in comparison"
+                            />
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Empty filler cell for alignment under the +Add Card */}
+                      {canAddMore && (
+                        <div className="p-2.5 rounded-xl border border-dashed border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-700 text-center text-xs flex items-center justify-center">
+                          <Plus
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="w-3.5 h-3.5 cursor-pointer hover:text-emerald-500 transition-colors"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ================================================================= */}
       {/* SOLERZ DETERMINISTIC ENGINEERING HEURISTICS & PHYSICS VERDICTS */}
       {/* ================================================================= */}
       {filteredVerdicts.length > 0 && (
@@ -661,94 +749,6 @@ const ComparePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ================================================================= */}
-      {/* 100% ALIGNED SPECIFICATION COMPARISON SECTIONS */}
-      {/* ================================================================= */}
-      <div className="space-y-6">
-        {sections.map((section) => (
-
-          <div
-            key={section.title}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
-          >
-            {/* Category Header */}
-            <div className="flex items-center gap-2.5 px-5 sm:px-6 py-3.5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200/80 dark:border-slate-800">
-              <div className="p-1.5 rounded-lg bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm">
-                {section.icon}
-              </div>
-              <h2 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                {section.title}
-              </h2>
-            </div>
-
-            {/* Spec rows: Left label (w-72) + Right aligned values grid */}
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/70">
-              {section.specs.map((spec, i) => (
-                <div
-                  key={i}
-                  className="p-4 sm:px-6 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
-                >
-                  <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
-                    {/* Left Spec Label & Explanation (w-72 exact match with top header) */}
-                    <div className="w-full lg:w-72 flex-none pr-3">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-                          {spec.label}
-                        </span>
-                        {spec.sub && (
-                          <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
-                            {spec.sub}
-                          </span>
-                        )}
-                      </div>
-                      {spec.desc && (
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
-                          {spec.desc}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Right Values Grid (100% aligned with header cards) */}
-                    <div className={`flex-1 grid gap-3.5 ${gridColumnsClass}`}>
-                      {spec.values.map((v, valIdx) => (
-                        <div
-                          key={valIdx}
-                          className={`p-2.5 rounded-xl text-left flex items-center justify-between gap-1 transition-all ${
-                            v.isWinner
-                              ? 'bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-700/60 font-bold text-emerald-800 dark:text-emerald-300 shadow-sm'
-                              : 'text-slate-700 dark:text-slate-300 font-medium'
-                          }`}
-                        >
-                          <span className="text-xs sm:text-sm tabular-nums truncate">
-                            {v.formatted}
-                          </span>
-                          {v.isWinner && (
-                            <Trophy
-                              className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-none ml-1"
-                              title="Best in comparison"
-                            />
-                          )}
-                        </div>
-                      ))}
-
-                      {/* Empty filler cell for alignment under the +Add Card */}
-                      {canAddMore && (
-                        <div className="p-2.5 rounded-xl border border-dashed border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-700 text-center text-xs flex items-center justify-center">
-                          <Plus
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="w-3.5 h-3.5 cursor-pointer hover:text-emerald-500 transition-colors"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* ================================================================= */}
       {/* KEY ADVANTAGES SUMMARY FOR EACH PANEL */}

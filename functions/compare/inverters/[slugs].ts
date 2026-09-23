@@ -171,6 +171,28 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
         </p>
       </div>
 
+      <!-- Comparison Specs Table -->
+      <div style="border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 30px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+              <th style="padding: 12px 20px; color: #64748b;">Parameter</th>
+              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(inv1.brand_name)} ${escapeHtml(inv1.model_name)}</th>
+              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(inv2.brand_name)} ${escapeHtml(inv2.model_name)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Continuous AC Power (Paco)</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.paco_w)} W</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.paco_w)} W</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Nominal AC Grid Voltage</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.vac_v)} V</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.vac_v)} V</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Weighted Efficiency</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${eff1}%</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${eff2}%</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Max DC Voltage (Vdcmax)</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.vdcmax_v)} V</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.vdcmax_v)} V</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">MPPT Voltage Range</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.mppt_low_v)}–${Math.round(inv1.mppt_high_v)} V</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.mppt_low_v)}–${Math.round(inv2.mppt_high_v)} V</td></tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Max Input Current (Idcmax)</td><td style="padding: 10px 20px; font-weight: 700;">${inv1.idcmax_a ? `${inv1.idcmax_a} A` : '—'}</td><td style="padding: 10px 20px; font-weight: 700;">${inv2.idcmax_a ? `${inv2.idcmax_a} A` : '—'}</td></tr>
+            <tr><td style="padding: 10px 20px; color: #64748b;">Battery Storage Hybrid</td><td style="padding: 10px 20px; font-weight: 700;">${inv1.is_hybrid ? 'Yes (Hybrid)' : 'No (Standard PV)'}</td><td style="padding: 10px 20px; font-weight: 700;">${inv2.is_hybrid ? 'Yes (Hybrid)' : 'No (Standard PV)'}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <!-- Engineering Verdicts -->
       <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 30px;">
         <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 16px;">
@@ -200,28 +222,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
             ${escapeHtml(inv1.model_name)} operates across ${Math.round(inv1.mppt_low_v)}–${Math.round(inv1.mppt_high_v)}V (span: ${Math.round(inv1.mppt_high_v - inv1.mppt_low_v)}V), compared to ${Math.round(inv2.mppt_low_v)}–${Math.round(inv2.mppt_high_v)}V (span: ${Math.round(inv2.mppt_high_v - inv2.mppt_low_v)}V) for ${escapeHtml(inv2.model_name)}. A wider voltage tracking window allows string inverters to begin energy harvesting earlier in the morning and avoid thermal clipping on hot afternoons.
           </p>
         </div>
-      </div>
-
-      <!-- Comparison Specs Table -->
-      <div style="border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 30px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-          <thead>
-            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-              <th style="padding: 12px 20px; color: #64748b;">Parameter</th>
-              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(inv1.brand_name)} ${escapeHtml(inv1.model_name)}</th>
-              <th style="padding: 12px 20px; font-weight: 800;">${escapeHtml(inv2.brand_name)} ${escapeHtml(inv2.model_name)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Continuous AC Power (Paco)</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.paco_w)} W</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.paco_w)} W</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Nominal AC Grid Voltage</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.vac_v)} V</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.vac_v)} V</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">Weighted Efficiency</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${eff1}%</td><td style="padding: 10px 20px; font-weight: 700; color: #059669;">${eff2}%</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Max DC Voltage (Vdcmax)</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.vdcmax_v)} V</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.vdcmax_v)} V</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px 20px; color: #64748b;">MPPT Voltage Range</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv1.mppt_low_v)}–${Math.round(inv1.mppt_high_v)} V</td><td style="padding: 10px 20px; font-weight: 700;">${Math.round(inv2.mppt_low_v)}–${Math.round(inv2.mppt_high_v)} V</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fafafa;"><td style="padding: 10px 20px; color: #64748b;">Max Input Current (Idcmax)</td><td style="padding: 10px 20px; font-weight: 700;">${inv1.idcmax_a ? `${inv1.idcmax_a} A` : '—'}</td><td style="padding: 10px 20px; font-weight: 700;">${inv2.idcmax_a ? `${inv2.idcmax_a} A` : '—'}</td></tr>
-            <tr><td style="padding: 10px 20px; color: #64748b;">Battery Storage Hybrid</td><td style="padding: 10px 20px; font-weight: 700;">${inv1.is_hybrid ? 'Yes (Hybrid)' : 'No (Standard PV)'}</td><td style="padding: 10px 20px; font-weight: 700;">${inv2.is_hybrid ? 'Yes (Hybrid)' : 'No (Standard PV)'}</td></tr>
-          </tbody>
-        </table>
       </div>
 
       <!-- Cross Links -->
