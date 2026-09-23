@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Lightbulb,
-  BookOpen,
   ChevronDown,
   ChevronUp,
   Copy,
   Check,
   AlertTriangle,
   ArrowRight,
-  ShieldCheck,
 } from 'lucide-react';
 import { SOLAR_TIPS, type SolarEngineeringTip } from '../data/solarTipsData';
 
@@ -68,9 +66,6 @@ export const ContextualTipCard: React.FC<ContextualTipCardProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
                 Engineering Tip
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium">
-                {tip.standardRef}
               </span>
             </div>
             <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-0.5">
@@ -141,9 +136,9 @@ export const ContextualTipCard: React.FC<ContextualTipCardProps> = ({
           to="/handbook"
           className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
         >
-          Browse All 16 Engineering Tips <ArrowRight className="w-3 h-3" />
+          Browse Engineering Handbook <ArrowRight className="w-3 h-3" />
         </Link>
-        <span className="text-slate-400">Verified Engineering Reference</span>
+        <span className="text-slate-400">Field Engineering Guide</span>
       </div>
     </div>
   );

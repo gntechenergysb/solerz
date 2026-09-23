@@ -802,10 +802,6 @@ const ComparePage: React.FC = () => {
                             <span className="font-bold text-slate-700 dark:text-slate-300">Physics Rule: </span>
                             <code>{v.formula}</code>
                           </div>
-                          <div>
-                            <span className="font-bold text-slate-700 dark:text-slate-300">Standard: </span>
-                            <span>{v.standardRef}</span>
-                          </div>
                         </div>
                       )}
                     </div>

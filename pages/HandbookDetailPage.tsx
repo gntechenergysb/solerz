@@ -6,22 +6,18 @@ import {
   Check,
   Copy,
   AlertTriangle,
-  ShieldCheck,
   Calculator,
   Zap,
   Sun,
   Battery,
   Shield,
   Sparkles,
-  ExternalLink,
   ChevronRight,
   GitCompareArrows,
-  Layers,
   Award,
   Share2,
 } from 'lucide-react';
 import { SOLAR_TIPS, type SolarEngineeringTip } from '../data/solarTipsData';
-import { SOLAR_STANDARDS } from '../data/solarStandardsData';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   modules: <Sun className="w-4 h-4 text-amber-500" />,
@@ -48,20 +44,6 @@ const HandbookDetailPage: React.FC = () => {
     return SOLAR_TIPS.filter((t) => t.id !== tip.id && t.category === tip.category).slice(0, 3);
   }, [tip]);
 
-  // Related standards
-  const relatedStandards = useMemo(() => {
-    if (!tip) return [];
-    const catMap: Record<string, string> = {
-      modules: 'modules',
-      inverters: 'inverters',
-      batteries: 'batteries',
-      sizing: 'installation',
-      safety: 'installation',
-    };
-    const targetCat = catMap[tip.category] || 'modules';
-    return SOLAR_STANDARDS.filter((s) => s.category === targetCat).slice(0, 2);
-  }, [tip]);
-
   useEffect(() => {
     if (!tip) return;
 
@@ -79,7 +61,6 @@ const HandbookDetailPage: React.FC = () => {
           about: [
             { '@type': 'Thing', name: tip.categoryLabel },
             { '@type': 'Thing', name: 'Photovoltaic Engineering' },
-            { '@type': 'Thing', name: tip.standardRef },
           ],
           author: {
             '@type': 'Organization',
@@ -102,7 +83,7 @@ const HandbookDetailPage: React.FC = () => {
               name: tip.question,
               acceptedAnswer: {
                 '@type': 'Answer',
-                text: `${tip.summary} Mathematical Rule: ${tip.formulaOrRule}. Reference: ${tip.standardRef}.`,
+                text: `${tip.summary} Mathematical Rule: ${tip.formulaOrRule}.`,
               },
             },
           ],
@@ -147,7 +128,7 @@ const HandbookDetailPage: React.FC = () => {
           Engineering Article Not Found
         </h2>
         <p className="text-sm text-slate-500 mb-6">
-          The requested engineering topic or standard rule could not be located.
+          The requested engineering topic could not be located.
         </p>
         <Link
           to="/handbook"
@@ -203,7 +184,7 @@ const HandbookDetailPage: React.FC = () => {
             5 min read
           </span>
           <span className="text-xs text-slate-400">
-            Updated for 2026 IEC &amp; NEC Codes
+            Field Engineering Guide
           </span>
         </div>
 
@@ -221,14 +202,14 @@ const HandbookDetailPage: React.FC = () => {
               Peer-Reviewed Technical Whitepaper
             </span>
             <span className="text-slate-400 text-[11px]">
-              Authored &amp; validated by Solerz Photovoltaic Engineering Specialists | Citing IEC 61215, NEC 690 &amp; NREL Modeling
+              Authored &amp; validated by Solerz Photovoltaic Engineering Specialists
             </span>
           </div>
         </div>
       </header>
 
       {/* ----------------------------------------------------------------- */}
-      {/* 1. Direct Question & Quick Executive Answer Box (AI Overviews Target) */}
+      {/* 1. Direct Question & Quick Executive Answer Box */}
       {/* ----------------------------------------------------------------- */}
       <section className="bg-emerald-50/60 dark:bg-emerald-950/20 border-2 border-emerald-500/30 rounded-3xl p-6 sm:p-7 space-y-3">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -266,10 +247,6 @@ const HandbookDetailPage: React.FC = () => {
         <div className="p-4 rounded-2xl bg-slate-900 text-emerald-400 font-mono text-xs sm:text-sm overflow-x-auto shadow-inner border border-slate-800">
           <code>{tip.formulaOrRule}</code>
         </div>
-
-        <p className="text-xs text-slate-400 dark:text-slate-500">
-          Governed under standard regulatory reference: <span className="font-semibold text-slate-600 dark:text-slate-300">{tip.standardRef}</span>
-        </p>
       </section>
 
       {/* ----------------------------------------------------------------- */}
@@ -289,14 +266,14 @@ const HandbookDetailPage: React.FC = () => {
             In photovoltaic string design, electrical parameters are never static. Thermal coefficients,
             diffuse irradiance fractions, and silicon lattice recombination rates fluctuate dynamically throughout the day.
             Failing to size arrays with dynamic environmental buffers inevitably leads to inverter MPPT dropouts,
-            accelerated thermal fatigue, and premature equipment warranty invalidation.
+            accelerated thermal fatigue, and premature equipment degradation.
           </p>
         </div>
 
         {/* Tags */}
         {tip.tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-xs text-slate-400 font-medium mr-1">Keywords:</span>
+            <span className="text-xs text-slate-400 font-medium mr-1">Topics:</span>
             {tip.tags.map((tag) => (
               <span
                 key={tag}
@@ -326,55 +303,7 @@ const HandbookDetailPage: React.FC = () => {
       </section>
 
       {/* ----------------------------------------------------------------- */}
-      {/* 5. International Standards Cross-Reference */}
-      {/* ----------------------------------------------------------------- */}
-      {relatedStandards.length > 0 && (
-        <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-500" />
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Applicable International Standards &amp; Regulatory Codes
-            </h3>
-          </div>
-          <div className="grid gap-3">
-            {relatedStandards.map((std) => (
-              <div
-                key={std.id}
-                className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                      {std.code}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500">
-                      {std.issuingBody}
-                    </span>
-                  </div>
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mt-1">
-                    {std.title}
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-                    {std.scope}
-                  </p>
-                </div>
-                <a
-                  href={std.officialPortalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex-none"
-                >
-                  <span>Portal</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ----------------------------------------------------------------- */}
-      {/* 6. Contextual Call-to-Action: Apply to Real Hardware */}
+      {/* 5. Contextual Call-to-Action: Apply to Real Hardware */}
       {/* ----------------------------------------------------------------- */}
       <section className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-4">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-100">
@@ -406,7 +335,7 @@ const HandbookDetailPage: React.FC = () => {
       </section>
 
       {/* ----------------------------------------------------------------- */}
-      {/* 7. Related Engineering Topics Grid */}
+      {/* 6. Related Engineering Topics Grid */}
       {/* ----------------------------------------------------------------- */}
       {relatedTips.length > 0 && (
         <section className="space-y-4 pt-4">

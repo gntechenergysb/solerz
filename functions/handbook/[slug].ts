@@ -18,7 +18,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     : 'Engineering Guide Not Found | Solerz';
 
   const description = tip
-    ? `${tip.summary} Core formula: ${tip.formulaOrRule}. Certified reference standard: ${tip.standardRef}.`
+    ? `${tip.summary} Formula: ${tip.formulaOrRule}.`
     : 'Solar Photovoltaic Engineering Handbook and installation design guidelines on Solerz.';
 
   const canonical = `${origin}/handbook/${encodeURIComponent(slug)}`;
@@ -54,7 +54,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
           about: [
             { '@type': 'Thing', name: tip.categoryLabel },
             { '@type': 'Thing', name: 'Photovoltaic Engineering' },
-            { '@type': 'Thing', name: tip.standardRef },
           ],
           author: {
             '@type': 'Organization',
@@ -113,9 +112,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
           <span style="display: inline-block; padding: 4px 12px; background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; border-radius: 9999px; text-transform: uppercase;">
             ${escapeHtml(tip.categoryLabel)}
           </span>
-          <span style="display: inline-block; padding: 4px 12px; background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; border-radius: 9999px;">
-            ${escapeHtml(tip.standardRef)}
-          </span>
         </div>
         <h1 style="font-size: 30px; font-weight: 900; color: #0f172a; margin: 0 0 12px 0; line-height: 1.25;">
           ${escapeHtml(tip.title)}
@@ -158,21 +154,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
       <!-- Critical Pitfall Alert -->
       <section style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 14px; padding: 20px 24px; margin-bottom: 28px;">
         <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #e11d48; margin-bottom: 6px;">
-          Critical Field Pitfall &amp; Safety Hazard
+          Critical Field Pitfall &amp; Safety Warning
         </div>
         <p style="font-size: 14px; color: #9f1239; margin: 0; line-height: 1.6;">
           ${escapeHtml(tip.pitfall)}
         </p>
-      </section>
-
-      <!-- Standard & Code Compliance -->
-      <section style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px 24px; margin-bottom: 36px;">
-        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
-          International Standard Reference
-        </div>
-        <div style="font-size: 14px; font-weight: 700; color: #0f172a;">
-          ${escapeHtml(tip.standardRef)}
-        </div>
       </section>
 
       <!-- Cross-Resource Navigation Hub -->
@@ -184,7 +170,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
           Compare Hardware on Arena
         </a>
         <a href="/handbook" style="display: inline-block; padding: 10px 18px; background: #475569; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 13px;">
-          Browse All 16 Handbook Guides
+          Browse All Engineering Guides
         </a>
       </div>
     </article>

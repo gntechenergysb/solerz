@@ -829,13 +829,12 @@ export function renderVerdictsToPrerenderHtml(
 
       <div style="font-size: 11px; color: #64748b; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
         <div style="margin-bottom: 4px;"><strong>Engineering Rule:</strong> <code>${escapeHtml(v.formula)}</code></div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span><strong>Standard:</strong> ${escapeHtml(v.standardRef)}</span>
+        <div style="display: flex; justify-content: flex-end; align-items: center;">
           ${
             v.handbookSlug
               ? `<a href="/handbook/${escapeHtml(
                   v.handbookSlug
-                )}" style="color: #059669; font-weight: 700; text-decoration: underline;">Read Full Engineering Guide &rarr;</a>`
+                )}" style="color: #059669; font-weight: 700; text-decoration: underline;">Read Engineering Guide &rarr;</a>`
               : ''
           }
         </div>

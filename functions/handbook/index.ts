@@ -9,9 +9,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   let baseHtml = await fetchIndexHtml(env, origin);
   baseHtml = cleanBaseHtml(baseHtml);
 
-  const title = 'Solar Engineering Handbook & Design Standards Reference | Solerz';
+  const title = 'Solar Engineering Handbook & Design Formulas | Solerz';
   const description =
-    'Practical, first-principles engineering guides for photovoltaic modules, string inverters, and battery storage. Sizing formulas, NEC codes, and thermal derating physics.';
+    'Practical, first-principles engineering guides for photovoltaic modules, string inverters, and battery storage. Sizing formulas, electrical rules, and thermal derating physics.';
 
   const head = [
     `<title>${escapeHtml(title)}</title>`,
@@ -74,9 +74,6 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
         <span style="display: inline-block; padding: 3px 10px; background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; border-radius: 9999px; text-transform: uppercase;">
           ${escapeHtml(tip.categoryLabel)}
         </span>
-        <span style="display: inline-block; padding: 3px 10px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 600; border-radius: 9999px;">
-          ${escapeHtml(tip.standardRef)}
-        </span>
       </div>
       <h2 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">
         <a href="/handbook/${escapeHtml(tip.slug)}" style="color: #0f172a; text-decoration: none;">${escapeHtml(tip.title)}</a>
@@ -95,13 +92,13 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   <div id="ssr-handbook-index-prerender" style="max-width: 1000px; margin: 30px auto; padding: 0 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; line-height: 1.6;">
     <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 28px;">
       <div style="display: inline-block; padding: 4px 12px; background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; border-radius: 9999px; text-transform: uppercase; margin-bottom: 8px;">
-        Engineering Whitepapers &amp; Field Rules
+        Engineering Guides &amp; Field Rules
       </div>
       <h1 style="font-size: 30px; font-weight: 900; color: #0f172a; margin: 0 0 8px 0;">
         Solar Engineering Handbook
       </h1>
       <p style="font-size: 15px; color: #475569; margin: 0;">
-        16 first-principles technical whitepapers, sizing rules, and installation standards compiled for solar system designers.
+        ${SOLAR_TIPS.length} practical calculation formulas, sizing rules, and field engineering guides for solar system designers.
       </p>
     </div>
 
