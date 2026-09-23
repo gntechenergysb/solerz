@@ -13,11 +13,8 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Col 1: Brand & Mission (takes 2 cols on lg) */}
           <div className="lg:col-span-2 space-y-4">
-            <Link to="/" className="inline-flex items-center gap-2 text-slate-900 dark:text-white group">
-              <Logo className="w-7 h-7 text-amber-500 transition-transform group-hover:scale-105" />
-              <span className="text-xl font-black tracking-tight font-sans">
-                SOLERZ<span className="text-amber-500">.</span>
-              </span>
+            <Link to="/" className="inline-flex items-center group focus:outline-none" aria-label="Solerz Home">
+              <Logo size="md" className="transition-transform group-hover:scale-105" />
             </Link>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
               Open engineering intelligence platform and digital specification vault for photovoltaic modules, string inverters, and battery storage systems. Accelerating clean energy design worldwide.
