@@ -85,6 +85,16 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
       'rapid-shutdown-nec-compliance',
       'module-soiling-self-cleaning-tilt',
       'grounding-and-equipotential-bonding',
+      'seasonal-tilt-angle-optimization',
+      'azimuth-orientation-efficiency-penalty',
+      'dc-cable-sizing-voltage-drop-formula',
+      'partial-shading-cell-reversal-hotspots',
+      'battery-bank-cross-connection-balancing',
+      'bess-hydrogen-venting-convection-sizing',
+      'offgrid-holdover-days-battery-sizing',
+      'mppt-vs-pwm-temperature-derating-factor',
+      'rooftop-standoff-gap-thermal-cooling',
+      'dc-arc-fault-isolation-switch-requirements',
     ];
     for (const slug of tipSlugs) {
       addUrl(`${origin}/handbook/${slug}`, nowIso, 'weekly', '0.9');
