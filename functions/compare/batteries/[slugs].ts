@@ -1,5 +1,5 @@
 import type { Env, PagesFunction } from '../../_utils';
-import { escapeHtml, fetchIndexHtml, getOrigin, injectHead, injectRootContent, supabaseRestGet } from '../../_utils';
+import { cleanBaseHtml, escapeHtml, fetchIndexHtml, getOrigin, injectHead, injectRootContent, supabaseRestGet } from '../../_utils';
 
 type BatteryRow = {
   id: string;
@@ -33,13 +33,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
   const rawSlugs = String((params as any).slugs || '').trim();
 
   let baseHtml = await fetchIndexHtml(env, origin);
-
-  // Strip template meta tags
-  baseHtml = baseHtml.replace(/<title>[\s\S]*?<\/title>/i, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*property="og:[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*property="twitter:[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*name="twitter:[^>]*>/gi, '');
+  baseHtml = cleanBaseHtml(baseHtml);
 
   const slugList = rawSlugs
     .split('-vs-')

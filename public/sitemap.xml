@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/core.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/handbook.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/brands.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/panels-1.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/inverters.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/batteries.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://solerz.com/sitemaps/compare-panels-1.xml</loc>
+  </sitemap>
+</sitemapindex>

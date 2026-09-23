@@ -1,5 +1,6 @@
 import type { Env, PagesFunction } from '../_utils';
 import {
+  cleanBaseHtml,
   escapeHtml,
   fetchIndexHtml,
   getOrigin,
@@ -53,13 +54,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
 
   // Always serve the SPA shell but inject SEO meta tags for crawlers
   let baseHtml = await fetchIndexHtml(env, origin);
-
-  // Remove existing SEO meta to prevent duplicates
-  baseHtml = baseHtml.replace(/<title>[\s\S]*?<\/title>/i, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*property="og:[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*property="twitter:[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*name="twitter:[^>]*>/gi, '');
+  baseHtml = cleanBaseHtml(baseHtml);
 
   let panels: PanelRow[] = [];
 

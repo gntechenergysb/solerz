@@ -1,5 +1,5 @@
 import type { Env, PagesFunction } from '../../_utils';
-import { escapeHtml, fetchIndexHtml, getOrigin, injectHead, injectRootContent, supabaseRestGet } from '../../_utils';
+import { cleanBaseHtml, escapeHtml, fetchIndexHtml, getOrigin, injectHead, injectRootContent, supabaseRestGet } from '../../_utils';
 
 type InverterRow = {
   id: string;
@@ -37,13 +37,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, params }) =>
     .filter(Boolean);
 
   let baseHtml = await fetchIndexHtml(env, origin);
-
-  // Remove existing SEO meta to prevent duplicates
-  baseHtml = baseHtml.replace(/<title>[\s\S]*?<\/title>/i, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*name="description"[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*property="og:[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*property="twitter:[^>]*>/gi, '');
-  baseHtml = baseHtml.replace(/<meta[^>]*name="twitter:[^>]*>/gi, '');
+  baseHtml = cleanBaseHtml(baseHtml);
 
   let inverters: InverterRow[] = [];
 

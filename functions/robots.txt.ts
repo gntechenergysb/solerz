@@ -12,6 +12,7 @@ export const onRequest: PagesFunction<Env> = async ({ request }) => {
     'Disallow: /edit',
     'Disallow: /login',
     'Disallow: /signup',
+    'Disallow: /api/',
     `Sitemap: ${origin}/sitemap.xml`,
     ''
   ].join('\n');

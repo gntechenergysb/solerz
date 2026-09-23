@@ -68,6 +68,16 @@ export const escapeHtml = (s: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+export const cleanBaseHtml = (html: string) => {
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, '')
+    .replace(/<link[^>]*rel=["']canonical["'][^>]*>/gi, '')
+    .replace(/<meta[^>]*name=["']description["'][^>]*>/gi, '')
+    .replace(/<meta[^>]*property=["']og:[^"']*["'][^>]*>/gi, '')
+    .replace(/<meta[^>]*property=["']twitter:[^"']*["'][^>]*>/gi, '')
+    .replace(/<meta[^>]*name=["']twitter:[^"']*["'][^>]*>/gi, '');
+};
+
 export const injectHead = (html: string, headMarkup: string) => {
   const idx = html.indexOf('</head>');
   if (idx === -1) return html;

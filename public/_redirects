@@ -1,9 +1,29 @@
 /robots.txt    /robots.txt    200
-/sitemap.xml    /sitemap.xml    200
-/sitemaps/*     /sitemaps/:splat 200
+/sitemap.xml   /sitemap.xml   200
+/sitemaps/*    /sitemaps/:splat 200
 /solar-panels/* /solar-panels/:splat 200
-/inverters/*    /inverters/:splat    200
-/batteries/*    /batteries/:splat    200
-/brands/*       /brands/:splat       200
-/compare/*    /compare/:splat    200
-/*    /index.html   200
+/inverters/*   /inverters/:splat    200
+/batteries/*   /batteries/:splat    200
+/brands/*      /brands/:splat       200
+/compare/*     /compare/:splat      200
+/handbook/*    /handbook/:splat     200
+
+# Explicit valid SPA client-side application routes
+/arena           /index.html 200
+/leaderboard     /index.html 200
+/calculator      /index.html 200
+/system-sizer    /index.html 200
+/handbook        /index.html 200
+/tips            /index.html 200
+/solar-panels    /index.html 200
+/panels          /index.html 200
+/panels/*        /index.html 200
+/inverters       /index.html 200
+/batteries       /index.html 200
+/brands          /index.html 200
+/compare         /index.html 200
+/about           /index.html 200
+/contact         /index.html 200
+/privacy         /index.html 200
+/terms           /index.html 200
+/disclaimer      /index.html 200

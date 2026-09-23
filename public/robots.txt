@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /create
+Disallow: /edit
+Disallow: /login
+Disallow: /signup
+Disallow: /api/
+Sitemap: https://solerz.com/sitemap.xml
