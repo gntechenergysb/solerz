@@ -480,7 +480,7 @@ export const SOLAR_TIPS: SolarEngineeringTip[] = [
     standardRef: 'NEC 690.13 Photovoltaic System Disconnecting Means & UL 98B',
     tags: ['dc arc fault', 'isolation switch', 'circuit breaker', 'fire safety', 'electrical'],
     contextualTriggers: {
-      categoryMatch: ['safety', 'inverter', 'panel'],
+      categoryMatch: ['inverter', 'panel'],
     },
   },
 ];
